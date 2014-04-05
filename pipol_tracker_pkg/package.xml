@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<package>
+  <name>pipol_tracker</name>
+  <version>0.0.0</version>
+  <description>
+        This package implements a multl-detector, multi-target people tracker.
+        It is designed to run on-board a mobile robot. 
+        At least it requires input from some kind of people detector (legs, body, faces, ...) and
+        input form one odometry. 
+        It outputs a set of targets, each one with an (x,y) position with respect to robot frame and an ID. 
+  </description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag --> 
+  <maintainer email="andreu@beta-robots.com">Andreu Corominas Murtra</maintainer>
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <license>BSD</license>
+
+  <!-- Url tags are optional, but mutiple are allowed, one per tag -->
+  <url type="website">https://github.com/beta-robots/pipol_tracker</url>
+
+  <!-- Author tags are optional, mutiple are allowed, one per tag -->
+  <author email="andreu@beta-robots.com">Andreu Corominas Murtra</author>
+
+  <!-- The *_depend tags are used to specify dependencies -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>message_generation</build_depend>  
+  <build_depend>std_msgs</build_depend>  
+  <build_depend>geometry_msgs</build_depend>  
+  <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>cv_bridge</build_depend>  -->
+  
+  <run_depend>roscpp</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>message_runtime</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>dynamic_reconfigure</run_depend>
+  <run_depend>image_transport</run_depend>
+  <run_depend>cv_bridge</run_depend>  
+
+</package>
