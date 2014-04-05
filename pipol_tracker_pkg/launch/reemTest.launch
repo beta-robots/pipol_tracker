@@ -1,0 +1,24 @@
+<!--  To launch PT on REEM -->
+<launch>
+	<!-- 	Launch people_tracking_rai node -->
+	<node	pkg="iri_people_tracking_rai"
+		type="iri_people_tracking_rai"
+		name="iri_people_tracking_rai"
+		args=""
+		output="screen">
+		<remap from="/iri_people_tracking_rai/odometry"
+			to="/base_odometry/odom" />
+		<remap from="/iri_people_tracking_rai/legDetections"
+			to="/person/legDetections" />
+		<remap from="/iri_people_tracking_rai/bodyDetections"
+			to="/person/hogDetections" />
+            <remap from="/iri_people_tracking_rai/faceDetections"
+                  to="/person/faceDetections" />                        		
+            <remap from="/iri_people_tracking_rai/image_in"
+                  to="/person/image" />
+            <remap from="/iri_people_tracking_rai/followMe"
+                  to="/followMe/targetId" />                                                          
+        <rosparam file="$(find iri_people_tracking_rai)/launch/peopleTrackingParams.yaml" command="load" />
+	</node>
+</launch>
+

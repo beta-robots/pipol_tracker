@@ -1,0 +1,115 @@
+<!-- Launches people tracking with rosbag data-->
+
+<launch>
+      <!-- Rosbag: Leg, Body and face detections + Camera images.-->
+      <node pkg="rosbag"
+            type="play"
+            name="rosbag"
+            args="-l --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20130607_person_registration_static_head.bag" />   
+<!--        20120313_palPeople.bag" -->
+<!--        20120411_singlePerson.bag -->
+<!--        20120411_twoPeople.bag -->
+<!--        20120411_threePeople.bag -->
+<!--        20120411_robotFollowingPeople.bag -->
+<!--        20130410_1.bag -->
+<!--        20130525_01.bag -->
+<!--        20130525_02.bag -->
+<!--        20130525_reem_stop.bag -->
+<!--        20130528_person_registration.bag -->
+<!--        20130607_person_registration_static_head.bag -->
+
+      <!--  Launch people_tracking_rai node -->
+      <group ns="$(env ROBOT)">
+            <node pkg="iri_people_tracking_rai"
+                  type="iri_people_tracking_rai"
+                  name="iri_people_tracking_rai"
+                  args=""
+                  output="screen">
+                  <remap from="/$(env ROBOT)/iri_people_tracking_rai/odometry"
+                        to="/base_odometry/odom" />
+                  <remap from="/$(env ROBOT)/iri_people_tracking_rai/legDetections"
+                        to="/person/legDetections" />
+                  <remap from="/$(env ROBOT)/iri_people_tracking_rai/bodyDetections"
+                        to="/person/hogDetections" />
+                  <remap from="/$(env ROBOT)/iri_people_tracking_rai/faceDetections"
+                        to="/person/faceDetections" />                        
+                  <remap from="/$(env ROBOT)/iri_people_tracking_rai/image_in"
+                        to="/person/image" />
+                  <remap from="/$(env ROBOT)/iri_people_tracking_rai/tldDetections"
+                        to="/tld_tracked_object" />                        
+                  <remap from="/$(env ROBOT)/iri_people_tracking_rai/followMe"
+                        to="/followMe/targetId" />                                                                
+                  <rosparam file="peopleTrackingParams.yaml" command="load" />
+                  <param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
+            </node>
+      </group>
+
+      <!-- rviz configurated to debug people tracking -->
+      <node name="rviz" 
+            pkg="rviz" 
+            type="rviz"
+            args="-d $(find iri_people_tracking_rai)/launch/debugPT.vcg">
+            <param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
+      </node>
+
+      <!-- Visualization of image bounding boxes -->
+      <node name="imageBB_view_out"
+            pkg="image_view" 
+            type="image_view" >
+            <param name="window_name" value= "ON-BOARD CAMERA - BOUNDING BOXES" type="str" />
+            <remap from="/image"
+                  to="/$(env ROBOT)/iri_people_tracking_rai/image_out"/>
+      </node>
+      
+      <!--******************** START of TLD tracker ************************-->
+      <!-- declare arg to be passed in -->
+      <arg name="load_model" default="false"/>
+      <arg name="auto_face_detection" default="false"/>
+      <arg name="model_import_file" default="/home/tld_models/sample"/>
+      <arg name="model_export_file" default="/home/tld_models/sample"/>
+      <arg name="cascade_path" default="$(env ROS_ROOT)/../OpenCV/haarcascades/haarcascade_frontalface_alt.xml"/>
+      <arg name="image_topic" default="/person/image"/>
+<!--       <arg name="image_topic" default="/stereo/left/image"/> -->
+
+      <!-- TLD Node -->
+      <node name="ros_tld_tracker_node" 
+            pkg="tld_tracker" 
+            type="ros_tld_tracker_node"
+            output="screen">
+            
+            <!-- remap of topics -->
+            <remap from="image" to="$(arg image_topic)"/>
+            <remap from="bounding_box" to="/$(env ROBOT)/iri_people_tracking_rai/tld_init"/>
+            <remap from="cmds" to="tld_gui_cmds"/>
+
+            <!-- declare param and read value of arg-->
+            <param name="showOutput" value="true" type="bool"/>
+            <param name="loadModel" value="$(arg load_model)" type="bool"/>
+            <param name="autoFaceDetection" value="$(arg auto_face_detection)" type="bool"/>
+            <param name="modelImportFile" value="$(arg model_import_file)" type="string"/>
+            <param name="exportModelAfterRun" value="false" type="bool"/>
+            <param name="modelExportFile" value="$(arg model_export_file)" type="string"/>
+            <param name="cascadePath" value="$(arg cascade_path)" type="string"/>
+            <param name="x" value="200" type="int"/>
+            <param name="y" value="200" type="int"/>
+            <param name="width" value="200" type="int"/>
+            <param name="height" value="200" type="int"/>
+            <param name="correctBB" value="false" type="bool"/>
+      </node>
+      
+      
+      <!-- declare arg to be passed in -->
+<!--       <arg name="image_topic" default="/person/image"/> -->
+
+      <!-- GUI Node -->
+<!--      <node name="ros_tld_gui_node" pkg="tld_tracker" type="ros_tld_gui_node"
+            output="screen">
+            <remap from="image" to="$(arg image_topic)"/>
+            <remap from="tracked_object" to="tld_tracked_object"/>
+            <remap from="fps_tracker" to="tld_fps"/>
+      </node>-->
+
+      <!--******************** END of TLD tracker ************************-->
+      
+</launch>
+
