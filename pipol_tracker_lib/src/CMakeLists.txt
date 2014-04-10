@@ -8,24 +8,8 @@ FIND_PACKAGE(OpenCV REQUIRED)
 INCLUDE_DIRECTORIES(.)
 INCLUDE_DIRECTORIES(${observations_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIR})
-include_directories(/usr/include/eigen3)
-include_directories(/usr/local/include/eigen3)
+INCLUDE_DIRECTORIES($ENV{EIGEN3_INCLUDE_DIR})
 
-# geometry headers
-SET(geometry_headers
-      point.h
-      line.h
-      point3d.h      
-      point3dCov.h      
-)
-
-# geometry sources
-SET(geometry_sources
-      point.cpp
-      line.cpp
-      point3d.cpp      
-      point3dCov.cpp
-)
 
 # tracker header files
 SET(tracker_headers 
@@ -41,6 +25,22 @@ SET(tracker_sources
       personTarget.cpp
 	peopleTracker.cpp)	
 
+# geometry headers
+SET(geometry_headers
+      geometry/point.h
+      geometry/line.h
+      geometry/point3d.h      
+      geometry/point3dCov.h      
+)
+
+# geometry sources
+SET(geometry_sources
+      geometry/point.cpp
+      geometry/line.cpp
+      geometry/point3d.cpp      
+      geometry/point3dCov.cpp
+)
+		
 # random utility header files
 SET(random_headers
       random/simpleRnd.h)
@@ -92,8 +92,8 @@ INSTALL(TARGETS pipol_tracker
         LIBRARY DESTINATION lib/btr-libs
         ARCHIVE DESTINATION lib/btr-libs)
         
-INSTALL(FILES ${geometry_headers} DESTINATION include/btr-headers)
 INSTALL(FILES ${tracker_headers} DESTINATION include/btr-headers)
+INSTALL(FILES ${geometry_headers} DESTINATION include/btr-headers/geometry)
 INSTALL(FILES ${random_headers} DESTINATION include/btr-headers/random)
 INSTALL(FILES ${appearance_headers} DESTINATION include/btr-headers/appearance)
 INSTALL(FILES ../Findpipol_tracker.cmake DESTINATION ${CMAKE_ROOT}/Modules/)

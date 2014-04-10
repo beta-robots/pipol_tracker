@@ -3,8 +3,8 @@
 
 //#include "personPfilter.h"
 #include "personTarget.h"
-#include "point.h"
-#include "line.h"
+#include "geometry/point.h"
+#include "geometry/line.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "opencv2/imgproc/imgproc.hpp"

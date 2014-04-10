@@ -3,7 +3,7 @@
 #define personParticle_H
 
 #include <iostream>
-#include "point3d.h"
+#include "geometry/point3d.h"
 
 /**
  *
