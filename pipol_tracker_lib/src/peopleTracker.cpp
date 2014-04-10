@@ -84,12 +84,12 @@ void CpeopleTracker::setFilterParameters(const pFilterParameters & pfp)
 	filterParams.matchingBearingBeta = pfp.matchingBearingBeta;
 }
 
-void CpeopleTracker::setOnBoardCamPose(Cposition3d & camP)
-{
-      this->camINbase = camP;
-      std::cout << "CpeopleTracker: Camera pose in base link is: "; 
-      this->camINbase.printPosition();
-}
+// void CpeopleTracker::setOnBoardCamPose(Cposition3d & camP)
+// {
+//       this->camINbase = camP;
+//       std::cout << "CpeopleTracker: Camera pose in base link is: "; 
+//       this->camINbase.printPosition();
+// }
 
 void CpeopleTracker::setOnBoardCamCalMatrix()
 {

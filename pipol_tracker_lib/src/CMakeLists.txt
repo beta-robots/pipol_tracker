@@ -1,13 +1,11 @@
 cmake_minimum_required(VERSION 2.6)
 
 #find required libraries
-FIND_PACKAGE(position_3d REQUIRED)
 FIND_PACKAGE(observations REQUIRED)
 FIND_PACKAGE(OpenCV REQUIRED)
 
 # add the necessary include directories
 INCLUDE_DIRECTORIES(.)
-INCLUDE_DIRECTORIES(${position_3d_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${observations_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIR})
 include_directories(/usr/include/eigen3)
@@ -17,12 +15,16 @@ include_directories(/usr/local/include/eigen3)
 SET(geometry_headers
       point.h
       line.h
+      point3d.h      
+      point3dCov.h      
 )
 
 # geometry sources
 SET(geometry_sources
       point.cpp
       line.cpp
+      point3d.cpp      
+      point3dCov.cpp
 )
 
 # tracker header files
@@ -81,20 +83,19 @@ SET(appearance_sources
 ADD_LIBRARY(pipol_tracker SHARED ${geometry_sources} ${tracker_sources} ${random_sources} ${appearance_sources})
 
 # link necessary libraries
-TARGET_LINK_LIBRARIES(pipol_tracker ${position_3d_LIBRARY})
 TARGET_LINK_LIBRARIES(pipol_tracker ${observations_LIBRARY})
 TARGET_LINK_LIBRARIES(pipol_tracker ${OpenCV_LIBS})
 
 # install 
 INSTALL(TARGETS pipol_tracker
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib/iridrivers
-        ARCHIVE DESTINATION lib/iridrivers)
+        LIBRARY DESTINATION lib/btr-libs
+        ARCHIVE DESTINATION lib/btr-libs)
         
-INSTALL(FILES ${geometry_headers} DESTINATION include/iridrivers)
-INSTALL(FILES ${tracker_headers} DESTINATION include/iridrivers)
-INSTALL(FILES ${random_headers} DESTINATION include/iridrivers/random)
-INSTALL(FILES ${appearance_headers} DESTINATION include/iridrivers/appearance)
+INSTALL(FILES ${geometry_headers} DESTINATION include/btr-headers)
+INSTALL(FILES ${tracker_headers} DESTINATION include/btr-headers)
+INSTALL(FILES ${random_headers} DESTINATION include/btr-headers/random)
+INSTALL(FILES ${appearance_headers} DESTINATION include/btr-headers/appearance)
 INSTALL(FILES ../Findpipol_tracker.cmake DESTINATION ${CMAKE_ROOT}/Modules/)
 
 ADD_SUBDIRECTORY(examples)

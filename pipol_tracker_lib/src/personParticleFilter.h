@@ -2,7 +2,8 @@
 #define personParticleFilter_H
 
 #include <list>
-#include "position3d.h"
+#include "point3d.h"
+#include "point3dCov.h"
 #include "personParticle.h"
 #include "odometryObservation.h"
 #include "point3dObservation.h"

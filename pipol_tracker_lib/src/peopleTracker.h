@@ -153,7 +153,7 @@ class CpeopleTracker
              * Position of on-board camera with respect to robot base
              * 
              **/
-            Cposition3d camINbase; 
+            //Cposition3d camINbase; 
 		
 	public:
 		CpeopleTracker();
@@ -161,7 +161,7 @@ class CpeopleTracker
 		void setDefaultParameters();
 		void setParameters(const trackerParameters & tp);
 		void setFilterParameters(const pFilterParameters & pfp);
-            void setOnBoardCamPose(Cposition3d & camP);
+            //void setOnBoardCamPose(Cposition3d & camP);
             void setOnBoardCamCalMatrix();
             
             /** \brief Sets followMeTargetId
