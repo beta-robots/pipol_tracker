@@ -4,12 +4,12 @@
 #include <list>
 #include "geometry/point3d.h"
 #include "geometry/point3dCov.h"
-#include "personParticle.h"
-#include "odometryObservation.h"
-#include "point3dObservation.h"
-#include "bodyObservation.h"
-#include "faceObservation.h"
+#include "observations/odometryObservation.h"
+#include "observations/point3dObservation.h"
+#include "observations/bodyObservation.h"
+#include "observations/faceObservation.h"
 #include "random/simpleRnd.h"
+#include "personParticle.h"
 
 //numerical constants
 const double SQRT_2 = 1.4142;
