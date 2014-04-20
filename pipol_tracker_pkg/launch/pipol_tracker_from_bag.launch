@@ -5,7 +5,7 @@
 	<node	pkg="rosbag"
 		type="play"
 		name="rosbag"
-		args="-l --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20130607_person_registration_static_head.bag" />	
+		args="-l --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20130410_1.bag"/>	
 <!-- 		20120313_palPeople.bag" -->
 <!-- 		20120411_singlePerson.bag -->
 <!-- 		20120411_twoPeople.bag -->
@@ -20,35 +20,40 @@
 
 	<!-- 	Launch people_tracking_rai node -->
 	<group ns="$(env ROBOT)">
-		<node	pkg="iri_people_tracking_rai"
-			type="iri_people_tracking_rai"
-			name="iri_people_tracking_rai"
+		<node	pkg="pipol_tracker_pkg"
+			type="pipol_tracker_node"
+			name="pipol_tracker_node"
 			args=""
 			output="screen">
-			<remap from="/$(env ROBOT)/iri_people_tracking_rai/odometry"
+			<remap from="/$(env ROBOT)/pipol_tracker_node/odometry"
 				to="/base_odometry/odom" />
-			<remap from="/$(env ROBOT)/iri_people_tracking_rai/legDetections"
+			<remap from="/$(env ROBOT)/pipol_tracker_node/legDetections"
 				to="/person/legDetections" />
-			<remap from="/$(env ROBOT)/iri_people_tracking_rai/bodyDetections"
+			<remap from="/$(env ROBOT)/pipol_tracker_node/bodyDetections"
 				to="/person/hogDetections" />
-                  <remap from="/$(env ROBOT)/iri_people_tracking_rai/faceDetections"
+                  <remap from="/$(env ROBOT)/pipol_tracker_node/faceDetections"
                         to="/person/faceDetections" />				
-			<remap from="/$(env ROBOT)/iri_people_tracking_rai/image_in"
+			<remap from="/$(env ROBOT)/pipol_tracker_node/image_in"
 				to="/person/image" />				
-                  <remap from="/$(env ROBOT)/iri_people_tracking_rai/followMe"
+                  <remap from="/$(env ROBOT)/pipol_tracker_node/followMe"
                         to="/followMe/targetId" />                     				
-			<rosparam file="peopleTrackingParams.yaml" command="load" />
+			<rosparam command="load" file="$(find pipol_tracker_pkg)/launch/pipol_tracker_params.yaml"/>
 			<param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
 		</node>
 	</group>
 
 	<!-- rviz configurated to debug people tracking -->
-	<node 	name="rviz" 
+<!--	<node 	name="rviz" 
 		pkg="rviz" 
 		type="rviz"
-		args="-d $(find iri_people_tracking_rai)/launch/debugPT.vcg">
+		args="-d $(find pipol_tracker_pkg)/launch/pipol_tracker_viz.vcg">
 		<param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
-	</node>
+	</node>-->
+      <node name="rviz" 
+            pkg="rviz" 
+            type="rviz">
+            <param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
+      </node>
 
       <!-- 	Visualization of image bounding boxes -->
 	<node	name="imageBB_view_out"
@@ -56,7 +61,7 @@
 		type="image_view" >
 		<param name="window_name" value= "ON-BOARD CAMERA - BOUNDING BOXES" type="str" />
 		<remap from="/image"
-			to="/$(env ROBOT)/iri_people_tracking_rai/image_out"/>
+			to="/$(env ROBOT)/pipol_tracker_node/image_out"/>
 	</node>
 	
 </launch>

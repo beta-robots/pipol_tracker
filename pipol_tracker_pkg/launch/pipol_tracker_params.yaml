@@ -2,7 +2,7 @@
 #*************** particle filter parameters ************************
 
 #number of particles per target
-num_particles: 400
+num_particles: 300
 
 #when a new filter/target is launched, XY space is sampled along init_delta_xy from the first detection point 
 init_delta_xy: 0.3
