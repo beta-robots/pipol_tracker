@@ -5,7 +5,7 @@
 	<node	pkg="rosbag"
 		type="play"
 		name="rosbag"
-		args="-l --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20130410_1.bag"/>	
+		args="-l --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20130525_02.bag"/>	
 <!-- 		20120313_palPeople.bag" -->
 <!-- 		20120411_singlePerson.bag -->
 <!-- 		20120411_twoPeople.bag -->
@@ -43,26 +43,21 @@
 	</group>
 
 	<!-- rviz configurated to debug people tracking -->
-<!--	<node 	name="rviz" 
+	<node 	name="rviz" 
 		pkg="rviz" 
 		type="rviz"
-		args="-d $(find pipol_tracker_pkg)/launch/pipol_tracker_viz.vcg">
+		args="-d $(find pipol_tracker_pkg)/launch/pipol_tracker_viz.rviz">
 		<param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
-	</node>-->
-      <node name="rviz" 
-            pkg="rviz" 
-            type="rviz">
-            <param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
-      </node>
+	</node>
 
       <!-- 	Visualization of image bounding boxes -->
-	<node	name="imageBB_view_out"
+<!--	<node	name="imageBB_view_out"
 		pkg="image_view" 
 		type="image_view" >
 		<param name="window_name" value= "ON-BOARD CAMERA - BOUNDING BOXES" type="str" />
 		<remap from="/image"
 			to="/$(env ROBOT)/pipol_tracker_node/image_out"/>
-	</node>
+	</node>-->
 	
 </launch>
 

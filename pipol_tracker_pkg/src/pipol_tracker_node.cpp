@@ -292,9 +292,9 @@ void CpipolTrackerNode::fillMessages()
                   this->MarkerArrayMsg.markers[ii].pose.position.x = 0;
                   this->MarkerArrayMsg.markers[ii].pose.position.y = 0;
                   this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
-                  this->MarkerArrayMsg.markers[ii].scale.x = MARKER_SIZE;
-                  this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE;
-                  this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE*6;
+                  this->MarkerArrayMsg.markers[ii].scale.x = MARKER_SIZE*10;
+                  this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE/10;
+                  this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE/10;
                   this->MarkerArrayMsg.markers[ii].color.a = MARKER_TRANSPARENCY;
                   this->MarkerArrayMsg.markers[ii].color.r = 0;
                   this->MarkerArrayMsg.markers[ii].color.g = 1;
@@ -669,6 +669,7 @@ void CpipolTrackerNode::image_callback(const sensor_msgs::ImageConstPtr& msg)
 	{
 		//cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
             this->cvImgPtrSubs = cv_bridge::toCvCopy(msg, msg->encoding);
+            cvImgPub.encoding = msg->encoding;
 	}
 	catch (cv_bridge::Exception& e)
 	{
