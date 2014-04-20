@@ -17,7 +17,6 @@ find_package( catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 find_package( pipol_tracker REQUIRED )
-INCLUDE_DIRECTORIES($ENV{EIGEN3_INCLUDE_DIR})
 
 #SRCS files
 SET(SRCS 
@@ -61,7 +60,7 @@ catkin_package (
 )
 
 ## Specify additional locations of header files
-include_directories(${pipol_tracker_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+include_directories($ENV{EIGEN3_INCLUDE_DIR} ${pipol_tracker_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 ## Declare a cpp executable
 add_executable(pipol_tracker_node ${SRCS})

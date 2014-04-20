@@ -12,7 +12,7 @@ int main(int argc, char **argv)
       CpipolTrackerNode tracker;
       
       //set node loop rate
-      ros::Rate loop_rate(20);
+      ros::Rate loopRate(10);
       
       //node loop 
       while ( ros::ok() )
@@ -22,6 +22,9 @@ int main(int argc, char **argv)
             
             //execute pending callbacks
             ros::spinOnce(); 
+            
+            //relax to fit output rate
+            loopRate.sleep();            
       }
             
       //exit program
