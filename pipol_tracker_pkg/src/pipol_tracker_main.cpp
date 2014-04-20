@@ -6,10 +6,10 @@
 int main(int argc, char **argv)
 {
       //init ros
-      ros::init(argc, argv, "btr_point_tracker_node");
+      ros::init(argc, argv, "pipol_tracker_node");
       
       //create ros wrapper object
-      CpointTrackerNode tracker;
+      CpipolTrackerNode tracker;
       
       //set node loop rate
       ros::Rate loop_rate(20);
@@ -17,13 +17,8 @@ int main(int argc, char **argv)
       //node loop 
       while ( ros::ok() )
       {
-            //if new image , do things
-            if ( tracker.newImage() )
-            {
-                  tracker.process();
-                  tracker.publishImage();
-                  tracker.publishTracks();
-            }
+            //do things
+            tracker.process();
             
             //execute pending callbacks
             ros::spinOnce(); 

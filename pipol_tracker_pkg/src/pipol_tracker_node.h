@@ -1,7 +1,7 @@
 #ifndef pipol_tracker_node_H
 #define pipol_tracker_node_H
 
-//std
+//std C++
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -24,18 +24,20 @@
 #include <tf/transform_listener.h>
 #include <visualization_msgs/MarkerArray.h>
 
-//ROS messages belonging to this package
-#include <pipol_tracker_pkg/LegDetections.h> //leg detections (input)
-#include <pipol_tracker_pkg/HogDetections.h> //body detections (input)
-#include <pipol_tracker_pkg/FaceDetections.h> //face detections (input)
-#include <pipol_tracker_pkg/peopleTrackingArray.h> //target list (output)
+//ROS messages belonging to pal_vision_msgs pkg
+#include <pal_vision_msgs/LegDetections.h> //leg detections (input)
+#include <pal_vision_msgs/HogDetections.h> //body detections (input)
+#include <pal_vision_msgs/FaceDetections.h> //face detections (input)
+
+//ROS messages belonging to open-TLD pkg
+// #include <tld_msgs/BoundingBox.h>
+// #include <tld_msgs/Target.h>
+
+//ROS messages belonging to this pkg
+#include <pipol_tracker_pkg/personArray.h> //target list (output)
 
 //ROS dynamic configure
 #include <pipol_tracker_pkg/pipolTrackerParamsConfig.h>
-
-//open TLD
-// #include <tld_msgs/BoundingBox.h>
-// #include <tld_msgs/Target.h>
 
 //visualization constants 
 const double MARKER_SIZE = 0.5;
@@ -50,7 +52,7 @@ enum executionModes {MULTI_TRACKING=0, SHOOT_TLD, FOLLOW_ME};
 /** \brief Wrapper class of the CpeopleTracker class from pipol_tracker library
  *
  */
-class pipolTrackerNode
+class CpipolTrackerNode
 {
       protected: 
             //ros node handle
@@ -65,18 +67,20 @@ class pipolTrackerNode
             ros::Subscriber bodyDetectionsSubs;
             ros::Subscriber faceDetectionsSubs;
             ros::Subscriber followMeSubs;
-            ros::Subscriber tldDetectionsSubs;
+            //ros::Subscriber tldDetectionsSubs;
             image_transport::Subscriber imageSubs;
             cv_bridge::CvImagePtr cvImgPtrSubs;            
                   
-            //publishers & messages
+            //publishers
             ros::Publisher particleSetPub;      
-            visualization_msgs::MarkerArray MarkerArrayMsg;
             ros::Publisher peopleSetPub;
-            pipol_tracker_pkg::personArray personArrayMsg;
             image_transport::Publisher imagePub;      
-            cv_bridge::CvImage cvImgPub;
             // ros::Publisher tldBoxPub;
+            
+            // output messages
+            visualization_msgs::MarkerArray MarkerArrayMsg;
+            pipol_tracker_pkg::personArray personArrayMsg;
+            cv_bridge::CvImage cvImgPub;
             // tld_msgs::Target tldBoxMsg;
             
             //management variables
@@ -104,13 +108,12 @@ class pipolTrackerNode
       protected: 
             // subscriber callbacks
             void odometry_callback(const nav_msgs::Odometry::ConstPtr& msg);
-            void legDetections_callback(const pipol_tracker_pkg::LegDetections::ConstPtr& msg);
-            void bodyDetections_callback(const pipol_tracker_pkg::HogDetections::ConstPtr& msg);
-            void faceDetections_callback(const pipol_tracker_pkg::FaceDetections::ConstPtr& msg);
+            void legDetections_callback(const pal_vision_msgs::LegDetections::ConstPtr& msg);
+            void bodyDetections_callback(const pal_vision_msgs::HogDetections::ConstPtr& msg);
+            void faceDetections_callback(const pal_vision_msgs::FaceDetections::ConstPtr& msg);
             void followMe_callback(const std_msgs::Int32::ConstPtr& msg);
-            void tldDetections_callback(const tld_msgs::BoundingBox::ConstPtr& msg);
             void image_callback(const sensor_msgs::ImageConstPtr& msg);
-
+            //void tldDetections_callback(const tld_msgs::BoundingBox::ConstPtr& msg);
 
       public:
             /** \brief Constructor
@@ -118,14 +121,14 @@ class pipolTrackerNode
             * This constructor initializes specific class attributes and all ROS
             * communications variables to enable message exchange.
             */
-            pipolTrackerNode();
+            CpipolTrackerNode();
 
             /** \brief Destructor
             * 
             * This destructor frees all necessary dynamic memory allocated within this
             * this class.
             */
-            ~pipolTrackerNode();
+            ~CpipolTrackerNode();
 
             /** \brief Main process 
             * 
@@ -138,7 +141,6 @@ class pipolTrackerNode
             * 
             * Fills main output and debug messages
             */
-            void fillMessages();
-                                    
+            void fillMessages();                              
 };
 #endif

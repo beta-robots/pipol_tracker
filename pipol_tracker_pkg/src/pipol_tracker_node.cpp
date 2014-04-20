@@ -1,6 +1,6 @@
 #include "pipol_tracker_node.h"
 
-pipolTrackerNode() : nh(ros::this_node::getName()) , it(this->nh)
+CpipolTrackerNode::CpipolTrackerNode() : nh(ros::this_node::getName()) , it(this->nh)
 {
       int intParam;
            
@@ -62,26 +62,26 @@ pipolTrackerNode() : nh(ros::this_node::getName()) , it(this->nh)
 
       // init publishers
 	this->particleSetPub = nh.advertise<visualization_msgs::MarkerArray>("debug", 100);
-	this->peopleSetPub = nh.advertise<iri_perception_msgs::peopleTrackingArray>("peopleSet", 100);
+	this->peopleSetPub = nh.advertise<pipol_tracker_pkg::personArray>("peopleSet", 100);
 	this->imagePub = it.advertise("image_out", 1);
-      this->tldBB_publisher_ = nh.advertise<tld_msgs::Target>("tld_init", 1000, true);
+      //this->tldBB_publisher_ = nh.advertise<tld_msgs::Target>("tld_init", 1000, true);
   
       // init subscribers
-      this->odometrySubs = nh.subscribe("odometry", 100, &pipolTrackerNode::odometry_callback, this);
-	this->legDetectionsSubs = nh.subscribe("legDetections", 100, &pipolTrackerNode::legDetections_callback, this);
-      this->bodyDetectionsSubs = nh.subscribe("bodyDetections", 100, &pipolTrackerNode::bodyDetections_callback, this);
-      this->faceDetectionsSubs = nh.subscribe("faceDetections", 100, &pipolTrackerNode::faceDetections_callback, this);
-      this->followMeSubs = nh.subscribe("followMe", 100, &pipolTrackerNode::followMe_callback, this);      
-      this->tldDetectionsSubs = nh.subscribe("tldDetections", 100, &pipolTrackerNode::tldDetections_callback, this);           
-      this->imageSubs = it.subscribe("image_in", 1, &pipolTrackerNode::image_callback, this);	
+      this->odometrySubs = nh.subscribe("odometry", 100, &CpipolTrackerNode::odometry_callback, this);
+	this->legDetectionsSubs = nh.subscribe("legDetections", 100, &CpipolTrackerNode::legDetections_callback, this);
+      this->bodyDetectionsSubs = nh.subscribe("bodyDetections", 100, &CpipolTrackerNode::bodyDetections_callback, this);
+      this->faceDetectionsSubs = nh.subscribe("faceDetections", 100, &CpipolTrackerNode::faceDetections_callback, this);
+      this->followMeSubs = nh.subscribe("followMe", 100, &CpipolTrackerNode::followMe_callback, this);      
+      //this->tldDetectionsSubs = nh.subscribe("tldDetections", 100, &pipolTrackerNode::tldDetections_callback, this);           
+      this->imageSubs = it.subscribe("image_in", 1, &CpipolTrackerNode::image_callback, this);	
 }
 
-pipolTrackerNode::~pipolTrackerNode()
+CpipolTrackerNode::~CpipolTrackerNode()
 {
       // free allocated memory resources, if any
 }
 
-void pipolTrackerNode::process()
+void CpipolTrackerNode::process()
 {	
       if (this->verboseMode) std::cout << std::endl << "************* NEW ITERATION **************" << std::endl;
 
@@ -204,7 +204,7 @@ void pipolTrackerNode::process()
       //this->image_mutex_.exit();        
 }
 
-void pipolTrackerNode::fillMessages()
+void CpipolTrackerNode::fillMessages()
 {
       std::list<CpersonTarget>::iterator iiF;
       std::list<CpersonParticle>::iterator iiP;
@@ -507,7 +507,7 @@ void pipolTrackerNode::fillMessages()
       MarkerArrayMsg.markers.erase(MarkerArrayMsg.markers.begin()+ii,MarkerArrayMsg.markers.end());   
 }
 
-void pipolTrackerNode::odometry_callback(const nav_msgs::Odometry::ConstPtr& msg) 
+void CpipolTrackerNode::odometry_callback(const nav_msgs::Odometry::ConstPtr& msg) 
 { 
       //ROS_INFO("pipolTrackerNode::odometry_callback: New Message Received"); 
       
@@ -534,7 +534,7 @@ void pipolTrackerNode::odometry_callback(const nav_msgs::Odometry::ConstPtr& msg
       //this->odometry_mutex_.exit(); 
 }
 
-void pipolTrackerNode::legDetections_callback(const pal_vision_msgs::LegDetections::ConstPtr& msg) 
+void CpipolTrackerNode::legDetections_callback(const pal_vision_msgs::LegDetections::ConstPtr& msg) 
 { 
   //ROS_INFO("pipolTrackerNode::legDetections_callback: New Message Received"); 
       Cpoint3dObservation newDetection;
@@ -557,7 +557,7 @@ void pipolTrackerNode::legDetections_callback(const pal_vision_msgs::LegDetectio
       //this->legDetections_mutex_.exit();
 }
 
-void pipolTrackerNode::bodyDetections_callback(const pal_vision_msgs::HogDetections::ConstPtr& msg) 
+void CpipolTrackerNode::bodyDetections_callback(const pal_vision_msgs::HogDetections::ConstPtr& msg) 
 { 
 //   ROS_INFO("pipolTrackerNode::bodyDetections_callback: New Message Received"); 
 	
@@ -618,7 +618,7 @@ void pipolTrackerNode::bodyDetections_callback(const pal_vision_msgs::HogDetecti
 	//hogFile << "#" << std::endl;
 }
 
-void pipolTrackerNode::faceDetections_callback(const pal_vision_msgs::FaceDetections::ConstPtr& msg) 
+void CpipolTrackerNode::faceDetections_callback(const pal_vision_msgs::FaceDetections::ConstPtr& msg) 
 { 
       unsigned int ii;
       CfaceObservation newDetection;
@@ -652,7 +652,7 @@ void pipolTrackerNode::faceDetections_callback(const pal_vision_msgs::FaceDetect
       //this->faceDetections_mutex_.exit();
 }
 
-void pipolTrackerNode::followMe_callback(const std_msgs::Int32::ConstPtr& msg) 
+void CpipolTrackerNode::followMe_callback(const std_msgs::Int32::ConstPtr& msg) 
 {
       //followMe_mutex_.enter();
       std::cout << "*************************************************" << std::endl;
@@ -660,6 +660,26 @@ void pipolTrackerNode::followMe_callback(const std_msgs::Int32::ConstPtr& msg)
       //followMe_mutex_.exit();
 }
 
+void CpipolTrackerNode::image_callback(const sensor_msgs::ImageConstPtr& msg)
+{
+// 	ROS_INFO("pipolTrackerNode::image_callback: New Message Received");
+// 	this->alg_.lock();
+	//this->image_mutex_.enter();
+	try
+	{
+		//cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+            this->cvImgPtrSubs = cv_bridge::toCvCopy(msg, msg->encoding);
+	}
+	catch (cv_bridge::Exception& e)
+	{
+		ROS_ERROR("cv_bridge exception: %s", e.what());
+		return;
+	}
+// 	this->alg_.unlock();
+	//this->image_mutex_.exit();
+}
+
+/*
 void pipolTrackerNode::tldDetections_callback(const tld_msgs::BoundingBox::ConstPtr& msg) 
 { 
       double dirX, dirY, dirMod;
@@ -699,38 +719,22 @@ void pipolTrackerNode::tldDetections_callback(const tld_msgs::BoundingBox::Const
       //unblocks tld detection mutex
       //this->tldDetections_mutex_.exit(); 
 }
+*/
 
-void pipolTrackerNode::image_callback(const sensor_msgs::ImageConstPtr& msg)
+/*
+void pipolTrackerNode::initCamera()
 {
-// 	ROS_INFO("pipolTrackerNode::image_callback: New Message Received");
-// 	this->alg_.lock();
-	//this->image_mutex_.enter();
-	try
-	{
-		cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-	}
-	catch (cv_bridge::Exception& e)
-	{
-		ROS_ERROR("cv_bridge exception: %s", e.what());
-		return;
-	}
-// 	this->alg_.unlock();
-	//this->image_mutex_.exit();
+      tf::StampedTransform stf;
+      Cposition3d camINbase;
+      tf::TransformListener tfListener;
+      
+      //sleep(1);//??
+      
+      tfListener.waitForTransform("/base_link", "/left_stereo_optical_frame", ros::Time(0), ros::Duration(10.0),ros::Duration(1.0));
+      tfListener.lookupTransform("/base_link", "/left_stereo_optical_frame", ros::Time(0), stf);
+      camINbase.setXYZ(stf.getOrigin().x(), stf.getOrigin().y(), stf.getOrigin().z());
+      camINbase.setQuaternion(stf.getRotation().getW(),stf.getRotation().getX(),stf.getRotation().getY(),stf.getRotation().getZ());
+      tracker.setOnBoardCamPose(camINbase);
+      //tracker->setOnBoardCamCalMatrix();//to do
 }
-
-// void pipolTrackerNode::initCamera()
-// {
-//       tf::StampedTransform stf;
-//       Cposition3d camINbase;
-//       tf::TransformListener tfListener;
-//       
-//       //sleep(1);//??
-//       
-//       tfListener.waitForTransform("/base_link", "/left_stereo_optical_frame", ros::Time(0), ros::Duration(10.0),ros::Duration(1.0));
-//       tfListener.lookupTransform("/base_link", "/left_stereo_optical_frame", ros::Time(0), stf);
-//       camINbase.setXYZ(stf.getOrigin().x(), stf.getOrigin().y(), stf.getOrigin().z());
-//       camINbase.setQuaternion(stf.getRotation().getW(),stf.getRotation().getX(),stf.getRotation().getY(),stf.getRotation().getZ());
-//       tracker.setOnBoardCamPose(camINbase);
-//       //tracker->setOnBoardCamCalMatrix();//to do
-// }
-
+*/
