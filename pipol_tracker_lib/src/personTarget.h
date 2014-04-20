@@ -2,8 +2,8 @@
 #define personTarget_H
 
 #include "personParticleFilter.h"
-#include "appearance/colorBoxes.h"
-#include "appearance/hsHistogram.h"
+// #include "appearance/colorBoxes.h"
+// #include "appearance/hsHistogram.h"
 
 //general constants
 const double ZERO_PROB = 1e-20;
@@ -60,7 +60,7 @@ class CpersonTarget : public CpersonParticleFilter
             * appearance model based on HS histogram
             * 
             **/             
-            HsHistogram appearanceHistHS;
+            //HsHistogram appearanceHistHS;
             
             /** \brief Stores matching scores between this target and each detection
             * 

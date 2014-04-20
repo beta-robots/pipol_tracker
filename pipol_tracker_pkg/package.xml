@@ -3,10 +3,10 @@
   <name>pipol_tracker</name>
   <version>0.0.0</version>
   <description>
-        This package implements a multl-detector, multi-target people tracker.
+        This package implements a multi-detector, multi-target people tracker.
         It is designed to run on-board a mobile robot. 
         At least it requires input from some kind of people detector (legs, body, faces, ...) and
-        input form one odometry. 
+        input form one odometry source. 
         It outputs a set of targets, each one with an (x,y) position with respect to robot frame and an ID. 
   </description>
 
@@ -29,7 +29,8 @@
   <build_depend>rospy</build_depend>
   <build_depend>message_generation</build_depend>  
   <build_depend>std_msgs</build_depend>  
-  <build_depend>geometry_msgs</build_depend>  
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>  
   <build_depend>dynamic_reconfigure</build_depend>
   <build_depend>image_transport</build_depend>
   <build_depend>cv_bridge</build_depend>  -->
@@ -39,6 +40,7 @@
   <run_depend>message_runtime</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
+  <run_depend>nav_msgs</run_depend>
   <run_depend>dynamic_reconfigure</run_depend>
   <run_depend>image_transport</run_depend>
   <run_depend>cv_bridge</run_depend>  

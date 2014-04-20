@@ -67,37 +67,38 @@ SET(random_sources
       random/simpleRnd.cpp)	
 	
 # appearance header files
-SET(appearance_headers
-      appearance/histogram.h
-      appearance/hogmodel.h
-      appearance/colorBoxes.h
-      appearance/hsHistogram.h
-      appearance/rgbHistogram.h
-      appearance/normalizedpatchmodel.h
-      appearance/simplepatchmodel.h
-      appearance/covariancemodel.h
-      appearance/appearance.h
-      appearance/combined1.h
-      appearance/oldam.h
-)
+# SET(appearance_headers
+#       appearance/histogram.h
+#       appearance/hogmodel.h
+#       appearance/colorBoxes.h
+#       appearance/hsHistogram.h
+#       appearance/rgbHistogram.h
+#       appearance/normalizedpatchmodel.h
+#       appearance/simplepatchmodel.h
+#       appearance/covariancemodel.h
+#       appearance/appearance.h
+#       appearance/combined1.h
+#       appearance/oldam.h
+# )
 
 # appearance source files
-SET(appearance_sources
-      appearance/histogram.cpp
-      appearance/hogmodel.cpp
-      appearance/colorBoxes.cpp
-      appearance/hsHistogram.cpp
-      appearance/rgbHistogram.cpp
-      appearance/normalizedpatchmodel.cpp
-      appearance/simplepatchmodel.cpp
-      appearance/covariancemodel.cpp
-      appearance/appearance.cpp
-      appearance/combined1.cpp
-      appearance/oldam.cpp
-)
+# SET(appearance_sources
+#       appearance/histogram.cpp
+#       appearance/hogmodel.cpp
+#       appearance/colorBoxes.cpp
+#       appearance/hsHistogram.cpp
+#       appearance/rgbHistogram.cpp
+#       appearance/normalizedpatchmodel.cpp
+#       appearance/simplepatchmodel.cpp
+#       appearance/covariancemodel.cpp
+#       appearance/appearance.cpp
+#       appearance/combined1.cpp
+#       appearance/oldam.cpp
+# )
 
 # create the shared library
-ADD_LIBRARY(pipol_tracker SHARED ${geometry_sources} ${observations_sources} ${tracker_sources} ${random_sources} ${appearance_sources})
+# ADD_LIBRARY(pipol_tracker SHARED ${geometry_sources} ${observations_sources} ${tracker_sources} ${random_sources} ${appearance_sources})
+ADD_LIBRARY(pipol_tracker SHARED ${geometry_sources} ${observations_sources} ${tracker_sources} ${random_sources})
 
 # link necessary libraries
 TARGET_LINK_LIBRARIES(pipol_tracker ${OpenCV_LIBS})
@@ -112,7 +113,7 @@ INSTALL(FILES ${tracker_headers} DESTINATION include/btr-headers)
 INSTALL(FILES ${geometry_headers} DESTINATION include/btr-headers/geometry)
 INSTALL(FILES ${observations_headers} DESTINATION include/btr-headers/observations)
 INSTALL(FILES ${random_headers} DESTINATION include/btr-headers/random)
-INSTALL(FILES ${appearance_headers} DESTINATION include/btr-headers/appearance)
+# INSTALL(FILES ${appearance_headers} DESTINATION include/btr-headers/appearance)
 INSTALL(FILES ../Findpipol_tracker.cmake DESTINATION ${CMAKE_ROOT}/Modules/)
 
 ADD_SUBDIRECTORY(examples)

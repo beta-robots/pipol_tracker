@@ -371,7 +371,7 @@ class CpeopleTracker
             * Uses the current image (this->img) and bounding boxes of current body detections
             *
             **/
-		void computeTargetAppearance();
+		//void computeTargetAppearance();
 
             /** \brief Marks box bodies on image
              * 

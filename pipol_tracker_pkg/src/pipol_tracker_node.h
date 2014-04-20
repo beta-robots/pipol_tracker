@@ -1,66 +1,41 @@
-// Copyright (C) 2010-2011 Institut de Robotica i Informatica Industrial, CSIC-UPC.
-// Author 
-// All rights reserved.
-//
-// This file is part of iri-ros-pkg
-// iri-ros-pkg is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-// 
-// IMPORTANT NOTE: This code has been generated through a script from the 
-// iri_ros_scripts. Please do NOT delete any comments to guarantee the correctness
-// of the scripts. ROS topics can be easly add by using those scripts. Please
-// refer to the IRI wiki page for more information:
-// http://wikiri.upc.es/index.php/Robotics_Lab
-
-#ifndef _people_tracking_rai_alg_node_h_
-#define _people_tracking_rai_alg_node_h_
+#ifndef pipol_tracker_node_H
+#define pipol_tracker_node_H
 
 //std
+#include <iostream>
 #include <sstream>
-#include <string>
 #include <fstream>
+#include <string>
 
-//library
-//#include "position3d.h"
+//pipol_tracker LIBRARY
 #include "peopleTracker.h"
 
-//iri-ros
-#include <iri_base_algorithm/iri_base_algorithm.h>
-#include "people_tracking_rai_alg.h"
-
-//required headers for image I/O
+//ROS headers for image I/O
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
+// #include <opencv2/imgproc/imgproc.hpp>
+// #include <opencv2/highgui/highgui.hpp>
 
-// [publisher subscriber headers]
+//ROS std messages
 #include <std_msgs/Int32.h>
-#include <tld_msgs/BoundingBox.h>
-#include <tld_msgs/Target.h>
-#include <pal_vision_msgs/FaceDetections.h>
-#include <pal_vision_msgs/HogDetections.h>
-#include <nav_msgs/Odometry.h>
-#include <visualization_msgs/MarkerArray.h>
-#include <iri_perception_msgs/peopleTrackingArray.h>
-#include <pal_vision_msgs/LegDetections.h>
+#include <nav_msgs/Odometry.h> //odometry (input)
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
+#include <visualization_msgs/MarkerArray.h>
 
-// [service client headers]
+//ROS messages belonging to this package
+#include <pipol_tracker_pkg/LegDetections.h> //leg detections (input)
+#include <pipol_tracker_pkg/HogDetections.h> //body detections (input)
+#include <pipol_tracker_pkg/FaceDetections.h> //face detections (input)
+#include <pipol_tracker_pkg/peopleTrackingArray.h> //target list (output)
 
-// [action server client headers]
+//ROS dynamic configure
+#include <pipol_tracker_pkg/pipolTrackerParamsConfig.h>
+
+//open TLD
+// #include <tld_msgs/BoundingBox.h>
+// #include <tld_msgs/Target.h>
 
 //visualization constants 
 const double MARKER_SIZE = 0.5;
@@ -72,149 +47,98 @@ const double MARKER_TRANSPARENCY = 0.9;
 //node execution mode
 enum executionModes {MULTI_TRACKING=0, SHOOT_TLD, FOLLOW_ME};
 
-/**
- * \brief IRI ROS Specific Algorithm Class
+/** \brief Wrapper class of the CpeopleTracker class from pipol_tracker library
  *
  */
-class PeopleTrackingRaiAlgNode : public algorithm_base::IriBaseAlgorithm<PeopleTrackingRaiAlgorithm>
+class pipolTrackerNode
 {
-  private:
-      //execution mode
-      unsigned int exeMode;
-        
-      // initialize tf from base_link to camera, and get camera matrix
-      void initCamera();
+      protected: 
+            //ros node handle
+            ros::NodeHandle nh;
+            
+            //image transport
+            image_transport::ImageTransport it;
+            
+            // subscribers 
+            ros::Subscriber odometrySubs;
+            ros::Subscriber legDetectionsSubs;
+            ros::Subscriber bodyDetectionsSubs;
+            ros::Subscriber faceDetectionsSubs;
+            ros::Subscriber followMeSubs;
+            ros::Subscriber tldDetectionsSubs;
+            image_transport::Subscriber imageSubs;
+            cv_bridge::CvImagePtr cvImgPtrSubs;            
+                  
+            //publishers & messages
+            ros::Publisher particleSetPub;      
+            visualization_msgs::MarkerArray MarkerArrayMsg;
+            ros::Publisher peopleSetPub;
+            pipol_tracker_pkg::personArray personArrayMsg;
+            image_transport::Publisher imagePub;      
+            cv_bridge::CvImage cvImgPub;
+            // ros::Publisher tldBoxPub;
+            // tld_msgs::Target tldBoxMsg;
+            
+            //management variables
+            unsigned int exeMode; //execution mode
+            //bool tldMessageFilled; //indicates when the TLD request message has been filled
+                  
+            //pipol_tracker library objects
+            CpeopleTracker tracker;//The tracker object !!!
+            pFilterParameters filterParams; // particle filter params
+            trackerParameters trackerParams; // tracker params
+            CodometryObservation platformOdometry; //keeps last odometry data
+            
+            //debugging
+            bool verboseMode;
+            bool viewBodyDetections;
+            double ratioParticlesDisplayed;
+            //unsigned int frameCount, hogDetCount;
+            
+            // initialize tf from base_link to camera, and get camera matrix
+            //void initCamera();      
+            
+            //useful to initialize base_link to camera transform
+            //tf::TransformListener tfListener;      
       
-      //indicates when the TLD request message has been filled
-      bool tldMessageFilled;
-      
-      //useful to initialize base_link to camera transform
-      //tf::TransformListener tfListener;
-        
-      // image transport 
-	image_transport::ImageTransport it_;
-	cv_bridge::CvImagePtr cv_ptr;
-	  
-    // [publisher attributes]
-      ros::Publisher tldBB_publisher_;
-      tld_msgs::Target tldBB_msg_;
-	ros::Publisher particleSet_publisher_;
-	visualization_msgs::MarkerArray MarkerArray_msg_;
-	ros::Publisher peopleSet_publisher_;
-	iri_perception_msgs::peopleTrackingArray peopleTrackingArray_msg_;
-	image_transport::Publisher image_pub_;
+      protected: 
+            // subscriber callbacks
+            void odometry_callback(const nav_msgs::Odometry::ConstPtr& msg);
+            void legDetections_callback(const pipol_tracker_pkg::LegDetections::ConstPtr& msg);
+            void bodyDetections_callback(const pipol_tracker_pkg::HogDetections::ConstPtr& msg);
+            void faceDetections_callback(const pipol_tracker_pkg::FaceDetections::ConstPtr& msg);
+            void followMe_callback(const std_msgs::Int32::ConstPtr& msg);
+            void tldDetections_callback(const tld_msgs::BoundingBox::ConstPtr& msg);
+            void image_callback(const sensor_msgs::ImageConstPtr& msg);
 
-    // [subscriber attributes]
-      ros::Subscriber followMe_subscriber_;
-      void followMe_callback(const std_msgs::Int32::ConstPtr& msg);
-      CMutex followMe_mutex_;
-      ros::Subscriber tldDetections_subscriber_;
-      void tldDetections_callback(const tld_msgs::BoundingBox::ConstPtr& msg);
-      CMutex tldDetections_mutex_;            
-      ros::Subscriber faceDetections_subscriber_;
-      void faceDetections_callback(const pal_vision_msgs::FaceDetections::ConstPtr& msg);
-      CMutex faceDetections_mutex_;      
-	ros::Subscriber bodyDetections_subscriber_;
-	void bodyDetections_callback(const pal_vision_msgs::HogDetections::ConstPtr& msg);
-	CMutex bodyDetections_mutex_;
-	ros::Subscriber odometry_subscriber_;
-	void odometry_callback(const nav_msgs::Odometry::ConstPtr& msg);
-	CMutex odometry_mutex_;
-	ros::Subscriber legDetections_subscriber_;
-	void legDetections_callback(const pal_vision_msgs::LegDetections::ConstPtr& msg);
-	CMutex legDetections_mutex_;
-	image_transport::Subscriber image_sub_;
-	void image_callback(const sensor_msgs::ImageConstPtr& msg);
-	CMutex image_mutex_;
-	
-    //dynamic reconfigure mutex
-	CMutex config_mutex;
 
-    // [service attributes]
+      public:
+            /** \brief Constructor
+            * 
+            * This constructor initializes specific class attributes and all ROS
+            * communications variables to enable message exchange.
+            */
+            pipolTrackerNode();
 
-    // [client attributes]
+            /** \brief Destructor
+            * 
+            * This destructor frees all necessary dynamic memory allocated within this
+            * this class.
+            */
+            ~pipolTrackerNode();
 
-    // [action server attributes]
-
-    // [action client attributes]
-    
-    //library objects
-	pFilterParameters filterParams;
-	trackerParameters trackerParams;
-	CpeopleTracker tracker;
-	CodometryObservation platformOdometry;    
-	
-    //debugging
-	std::ofstream hogFile;
-	bool verboseMode;
-	bool viewBodyDetections;
-	double ratioParticlesDisplayed;
-      unsigned int frameCount, hogDetCount;
-
-  public:
-	/**
-	* \brief Constructor
-	* 
-	* This constructor initializes specific class attributes and all ROS
-	* communications variables to enable message exchange.
-	*/
-	PeopleTrackingRaiAlgNode(void);
-
-	/**
-	* \brief Destructor
-	* 
-	* This destructor frees all necessary dynamic memory allocated within this
-	* this class.
-	*/
-	~PeopleTrackingRaiAlgNode(void);
-	
-	/**
-	* \brief Fill output messages
-	* 
-	* Fills main output and debug messages
-	*/
-	void fillMessages();
-
-  protected:
-	/**
-	* \brief main node thread
-	*
-	* This is the main thread node function. Code written here will be executed
-	* in every node loop while the algorithm is on running state. Loop frequency 
-	* can be tuned by modifying loop_rate attribute.
-	*
-	* Here data related to the process loop or to ROS topics (mainly data structs
-	* related to the MSG and SRV files) must be updated. ROS publisher objects 
-	* must publish their data in this process. ROS client servers may also
-	* request data to the corresponding server topics.
-	*/
-	void mainNodeThread(void);
-
-	/**
-	* \brief dynamic reconfigure server callback
-	* 
-	* This method is called whenever a new configuration is received through
-	* the dynamic reconfigure. The derivated generic algorithm class must 
-	* implement it.
-	*
-	* \param config an object with new configuration from all algorithm 
-	*               parameters defined in the config file.
-	* \param level  integer referring the level in which the configuration
-	*               has been changed.
-	*/
-	void node_config_update(Config &config, uint32_t level);
-
-	/**
-	* \brief node add diagnostics
-	*
-	* In this abstract function additional ROS diagnostics applied to the 
-	* specific algorithms may be added.
-	*/
-	void addNodeDiagnostics(void);
-
-    // [diagnostic functions]
-    
-    // [test functions]
+            /** \brief Main process 
+            * 
+            * Main process flow
+            * 
+            **/
+            void process();
+                        
+            /** \brief Fill output messages
+            * 
+            * Fills main output and debug messages
+            */
+            void fillMessages();
+                                    
 };
-
 #endif

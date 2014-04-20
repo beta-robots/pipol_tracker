@@ -2,30 +2,67 @@ cmake_minimum_required(VERSION 2.8.3)
 project(pipol_tracker_pkg)
 
 ## Find catkin macros and libraries
-find_package(catkin REQUIRED COMPONENTS 
-      roscpp rospy std_msgs geometry_msgs image_transport cv_bridge message_generation dynamic_reconfigure)
+find_package( catkin REQUIRED COMPONENTS 
+      roscpp
+      rospy
+      std_msgs
+      geometry_msgs
+      nav_msgs
+      image_transport
+      cv_bridge
+      message_generation
+      dynamic_reconfigure 
+)
 
 ## System dependencies are found with CMake's conventions
-find_package(pipol_tracker_lib REQUIRED)
+find_package( pipol_tracker REQUIRED )
 
 #SRCS files
 SET(SRCS 
-      src/xxx.cpp
+      src/pipol_tracker_node.cpp
+      src/pipol_tracker_main.cpp
 )
 
 ## Add messages to be generated
-add_message_files(FILES xx.msg)
+add_message_files(
+      FILES 
+      LegDetections.msg
+      HogDetection.msg
+      HogDetections.msg  
+      FaceDetection.msg   
+      FaceDetections.msg
+      DetectedPerson.msg      
+      coloredBox.msg 
+      Rectangle.msg
+      person.msg
+      personArray.msg
+#       HeadPanTilt.msg
+)
 
 ## Generate added messages and services
-generate_messages(DEPENDENCIES std_msgs geometry_msgs)
+generate_messages(
+      DEPENDENCIES 
+      std_msgs 
+      geometry_msgs
+)
 
 #dynamic reconfigure cfg file
-generate_dynamic_reconfigure_options(cfg/xx.cfg)
+generate_dynamic_reconfigure_options(cfg/pipol_tracker_config.cfg)
 
 ## The catkin_package macro generates cmake config files for your package
-catkin_package(
-      CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs image_transport cv_bridge message_runtime dynamic_reconfigure
-      DEPENDS pipol_tracker_lib
+catkin_package (
+      CATKIN_DEPENDS 
+            roscpp 
+            rospy 
+            std_msgs 
+            geometry_msgs
+            nav_msgs
+            image_transport 
+            cv_bridge 
+            message_runtime 
+            dynamic_reconfigure
+      DEPENDS 
+            pipol_tracker_lib 
 )
 
 ## Specify additional locations of header files

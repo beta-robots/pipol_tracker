@@ -1,25 +1,24 @@
 #target id
 int32 targetId
 
-#target status 
-#       TO_BE_REMOVED = 0
-#       CANDIDATE = 1
-#       TARGET = 2
-#       VISUALLY_CONFIRMED = 3
-#       FRIEND_IN_SIGHT = 4
-#       FRIEND_OUT_OF_RANGE = 5
-int32 status
+#target status is a bitwise OR of the following values
+#      TO_BE_REMOVED = 0x01,
+#      OCCLUDDED = 0x02,
+#      CANDIDATE = 0x04,
+#      LEGGED_TARGET = 0x08,
+#      VISUALLY_CONFIRMED = 0x10,
+#      FRIEND_IN_SIGHT = 0x20,
+#      BACK_LEARNT = 0x40,
+#      FACE_LEARNT = 0x80
+int32 targetStatus
 
-#person 2D position
+#target 2D position
 float64 x
 float64 y
 
-#person 2D velocity
+#target 2D linear velocity
 float64 vx
 float64 vy
 
-#covariance matrix fo the four above defined parameters (x,y,vx,vy)
+#(x,y,vx,vy) covariance matrix
 float64[16] covariances
-
-#appearance model as three colored regions up, middle and bottom
-coloredBox[3] appearance

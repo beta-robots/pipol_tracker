@@ -916,6 +916,7 @@ void CpeopleTracker::getCurrentImage(cv::Mat & outImg)
 	outImg = this->img.clone();
 }
 
+/*
 void CpeopleTracker::computeTargetAppearance()
 {
 	cv::Rect_<int> bb;
@@ -978,6 +979,7 @@ void CpeopleTracker::computeTargetAppearance()
             }
       }	
 }
+*/
 
 void CpeopleTracker::markBodies()
 {
