@@ -8,7 +8,7 @@
 #include <string>
 
 //pipol_tracker LIBRARY
-#include "peopleTracker.h"
+#include "pipol_tracker_lib/peopleTracker.h"
 
 //ROS headers for image I/O
 #include <image_transport/image_transport.h>
