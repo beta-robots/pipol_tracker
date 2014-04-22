@@ -1,0 +1,47 @@
+<!-- Launches people tracking with rosbag data-->
+
+<launch>
+
+	<!-- 	Launch people_tracking_rai node -->
+
+	<node	pkg="pipol_tracker_pkg"
+		type="pipol_tracker_node"
+		name="pipol_tracker_node"
+		args=""
+		output="screen">
+		<remap from="/pipol_tracker_node/odometry"
+			to="/base_odometry/odom" />
+		<remap from="/pipol_tracker_node/legDetections"
+			to="/person/legDetections" />
+		<remap from="/pipol_tracker_node/bodyDetections"
+			to="/person/hogDetections" />
+              <remap from="/pipol_tracker_node/faceDetections"
+                    to="/person/faceDetections" />				
+		<remap from="/pipol_tracker_node/image_in"
+			to="/person/image" />				
+              <remap from="/pipol_tracker_node/followMe"
+                    to="/followMe/targetId" />                     				
+		<rosparam command="load" file="$(find pipol_tracker_pkg)/config/pipol_tracker_params.yaml"/>
+		<!-- <param name="~tf_prefix" value="/$(env ROBOT)" type="str"/> -->
+	</node>
+
+
+	<!-- rviz configurated to debug people tracking -->
+	<!-- <node 	name="rviz" 
+		pkg="rviz" 
+		type="rviz"
+		args="-d $(find pipol_tracker_pkg)/launch/pipol_tracker_viz.rviz">
+		<param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
+	</node> -->
+
+      <!-- 	Visualization of image bounding boxes -->
+<!--	<node	name="imageBB_view_out"
+		pkg="image_view" 
+		type="image_view" >
+		<param name="window_name" value= "ON-BOARD CAMERA - BOUNDING BOXES" type="str" />
+		<remap from="/image"
+			to="/$(env ROBOT)/pipol_tracker_node/image_out"/>
+	</node>-->
+	
+</launch>
+
