@@ -9,3 +9,5 @@ Although the inputs are configurable, currently it uses:
 * Vision based face detections
 * Vision based body detections
 * Odometry
+
+For further instructions (installation, etc) check the [pipol_tracker wiki] (https://github.com/beta-robots/pipol_tracker/wiki).
