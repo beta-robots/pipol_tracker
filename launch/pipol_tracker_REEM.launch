@@ -10,16 +10,16 @@
 		args=""
 		output="screen">
 		<remap from="/pipol_tracker_node/odometry"
-			to="/base_odometry/odom" />
+			to="/mobile_base_controller/odom" />
 		<remap from="/pipol_tracker_node/legDetections"
-			to="/person/legDetections" />
-		<remap from="/pipol_tracker_node/bodyDetections"
-			to="/person/hogDetections" />
-              <remap from="/pipol_tracker_node/faceDetections"
-                    to="/person/faceDetections" />				
+			to="/leg_detector/legs" />
+		<!-- <remap from="/pipol_tracker_node/bodyDetections"
+			to="/person/hogDetections" /> -->
+        <remap from="/pipol_tracker_node/faceDetections"
+                    to="/pal_face/faces" />				
 		<remap from="/pipol_tracker_node/image_in"
-			to="/person/image" />				
-              <remap from="/pipol_tracker_node/followMe"
+			to="/head_mount_xtion/rgb/image_rect_color" />				
+        <remap from="/pipol_tracker_node/followMe"
                     to="/followMe/targetId" />                     				
 		<rosparam command="load" file="$(find pipol_tracker_pkg)/config/pipol_tracker_params.yaml"/>
 		<!-- <param name="~tf_prefix" value="/$(env ROBOT)" type="str"/> -->
