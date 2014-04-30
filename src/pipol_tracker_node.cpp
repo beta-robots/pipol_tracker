@@ -4,9 +4,6 @@ CpipolTrackerNode::CpipolTrackerNode() : nh(ros::this_node::getName()) , it(this
 {
       int intParam;
            
-	//relax 
-	//sleep(1);
-      
       //general prupose variables
       //tldMessageFilled = false;
       exeMode = MULTI_TRACKING;
@@ -57,9 +54,6 @@ CpipolTrackerNode::CpipolTrackerNode() : nh(ros::this_node::getName()) , it(this
       //frameCount = 0;
       //hogDetCount = 0;
 	
-      //initializes camera mouting position and camera matrix
-      //initCamera();	
-
       // init publishers
 	this->particleSetPub = nh.advertise<visualization_msgs::MarkerArray>("debug", 100);
 	this->peopleSetPub = nh.advertise<pipol_tracker_pkg::personArray>("peopleSet", 100);
@@ -68,9 +62,9 @@ CpipolTrackerNode::CpipolTrackerNode() : nh(ros::this_node::getName()) , it(this
   
       // init subscribers
       this->odometrySubs = nh.subscribe("odometry", 100, &CpipolTrackerNode::odometry_callback, this);
-	this->legDetectionsSubs = nh.subscribe("legDetections", 100, &CpipolTrackerNode::legDetections_callback, this);
-      this->bodyDetectionsSubs = nh.subscribe("bodyDetections", 100, &CpipolTrackerNode::bodyDetections_callback, this);
-      this->faceDetectionsSubs = nh.subscribe("faceDetections", 100, &CpipolTrackerNode::faceDetections_callback, this);
+	this->legDetectionsSubs = nh.subscribe("legDetections", 100, &CpipolTrackerNode::legDetections_callback_2013, this);
+      this->bodyDetectionsSubs = nh.subscribe("bodyDetections", 100, &CpipolTrackerNode::bodyDetections_callback_2013, this);
+      this->faceDetectionsSubs = nh.subscribe("faceDetections", 100, &CpipolTrackerNode::faceDetections_callback_2013, this);
       this->followMeSubs = nh.subscribe("followMe", 100, &CpipolTrackerNode::followMe_callback, this);      
       //this->tldDetectionsSubs = nh.subscribe("tldDetections", 100, &pipolTrackerNode::tldDetections_callback, this);           
       this->imageSubs = it.subscribe("image_in", 1, &CpipolTrackerNode::image_callback, this);	
@@ -534,7 +528,7 @@ void CpipolTrackerNode::odometry_callback(const nav_msgs::Odometry::ConstPtr& ms
       //this->odometry_mutex_.exit(); 
 }
 
-void CpipolTrackerNode::legDetections_callback(const pal_vision_msgs::LegDetections::ConstPtr& msg) 
+void CpipolTrackerNode::legDetections_callback_2013(const pal_vision_msgs::LegDetections::ConstPtr& msg) 
 { 
   //ROS_INFO("pipolTrackerNode::legDetections_callback: New Message Received"); 
       Cpoint3dObservation newDetection;
@@ -557,7 +551,7 @@ void CpipolTrackerNode::legDetections_callback(const pal_vision_msgs::LegDetecti
       //this->legDetections_mutex_.exit();
 }
 
-void CpipolTrackerNode::bodyDetections_callback(const pal_vision_msgs::HogDetections::ConstPtr& msg) 
+void CpipolTrackerNode::bodyDetections_callback_2013(const pal_vision_msgs::HogDetections::ConstPtr& msg) 
 { 
 //   ROS_INFO("pipolTrackerNode::bodyDetections_callback: New Message Received"); 
 	
@@ -618,7 +612,7 @@ void CpipolTrackerNode::bodyDetections_callback(const pal_vision_msgs::HogDetect
 	//hogFile << "#" << std::endl;
 }
 
-void CpipolTrackerNode::faceDetections_callback(const pal_vision_msgs::FaceDetections::ConstPtr& msg) 
+void CpipolTrackerNode::faceDetections_callback_2013(const pal_vision_msgs::FaceDetections::ConstPtr& msg) 
 { 
       unsigned int ii;
       CfaceObservation newDetection;

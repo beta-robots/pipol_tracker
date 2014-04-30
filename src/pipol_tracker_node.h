@@ -24,10 +24,14 @@
 #include <tf/transform_listener.h>
 #include <visualization_msgs/MarkerArray.h>
 
-//ROS messages belonging to pal_vision_msgs pkg
+//ROS messages belonging to pal_vision/detection_msgs pkg. 
 #include <pal_vision_msgs/LegDetections.h> //leg detections (input)
 #include <pal_vision_msgs/HogDetections.h> //body detections (input)
 #include <pal_vision_msgs/FaceDetections.h> //face detections (input)
+#include <pal_detection_msgs/LegDetections.h> //leg detections (input)
+#include <pal_detection_msgs/Detections2d.h> //body detections (input)
+#include <pal_detection_msgs/FaceDetections.h> //face detections (input)
+
 
 //ROS messages belonging to open-TLD pkg
 // #include <tld_msgs/BoundingBox.h>
@@ -108,9 +112,12 @@ class CpipolTrackerNode
       protected: 
             // subscriber callbacks
             void odometry_callback(const nav_msgs::Odometry::ConstPtr& msg);
-            void legDetections_callback(const pal_vision_msgs::LegDetections::ConstPtr& msg);
-            void bodyDetections_callback(const pal_vision_msgs::HogDetections::ConstPtr& msg);
-            void faceDetections_callback(const pal_vision_msgs::FaceDetections::ConstPtr& msg);
+            void legDetections_callback_2013(const pal_vision_msgs::LegDetections::ConstPtr& msg);
+            void bodyDetections_callback_2013(const pal_vision_msgs::HogDetections::ConstPtr& msg);
+            void faceDetections_callback_2013(const pal_vision_msgs::FaceDetections::ConstPtr& msg);
+            void legDetections_callback(const pal_detection_msgs::LegDetections::ConstPtr& msg);
+            void bodyDetections_callback(const pal_detection_msgs::Detections2d::ConstPtr& msg);
+            void faceDetections_callback(const pal_detection_msgs::FaceDetections::ConstPtr& msg);            
             void followMe_callback(const std_msgs::Int32::ConstPtr& msg);
             void image_callback(const sensor_msgs::ImageConstPtr& msg);
             //void tldDetections_callback(const tld_msgs::BoundingBox::ConstPtr& msg);

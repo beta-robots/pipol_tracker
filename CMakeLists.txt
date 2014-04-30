@@ -13,6 +13,7 @@ find_package( catkin REQUIRED COMPONENTS
       message_generation
       dynamic_reconfigure 
       pal_vision_msgs
+      pal_detection_msgs      
 )
 
 ## System dependencies are found with CMake's conventions
@@ -58,6 +59,7 @@ generate_messages(
       std_msgs 
       geometry_msgs
       pal_vision_msgs
+      pal_detection_msgs
 )
 
 #dynamic reconfigure cfg file
@@ -76,6 +78,7 @@ catkin_package (
             message_runtime 
             dynamic_reconfigure
             pal_vision_msgs
+            pal_detection_msgs
 #       DEPENDS 
 #             pipol_tracker_lib 
 )
