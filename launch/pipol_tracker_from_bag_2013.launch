@@ -35,6 +35,8 @@
                         to="/person/faceDetections" />				
 			<remap from="/$(env ROBOT)/pipol_tracker_node/image_in"
 				to="/person/image" />				
+                  <remap from="/$(env ROBOT)/pipol_tracker_node/cameraInfo_in"
+                        to="/person/image/camera_info" />                    				
                   <remap from="/$(env ROBOT)/pipol_tracker_node/followMe"
                         to="/followMe/targetId" />                     				
 			<rosparam command="load" file="$(find pipol_tracker_pkg)/launch/pipol_tracker_params.yaml"/>
@@ -46,7 +48,7 @@
 	<node 	name="rviz" 
 		pkg="rviz" 
 		type="rviz"
-		args="-d $(find pipol_tracker_pkg)/launch/pipol_tracker_viz.rviz">
+		args="-d $(find pipol_tracker_pkg)/launch/pipol_tracker_viz_2013.rviz">
 		<param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
 	</node>
 

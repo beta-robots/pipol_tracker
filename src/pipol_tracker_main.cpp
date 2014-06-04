@@ -17,12 +17,12 @@ int main(int argc, char **argv)
       //node loop 
       while ( ros::ok() )
       {
-            //do things
-            tracker.process();
-            
             //execute pending callbacks
             ros::spinOnce(); 
-            
+
+            //do things
+            tracker.process();
+                        
             //relax to fit output rate
             loopRate.sleep();            
       }

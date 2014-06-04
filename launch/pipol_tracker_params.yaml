@@ -64,6 +64,9 @@ minimum_appearance_region_size: 100
 #verbose mode. 0->Off, 1->On
 verbose_mode: 0
 
+#year: 2013 or 2014
+year: 2014
+
 #send visualization markers corresponding to body detections , 0->Off, 1->On
 view_body_detections: 1
 

@@ -2,7 +2,7 @@
 
 CpipolTrackerNode::CpipolTrackerNode() : nh(ros::this_node::getName()) , it(this->nh)
 {
-      int intParam;
+      int intParam, year;
            
       //general prupose variables
       //tldMessageFilled = false;
@@ -62,12 +62,28 @@ CpipolTrackerNode::CpipolTrackerNode() : nh(ros::this_node::getName()) , it(this
   
       // init subscribers
       this->odometrySubs = nh.subscribe("odometry", 100, &CpipolTrackerNode::odometry_callback, this);
-	this->legDetectionsSubs = nh.subscribe("legDetections", 100, &CpipolTrackerNode::legDetections_callback_2013, this);
-      this->bodyDetectionsSubs = nh.subscribe("bodyDetections", 100, &CpipolTrackerNode::bodyDetections_callback_2013, this);
-      this->faceDetectionsSubs = nh.subscribe("faceDetections", 100, &CpipolTrackerNode::faceDetections_callback_2013, this);
       this->followMeSubs = nh.subscribe("followMe", 100, &CpipolTrackerNode::followMe_callback, this);      
-      //this->tldDetectionsSubs = nh.subscribe("tldDetections", 100, &pipolTrackerNode::tldDetections_callback, this);           
-      this->imageSubs = it.subscribe("image_in", 1, &CpipolTrackerNode::image_callback, this);	
+      this->imageSubs = it.subscribe("image_in", 1, &CpipolTrackerNode::image_callback, this);  
+      this->cameraInfoSubs = nh.subscribe("cameraInfo_in", 100, &CpipolTrackerNode::cameraInfo_callback, this);
+      
+      //init subscribers (year dependent)
+      nh.getParam("year", year);
+      switch ( year ) //according year , some messages changed. This assure the execution of 2013 rosbags. Default is 2014. 
+      {
+            case 2013:
+                  this->legDetectionsSubs = nh.subscribe("legDetections", 100, &CpipolTrackerNode::legDetections_callback_2013, this);
+                  this->bodyDetectionsSubs = nh.subscribe("bodyDetections", 100, &CpipolTrackerNode::bodyDetections_callback_2013, this);
+                  this->faceDetectionsSubs = nh.subscribe("faceDetections", 100, &CpipolTrackerNode::faceDetections_callback_2013, this);
+                  //this->tldDetectionsSubs = nh.subscribe("tldDetections", 100, &pipolTrackerNode::tldDetections_callback, this);           
+                  break;
+            case 2014:
+                  this->legDetectionsSubs = nh.subscribe("legDetections", 100, &CpipolTrackerNode::legDetections_callback, this);
+                  this->bodyDetectionsSubs = nh.subscribe("bodyDetections", 100, &CpipolTrackerNode::bodyDetections_callback, this);
+                  this->faceDetectionsSubs = nh.subscribe("faceDetections", 100, &CpipolTrackerNode::faceDetections_callback, this);
+                  break;
+            default:
+                  break;
+      }
 }
 
 CpipolTrackerNode::~CpipolTrackerNode()
@@ -530,13 +546,7 @@ void CpipolTrackerNode::odometry_callback(const nav_msgs::Odometry::ConstPtr& ms
 
 void CpipolTrackerNode::legDetections_callback_2013(const pal_vision_msgs::LegDetections::ConstPtr& msg) 
 { 
-  //ROS_INFO("pipolTrackerNode::legDetections_callback: New Message Received"); 
       Cpoint3dObservation newDetection;
-        
-      //locks leg detection mutex
-      //this->legDetections_mutex_.enter(); 
-  
-      //tracker.resetDetectionSets(LEGS);//deletes previous detections
         
       //sets current (received) detections
       for (unsigned int ii=0; ii<msg->position3D.size(); ii++)
@@ -546,30 +556,17 @@ void CpipolTrackerNode::legDetections_callback_2013(const pal_vision_msgs::LegDe
             newDetection.point.setXYcov(0.2,0.2,0);
             tracker.addDetection(newDetection);
       }
-      
-      //unlocks leg detection mutex
-      //this->legDetections_mutex_.exit();
 }
 
 void CpipolTrackerNode::bodyDetections_callback_2013(const pal_vision_msgs::HogDetections::ConstPtr& msg) 
 { 
-//   ROS_INFO("pipolTrackerNode::bodyDetections_callback: New Message Received"); 
-	
       unsigned int ii, jj;
       CbodyObservation newDetection;
       std::list<CbodyObservation>::iterator iiB;
       
-      //blocks body detection mutex
-      //this->bodyDetections_mutex_.enter(); 
-
       //sets current (received) detections
       for (ii=0; ii<msg->persons.size(); ii++)
       {
-// 		CbodyObservation newDetection;
-		
-		//debug
-		//hogDetCount ++;
-		
 		//time stamp
 		newDetection.timeStamp.set(msg->header.stamp.sec, msg->header.stamp.nsec);
 		
@@ -607,22 +604,13 @@ void CpipolTrackerNode::bodyDetections_callback_2013(const pal_vision_msgs::HogD
 		//add detection to tracker list
 		tracker.addDetection(newDetection);
 	}
-	//if (this->verboseMode) tracker.printDetectionSets();
-	//this->bodyDetections_mutex_.exit();
-	//hogFile << "#" << std::endl;
 }
 
 void CpipolTrackerNode::faceDetections_callback_2013(const pal_vision_msgs::FaceDetections::ConstPtr& msg) 
 { 
       unsigned int ii;
       CfaceObservation newDetection;
-      //std::list<CfaceObservation>::iterator iiB;
 
-      //ROS_INFO("pipolTrackerNode::faceDetections_callback: New Message Received"); 
-      
-      //blocks face detection mutex
-      //this->faceDetections_mutex_.enter(); 
-      
       //sets current (received) detections
       for (ii=0; ii<msg->faces.size(); ii++)
       {
@@ -641,9 +629,117 @@ void CpipolTrackerNode::faceDetections_callback_2013(const pal_vision_msgs::Face
             //add detection to tracker list
             tracker.addDetection(newDetection);
       }
+}
+
+void CpipolTrackerNode::legDetections_callback(const pal_detection_msgs::LegDetections::ConstPtr& msg) 
+{ 
+      Cpoint3dObservation newDetection;
+        
+      //sets current (received) detections
+      for (unsigned int ii=0; ii<msg->position3D.size(); ii++)
+      {
+            newDetection.timeStamp.set(msg->header.stamp.sec, msg->header.stamp.nsec);
+            newDetection.point.setXYZ(msg->position3D[ii].x, -msg->position3D[ii].y, 0.0);//TODO: USE frame transform, instead of - sign !!!!
+            newDetection.point.setXYcov(0.2,0.2,0);
+            tracker.addDetection(newDetection);
+      }
+}
+
+void CpipolTrackerNode::bodyDetections_callback(const pal_detection_msgs::Detections2d::ConstPtr& msg) 
+{ 
+      unsigned int ii;
+      CbodyObservation newDetection;
+//       std::list<CbodyObservation>::iterator iiB;
+      std::string frame_id;
+      CtimeStamp ts;
+      Eigen::Vector3d pxDetection;//homogeneous pixel coordinates of detection central point
+      Eigen::Vector3d ray_cam; //ray direction in 3D, wrt camera frame
+      Eigen::Vector3d ray_base; //ray direction in 3D, wrt base_link frame
+      Eigen::Vector3d tcam_base; //translation of camera wrt base
+      Eigen::Quaterniond qcam_base; //quaternion of camera wrt base
+
+      //detection time stamp
+      ts.set(msg->header.stamp.sec, msg->header.stamp.nsec);
       
-      //unblocks face detection mutex
-      //this->faceDetections_mutex_.exit();
+      //get msg->camera_pose frame_id and check if it is the base_link. If not, warn and exit callback
+      frame_id = msg->camera_pose.header.frame_id;
+      if (frame_id != "base_link") std::cout << "WARNING: Body detections not referenced to base_link" << std::endl;
+
+      //detector frame pose (translation + orientation in quaternion form)
+      tcam_base << msg->camera_pose.transform.translation.x,
+                  msg->camera_pose.transform.translation.y, 
+                  msg->camera_pose.transform.translation.z;
+      qcam_base = Eigen::Quaterniond(msg->camera_pose.transform.rotation.w,
+                                    msg->camera_pose.transform.rotation.x,
+                                    msg->camera_pose.transform.rotation.y,
+                                    msg->camera_pose.transform.rotation.z);
+      
+      //Loop over all available detections to get them, and compute 3D directions
+      for (ii=0; ii<msg->detections.size(); ii++)
+      {
+            //set detection TS
+            newDetection.timeStamp = ts;
+            
+            //bounding box
+            newDetection.bbX = msg->detections[ii].x;
+            newDetection.bbY = msg->detections[ii].y;
+            newDetection.bbW = msg->detections[ii].width;
+            newDetection.bbH = msg->detections[ii].height;
+                              
+            //set homogeneous vector for pixel coordinate detection
+            pxDetection << msg->detections[ii].x+0.5*msg->detections[ii].width, 
+                           msg->detections[ii].y+0.5*msg->detections[ii].width,
+                           1;
+            
+            //From pixel coordinates and camera matrix K, compute ray_cam
+            ray_cam = camK.inverse()*pxDetection;
+            //std::cout << "ray_cam: " << ray_cam.transpose() << std::endl;
+                        
+            // with qcam_base, tcam_base and ray_cam, compute ray_base
+            ray_base = qcam_base.matrix()*ray_cam + tcam_base;
+            //std::cout << "ray_base: " << ray_base.transpose() << std::endl;
+            
+            // set newDetection.direction
+            newDetection.direction.setXYZ(ray_base(0), ray_base(1), ray_base(2));
+                                   
+            //add detection to tracker list
+            tracker.addDetection(newDetection);
+      }
+}
+
+void CpipolTrackerNode::faceDetections_callback(const pal_detection_msgs::FaceDetections::ConstPtr& msg) 
+{ 
+      unsigned int ii;
+      CfaceObservation newDetection;
+      std::string frame_id;
+      CtimeStamp ts;
+
+      //detection time stamp
+      ts.set(msg->header.stamp.sec, msg->header.stamp.nsec);
+      
+      //get msg->camera_pose frame_id and check if it is the base_link. If not, warn and exit callback
+//       frame_id = msg->camera_pose.header.frame_id;
+//       if (frame_id != "base_link") std::cout << "WARNING: Body detections not referenced to base_link" << std::endl;
+//       
+//       
+      //sets current (received) detections
+      for (ii=0; ii<msg->faces.size(); ii++)
+      {
+            //set time stamp
+            newDetection.timeStamp.set(msg->header.stamp.sec, msg->header.stamp.nsec);
+//             
+            //get message data
+//             newDetection.faceLoc.setX(1);
+//             newDetection.faceLoc.setY(0);
+//             newDetection.faceLoc.setZ(1);
+            newDetection.bbX = msg->faces[ii].x;
+            newDetection.bbY = msg->faces[ii].y;
+            newDetection.bbW = msg->faces[ii].width;
+            newDetection.bbH = msg->faces[ii].height;
+//             
+            //add detection to tracker list
+            tracker.addDetection(newDetection);
+      }
 }
 
 void CpipolTrackerNode::followMe_callback(const std_msgs::Int32::ConstPtr& msg) 
@@ -673,6 +769,15 @@ void CpipolTrackerNode::image_callback(const sensor_msgs::ImageConstPtr& msg)
 // 	this->alg_.unlock();
 	//this->image_mutex_.exit();
 }
+
+void CpipolTrackerNode::cameraInfo_callback(const sensor_msgs::CameraInfo & msg)
+{
+      
+      camK << msg.K[0],msg.K[1],msg.K[2],msg.K[3],msg.K[4],msg.K[5],msg.K[6],msg.K[7],msg.K[8];
+      std::cout << "Camera Info Message Received. Camera calibration data set." << std::endl;
+      this->cameraInfoSubs.shutdown();
+}
+
 
 /*
 void pipolTrackerNode::tldDetections_callback(const tld_msgs::BoundingBox::ConstPtr& msg) 

@@ -5,18 +5,11 @@
 	<node	pkg="rosbag"
 		type="play"
 		name="rosbag"
-		args="-l --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20130525_02.bag"/>	
-<!-- 		20120313_palPeople.bag" -->
-<!-- 		20120411_singlePerson.bag -->
-<!-- 		20120411_twoPeople.bag -->
-<!-- 		20120411_threePeople.bag -->
-<!-- 		20120411_robotFollowingPeople.bag -->
-<!--        20130410_1.bag -->
-<!--        20130525_01.bag -->
-<!--        20130525_02.bag -->
-<!--        20130525_reem_stop.bag -->
-<!--        20130528_person_registration.bag -->
-<!--        20130607_person_registration_static_head.bag -->
+		args="-l --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20140604_robotMoving.bag"/>	
+<!--        20140422_robotMoving.bag -->
+<!--        20140422_robotStopped.bag -->
+<!--        20140604_robotMoving.bag -->
+<!--        20140604_robotStopped.bag -->
 
 	<!-- 	Launch people_tracking_rai node -->
 	<group ns="$(env ROBOT)">
@@ -35,6 +28,8 @@
                         to="/pal_face/faces" />				
 			<remap from="/$(env ROBOT)/pipol_tracker_node/image_in"
 				to="/head_mount_xtion/rgb/image_rect_color" />				
+                  <remap from="/$(env ROBOT)/pipol_tracker_node/cameraInfo_in"
+                        to="/head_mount_xtion/rgb/camera_info" />                    
                   <remap from="/$(env ROBOT)/pipol_tracker_node/followMe"
                         to="/followMe/targetId" />                     				
 			<rosparam command="load" file="$(find pipol_tracker_pkg)/launch/pipol_tracker_params.yaml"/>
@@ -46,7 +41,7 @@
 	<node 	name="rviz" 
 		pkg="rviz" 
 		type="rviz"
-		args="-d $(find pipol_tracker_pkg)/launch/pipol_tracker_viz.rviz">
+		args="-d $(find pipol_tracker_pkg)/launch/pipol_tracker_viz_2014.rviz">
 		<param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
 	</node>
 

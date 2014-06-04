@@ -10,6 +10,11 @@
 //pipol_tracker LIBRARY
 #include "pipol_tracker_lib/peopleTracker.h"
 
+//Eigen (algebra)
+#include "Eigen/Dense"
+#include "Eigen/Geometry"
+
+
 //ROS headers for image I/O
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
@@ -50,6 +55,9 @@ const double MARKER_DURATION = 0.1;
 const double MARKER_TEXT_SIZE = 0.3;
 const double MARKER_TRANSPARENCY = 0.9;
 
+//Put 2013 to use rosbags of 2013. Messages were from pal_vision_msgs, quite different than current pal_detection_msgs
+const int YEAR = 2014; 
+
 //node execution mode
 enum executionModes {MULTI_TRACKING=0, SHOOT_TLD, FOLLOW_ME};
 
@@ -74,6 +82,8 @@ class CpipolTrackerNode
             //ros::Subscriber tldDetectionsSubs;
             image_transport::Subscriber imageSubs;
             cv_bridge::CvImagePtr cvImgPtrSubs;            
+            ros::Subscriber cameraInfoSubs;
+            
                   
             //publishers
             ros::Publisher particleSetPub;      
@@ -86,6 +96,10 @@ class CpipolTrackerNode
             pipol_tracker_pkg::personArray personArrayMsg;
             cv_bridge::CvImage cvImgPub;
             // tld_msgs::Target tldBoxMsg;
+            
+            //sensor parameters (laser pose, camera calibration, ...)
+            Eigen::Matrix4d laserH_base;//3D pose of laser device used by leg detector, wrt base_link
+            Eigen::Matrix3d camK; //camera intrinsic parameters
             
             //management variables
             unsigned int exeMode; //execution mode
@@ -120,6 +134,7 @@ class CpipolTrackerNode
             void faceDetections_callback(const pal_detection_msgs::FaceDetections::ConstPtr& msg);            
             void followMe_callback(const std_msgs::Int32::ConstPtr& msg);
             void image_callback(const sensor_msgs::ImageConstPtr& msg);
+            void cameraInfo_callback(const sensor_msgs::CameraInfo & msg);
             //void tldDetections_callback(const tld_msgs::BoundingBox::ConstPtr& msg);
 
       public:

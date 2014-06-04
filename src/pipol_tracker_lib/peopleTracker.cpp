@@ -995,7 +995,7 @@ void CpeopleTracker::markBodies()
             bb.height = jjB->bbH;
                 
             //draws a green bounding box on the image according to detection jj
-            cv::rectangle(img, bb, cv::Scalar(255,255,0), 3);
+            cv::rectangle(img, bb, cv::Scalar(0,255,255), 3);
       }
 }
 
@@ -1014,7 +1014,7 @@ void CpeopleTracker::markFaces()
             bb.height = iiF->bbH;
                 
             //draws an orange bounding box on the image according to detection iiF
-            cv::rectangle(img, bb, cv::Scalar(0,255,255), 3);
+            cv::rectangle(img, bb, cv::Scalar(255,255,0), 3);
       }
 }
 
