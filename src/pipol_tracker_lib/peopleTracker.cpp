@@ -303,11 +303,13 @@ void CpeopleTracker::updateAssociationTables()
       std::list<CfaceObservation>::iterator jjF, kkF;
 	std::list<CpersonTarget>::iterator iiT, llT;
 	double matchingValue, assocProb;
-	unsigned int ii, jj, ll;
+    unsigned int ii = 0;
+    unsigned int jj = 0;
+    unsigned int ll = 0;
 	decisionElement de;
 	std::list<decisionElement> deList;
 	std::list<decisionElement>::iterator k1E, k2E;
-	
+
 	//resets matching and association tables
 	for (iiT=targetList.begin();iiT!=targetList.end();iiT++)
 	{
