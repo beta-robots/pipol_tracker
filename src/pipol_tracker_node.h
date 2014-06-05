@@ -46,9 +46,9 @@
 #include <pipol_tracker_pkg/personArray.h> //target list (output)
 
 //ROS dynamic configure
-#include <pipol_tracker_pkg/pipolTrackerParamsConfig.h>
+#include <pipol_tracker_pkg/pipol_tracker_configConfig.h>
 
-//visualization constants 
+//visualization constants
 const double MARKER_SIZE = 0.5;
 const double MARKER_Z = 0.2;
 const double MARKER_DURATION = 0.1;
