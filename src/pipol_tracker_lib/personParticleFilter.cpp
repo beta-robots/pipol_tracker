@@ -127,8 +127,7 @@ void CpersonParticleFilter::init(Cpoint3dObservation & pDet)
 {
         unsigned int ii;
         double px,py,pvx,pvy;
-        CpersonParticle *newPart;
-        
+
         pSet.clear();
         for(ii=0; ii<params.numParticles; ii++)
         {
@@ -136,14 +135,12 @@ void CpersonParticleFilter::init(Cpoint3dObservation & pDet)
                 py = pDet.point.getY() + params.initDeltaXY*(double)rand()/((double)RAND_MAX)-params.initDeltaXY/2.0;
                 pvx = 0 + params.initDeltaVxy*(double)rand()/((double)RAND_MAX)-params.initDeltaVxy/2.0;
                 pvy = 0 + params.initDeltaVxy*(double)rand()/((double)RAND_MAX)-params.initDeltaVxy/2.0;
-                newPart = new CpersonParticle(px,py,pvx,pvy,1.0/(double)params.numParticles);
-                pSet.push_back(*newPart);
+                pSet.push_back(CpersonParticle(px,py,pvx,pvy,1.0/(double)params.numParticles));
                 //newPart->printParticle();
         }
         countIterations ++;//init() counts as a first iteration
 //         tsInit.setToNow();
         tsLastPrior.setToNow();
-        delete newPart;
 }
 
 void CpersonParticleFilter::predictPset(CodometryObservation & odo)
