@@ -99,7 +99,9 @@ void CpeopleTracker::setOnBoardCamCalMatrix()
 void CpeopleTracker::setFollowMeTargetId(int fmtid)
 {
       this->followMeTargetId = fmtid;
+      std::cout << "**********************************" << std::endl;      
       std::cout << "FOLLOW ME TARGET ID SET TO: " << this->followMeTargetId << std::endl;
+      std::cout << "**********************************" << std::endl;      
 }
 
 int CpeopleTracker::getFollowMeTargetId()

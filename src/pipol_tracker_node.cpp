@@ -633,13 +633,38 @@ void CpipolTrackerNode::faceDetections_callback_2013(const pal_vision_msgs::Face
 
 void CpipolTrackerNode::legDetections_callback(const pal_detection_msgs::LegDetections::ConstPtr& msg) 
 { 
+      unsigned int ii;
       Cpoint3dObservation newDetection;
-        
+      std::string frame_id;      
+      Eigen::Vector3d tlaser_base; //translation of laser device wrt base
+      Eigen::Quaterniond qlaser_base; //quaternion of laser device wrt base
+      Eigen::Vector3d det_laser; //detection wrt laser frame
+      Eigen::Vector3d det_base; //detection wrt laser frame
+            
+      //get msg->laser_pose.frame_id and check if it is the base_link. If not, warn and exit callback
+      frame_id = msg->laser_pose.header.frame_id;
+      if (frame_id != "base_link")
+      {
+            std::cout << "WARNING: Leg detections not referenced to base_link" << std::endl;
+            return;
+      }
+
+      //sensor frame pose (translation + orientation in quaternion form)
+      tlaser_base << msg->laser_pose.transform.translation.x,
+                  msg->laser_pose.transform.translation.y, 
+                  msg->laser_pose.transform.translation.z;
+      qlaser_base = Eigen::Quaterniond(msg->laser_pose.transform.rotation.w,
+                                    msg->laser_pose.transform.rotation.x,
+                                    msg->laser_pose.transform.rotation.y,
+                                    msg->laser_pose.transform.rotation.z);
+      
       //sets current (received) detections
       for (unsigned int ii=0; ii<msg->position3D.size(); ii++)
       {
             newDetection.timeStamp.set(msg->header.stamp.sec, msg->header.stamp.nsec);
-            newDetection.point.setXYZ(msg->position3D[ii].x, -msg->position3D[ii].y, 0.0);//TODO: USE frame transform, instead of - sign !!!!
+            det_laser << msg->position3D[ii].x, msg->position3D[ii].y, 0.0;
+            det_base = qlaser_base.matrix()*det_laser + tlaser_base;
+            newDetection.point.setXYZ(det_base(0), det_base(1), 0.0);
             newDetection.point.setXYcov(0.2,0.2,0);
             tracker.addDetection(newDetection);
       }
@@ -649,23 +674,22 @@ void CpipolTrackerNode::bodyDetections_callback(const pal_detection_msgs::Detect
 { 
       unsigned int ii;
       CbodyObservation newDetection;
-//       std::list<CbodyObservation>::iterator iiB;
       std::string frame_id;
-      CtimeStamp ts;
       Eigen::Vector3d pxDetection;//homogeneous pixel coordinates of detection central point
       Eigen::Vector3d ray_cam; //ray direction in 3D, wrt camera frame
       Eigen::Vector3d ray_base; //ray direction in 3D, wrt base_link frame
       Eigen::Vector3d tcam_base; //translation of camera wrt base
       Eigen::Quaterniond qcam_base; //quaternion of camera wrt base
 
-      //detection time stamp
-      ts.set(msg->header.stamp.sec, msg->header.stamp.nsec);
-      
-      //get msg->camera_pose frame_id and check if it is the base_link. If not, warn and exit callback
+      //get msg->camera_pose.frame_id and check if it is the base_link. If not, warn and exit callback
       frame_id = msg->camera_pose.header.frame_id;
-      if (frame_id != "base_link") std::cout << "WARNING: Body detections not referenced to base_link" << std::endl;
+      if (frame_id != "base_link")
+      {
+            std::cout << "WARNING: Body detections not referenced to base_link" << std::endl;
+            return;
+      }
 
-      //detector frame pose (translation + orientation in quaternion form)
+      //sensor frame pose (translation + orientation in quaternion form)
       tcam_base << msg->camera_pose.transform.translation.x,
                   msg->camera_pose.transform.translation.y, 
                   msg->camera_pose.transform.translation.z;
@@ -678,7 +702,7 @@ void CpipolTrackerNode::bodyDetections_callback(const pal_detection_msgs::Detect
       for (ii=0; ii<msg->detections.size(); ii++)
       {
             //set detection TS
-            newDetection.timeStamp = ts;
+            newDetection.timeStamp.set(msg->header.stamp.sec, msg->header.stamp.nsec);
             
             //bounding box
             newDetection.bbX = msg->detections[ii].x;
@@ -711,32 +735,46 @@ void CpipolTrackerNode::faceDetections_callback(const pal_detection_msgs::FaceDe
 { 
       unsigned int ii;
       CfaceObservation newDetection;
-      std::string frame_id;
-      CtimeStamp ts;
-
-      //detection time stamp
-      ts.set(msg->header.stamp.sec, msg->header.stamp.nsec);
+      std::string frame_id;      
+      Eigen::Vector3d tcam_base; //translation of camera device wrt base
+      Eigen::Quaterniond qcam_base; //quaternion of camera device wrt base
+      Eigen::Vector3d det_cam; //detection wrt laser frame
+      Eigen::Vector3d det_base; //detection wrt laser frame      
       
-      //get msg->camera_pose frame_id and check if it is the base_link. If not, warn and exit callback
-//       frame_id = msg->camera_pose.header.frame_id;
-//       if (frame_id != "base_link") std::cout << "WARNING: Body detections not referenced to base_link" << std::endl;
-//       
-//       
+      //get msg->camera_pose.frame_id and check if it is the base_link. If not, warn and exit callback
+      frame_id = msg->camera_pose.header.frame_id;
+      if (frame_id != "base_link")
+      {
+            std::cout << "WARNING: Face detections not referenced to base_link" << std::endl;
+            return;
+      }
+
+      //sensor frame pose (translation + orientation in quaternion form)
+      tcam_base << msg->camera_pose.transform.translation.x,
+                  msg->camera_pose.transform.translation.y, 
+                  msg->camera_pose.transform.translation.z;
+      qcam_base = Eigen::Quaterniond(msg->camera_pose.transform.rotation.w,
+                                    msg->camera_pose.transform.rotation.x,
+                                    msg->camera_pose.transform.rotation.y,
+                                    msg->camera_pose.transform.rotation.z);
+      
       //sets current (received) detections
       for (ii=0; ii<msg->faces.size(); ii++)
       {
             //set time stamp
             newDetection.timeStamp.set(msg->header.stamp.sec, msg->header.stamp.nsec);
-//             
-            //get message data
-//             newDetection.faceLoc.setX(1);
-//             newDetection.faceLoc.setY(0);
-//             newDetection.faceLoc.setZ(1);
+            
+            //compute transf from camera coordinates to base coordinates
+            det_cam << msg->faces[ii].position.x, msg->faces[ii].position.y, msg->faces[ii].position.z;
+            det_base = qcam_base.matrix()*det_cam + tcam_base;
+
+            //Set detection
+            newDetection.faceLoc.setXYZ(det_base(0), det_base(1), det_base(2));
             newDetection.bbX = msg->faces[ii].x;
             newDetection.bbY = msg->faces[ii].y;
             newDetection.bbW = msg->faces[ii].width;
             newDetection.bbH = msg->faces[ii].height;
-//             
+
             //add detection to tracker list
             tracker.addDetection(newDetection);
       }
@@ -744,20 +782,13 @@ void CpipolTrackerNode::faceDetections_callback(const pal_detection_msgs::FaceDe
 
 void CpipolTrackerNode::followMe_callback(const std_msgs::Int32::ConstPtr& msg) 
 {
-      //followMe_mutex_.enter();
-      std::cout << "*************************************************" << std::endl;
       tracker.setFollowMeTargetId(msg->data);
-      //followMe_mutex_.exit();
 }
 
 void CpipolTrackerNode::image_callback(const sensor_msgs::ImageConstPtr& msg)
 {
-// 	ROS_INFO("pipolTrackerNode::image_callback: New Message Received");
-// 	this->alg_.lock();
-	//this->image_mutex_.enter();
 	try
 	{
-		//cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
             this->cvImgPtrSubs = cv_bridge::toCvCopy(msg, msg->encoding);
             cvImgPub.encoding = msg->encoding;
 	}
@@ -766,8 +797,6 @@ void CpipolTrackerNode::image_callback(const sensor_msgs::ImageConstPtr& msg)
 		ROS_ERROR("cv_bridge exception: %s", e.what());
 		return;
 	}
-// 	this->alg_.unlock();
-	//this->image_mutex_.exit();
 }
 
 void CpipolTrackerNode::cameraInfo_callback(const sensor_msgs::CameraInfo & msg)
@@ -777,7 +806,6 @@ void CpipolTrackerNode::cameraInfo_callback(const sensor_msgs::CameraInfo & msg)
       std::cout << "Camera Info Message Received. Camera calibration data set." << std::endl;
       this->cameraInfoSubs.shutdown();
 }
-
 
 /*
 void pipolTrackerNode::tldDetections_callback(const tld_msgs::BoundingBox::ConstPtr& msg) 
@@ -818,23 +846,5 @@ void pipolTrackerNode::tldDetections_callback(const tld_msgs::BoundingBox::Const
 
       //unblocks tld detection mutex
       //this->tldDetections_mutex_.exit(); 
-}
-*/
-
-/*
-void pipolTrackerNode::initCamera()
-{
-      tf::StampedTransform stf;
-      Cposition3d camINbase;
-      tf::TransformListener tfListener;
-      
-      //sleep(1);//??
-      
-      tfListener.waitForTransform("/base_link", "/left_stereo_optical_frame", ros::Time(0), ros::Duration(10.0),ros::Duration(1.0));
-      tfListener.lookupTransform("/base_link", "/left_stereo_optical_frame", ros::Time(0), stf);
-      camINbase.setXYZ(stf.getOrigin().x(), stf.getOrigin().y(), stf.getOrigin().z());
-      camINbase.setQuaternion(stf.getRotation().getW(),stf.getRotation().getX(),stf.getRotation().getY(),stf.getRotation().getZ());
-      tracker.setOnBoardCamPose(camINbase);
-      //tracker->setOnBoardCamCalMatrix();//to do
 }
 */

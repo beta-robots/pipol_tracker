@@ -70,5 +70,5 @@ year: 2014
 #send visualization markers corresponding to body detections , 0->Off, 1->On
 view_body_detections: 1
 
-# ratio of particles which are sent as visualization markers
+# ratio of particles which are published as visualization markers
 ratio_particles_displayed: 0.1

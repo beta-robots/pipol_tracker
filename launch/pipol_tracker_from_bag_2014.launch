@@ -5,11 +5,13 @@
 	<node	pkg="rosbag"
 		type="play"
 		name="rosbag"
-		args="-l --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20140604_robotMoving.bag"/>	
+		args="-l --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20140607_robotStopped.bag"/>	
 <!--        20140422_robotMoving.bag -->
 <!--        20140422_robotStopped.bag -->
 <!--        20140604_robotMoving.bag -->
 <!--        20140604_robotStopped.bag -->
+<!--        20140607_robotMoving.bag -->
+<!--        20140607_robotStopped.bag -->
 
 	<!-- 	Launch people_tracking_rai node -->
 	<group ns="$(env ROBOT)">
