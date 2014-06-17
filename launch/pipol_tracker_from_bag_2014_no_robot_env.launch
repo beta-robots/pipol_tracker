@@ -5,7 +5,7 @@
 	<node	pkg="rosbag"
 		type="play"
 		name="rosbag"
-		args="-l --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20140607_robotStopped.bag"/>	
+		args="-l --clock /home/sampfeiffer/20140607_robotStopped.bag"/>	
 <!--        20140422_robotMoving.bag -->
 <!--        20140422_robotStopped.bag -->
 <!--        20140604_robotMoving.bag -->
@@ -14,7 +14,7 @@
 <!--        20140607_robotStopped.bag -->
 
 	<!-- 	Launch people_tracking_rai node -->
-	<group ns="pipol_tracker_ns">
+	<group>
 		<node	pkg="pipol_tracker_pkg"
 			type="pipol_tracker_node"
 			name="pipol_tracker_node"
@@ -35,7 +35,6 @@
                   <remap from="/pipol_tracker_node/followMe"
                         to="/followMe/targetId" />                     				
 			<rosparam command="load" file="$(find pipol_tracker_pkg)/launch/pipol_tracker_params.yaml"/>
-			<param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
 		</node>
 	</group>
 
@@ -43,7 +42,7 @@
 	<node 	name="rviz" 
 		pkg="rviz" 
 		type="rviz"
-		args="-d $(find pipol_tracker_pkg)/launch/pipol_tracker_viz_2014.rviz">
+		args="-d $(find pipol_tracker_pkg)/launch/pipol_tracker_viz_2014_no_env.rviz">
 	</node>
 
       <!-- 	Visualization of image bounding boxes -->
