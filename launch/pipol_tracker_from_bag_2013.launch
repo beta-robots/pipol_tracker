@@ -48,7 +48,7 @@
 	<node 	name="rviz" 
 		pkg="rviz" 
 		type="rviz"
-		args="-d $(find pipol_tracker_pkg)/launch/pipol_tracker_viz_2013.rviz">
+		args="-d $(find pipol_tracker_pkg)/rviz/pipol_tracker_viz_2013.rviz">
 		<param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
 	</node>
 

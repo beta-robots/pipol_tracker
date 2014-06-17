@@ -42,7 +42,7 @@
 	<node 	name="rviz" 
 		pkg="rviz" 
 		type="rviz"
-		args="-d $(find pipol_tracker_pkg)/launch/pipol_tracker_viz_2014_no_env.rviz">
+		args="-d $(find pipol_tracker_pkg)/rviz/pipol_tracker_viz_2014_no_env.rviz">
 	</node>
 
       <!-- 	Visualization of image bounding boxes -->
