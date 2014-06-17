@@ -1,7 +1,7 @@
-#target id
+# Target id
 int32 targetId
 
-#target status is a bitwise OR of the following values
+# Target status is a bitwise OR of the following values
 int32 TO_BE_REMOVED         = 1     # 0x01
 int32 OCCLUDDED             = 2     # 0x02
 int32 CANDIDATE             = 4     # 0x04
@@ -13,13 +13,13 @@ int32 FACE_LEARNT           = 128   # 0x80
 
 int32 targetStatus
 
-#target 2D position
+# Target 2D position
 float64 x
 float64 y
 
-#target 2D linear velocity
+# Target 2D linear velocity
 float64 vx
 float64 vy
 
-#(x,y,vx,vy) covariance matrix
+# (x,y,vx,vy) covariance matrix
 float64[16] covariances
