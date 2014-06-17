@@ -2,14 +2,14 @@
 int32 targetId
 
 #target status is a bitwise OR of the following values
-int32 TO_BE_REMOVED = 1
-int32 OCCLUDDED = 2
-int32 CANDIDATE = 4
-int32 LEGGED_TARGET = 8
-int32 VISUALLY_CONFIRMED = 10
-int32 FRIEND_IN_SIGHT = 20
-int32 BACK_LEARNT = 40
-int32 FACE_LEARNT = 80
+int32 TO_BE_REMOVED         = 1     # 0x01
+int32 OCCLUDDED             = 2     # 0x02
+int32 CANDIDATE             = 4     # 0x04
+int32 LEGGED_TARGET         = 8     # 0x08
+int32 VISUALLY_CONFIRMED    = 16    # 0x10
+int32 FRIEND_IN_SIGHT       = 32    # 0x20
+int32 BACK_LEARNT           = 64    # 0x40
+int32 FACE_LEARNT           = 128   # 0x80
 
 int32 targetStatus
 
