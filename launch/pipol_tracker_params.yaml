@@ -4,22 +4,22 @@
 #number of particles per target
 num_particles: 300
 
-#when a new filter/target is launched, XY space is sampled along init_delta_xy from the first detection point 
+#when a new filter/target is launched, XY space is sampled along init_delta_xy from the first detection point [m]
 init_delta_xy: 0.3
 
-#when a new filter/target is launched, VxVy space is sampled along init_delta_vxy from 0
+#when a new filter/target is launched, VxVy space is sampled along init_delta_vxy from 0 [m/s]
 init_delta_vxy: 0.5
 
-#resampling standard deviation applied at the end of each filter iteration along XY dimensions
+#resampling standard deviation applied at the end of each filter iteration along XY dimensions [m]
 sigma_resampling_xy: 0.01
 
-#resampling standard deviation applied at the end of each filter iteration along VxVy dimensions
+#resampling standard deviation applied at the end of each filter iteration along VxVy dimensions [m/s]
 sigma_resampling_vxy: 0.1
 
-#person radius used in LEG and BODY matching functions. Smaller the radius, more precise should be detections
+#person radius used in LEG and BODY matching functions. Smaller the radius, more precise should be detections [m]
 person_radius: 0.25
 
-#LEG and BODy cost function parameters. 
+#LEG and BODY cost function parameters. 
 matching_legs_alpha: 0.1
 matching_legs_beta: 10
 matching_bearing_alpha: 0.1
@@ -28,7 +28,7 @@ matching_bearing_beta: 10
 
 #****************** tracker parameters *********************************
 
-#If targets closer than this distance, merging function is called
+#If targets closer than this distance, merging function is called [m]
 minimum_distance_between_people: 0.25
 
 #Lower probabilities are treated as ZERO
@@ -64,7 +64,7 @@ minimum_appearance_region_size: 100
 #verbose mode. 0->Off, 1->On
 verbose_mode: 0
 
-#year: 2013 or 2014
+#year: 2013 or 2014 (messages changed. 2013 only useful for recorded rosbags)
 year: 2014
 
 #send visualization markers corresponding to body detections , 0->Off, 1->On
