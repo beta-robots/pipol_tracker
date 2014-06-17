@@ -7,19 +7,19 @@
 		name="pipol_tracker_node"
 		args=""
 		output="screen">
-                  <remap from="/$(env ROBOT)/pipol_tracker_node/odometry"
+                  <remap from="/pipol_tracker_node/odometry"
                         to="/mobile_base_controller/odom" />
-                  <remap from="/$(env ROBOT)/pipol_tracker_node/legDetections"
+                  <remap from="/pipol_tracker_node/legDetections"
                         to="/leg_detector/legs" />
-                  <remap from="/$(env ROBOT)/pipol_tracker_node/bodyDetections"
+                  <remap from="/pipol_tracker_node/bodyDetections"
                         to="/fullbody_2d_detector/detections" />
-                  <remap from="/$(env ROBOT)/pipol_tracker_node/faceDetections"
+                  <remap from="/pipol_tracker_node/faceDetections"
                         to="/pal_face/faces" />                   
-                  <remap from="/$(env ROBOT)/pipol_tracker_node/image_in"
+                  <remap from="/pipol_tracker_node/image_in"
                         to="/head_mount_xtion/rgb/image_rect_color" />                    
-                  <remap from="/$(env ROBOT)/pipol_tracker_node/cameraInfo_in"
+                  <remap from="/pipol_tracker_node/cameraInfo_in"
                         to="/head_mount_xtion/rgb/camera_info" />                    
-                  <remap from="/$(env ROBOT)/pipol_tracker_node/followMe"
+                  <remap from="/pipol_tracker_node/followMe"
                         to="/followMe/targetId" />                                        
                   <rosparam command="load" file="$(find pipol_tracker_pkg)/launch/pipol_tracker_params.yaml"/>
 	</node>
