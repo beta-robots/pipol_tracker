@@ -18,7 +18,8 @@ CpipolTrackerNode::CpipolTrackerNode() : nh(ros::this_node::getName()) , it(this
       nh.getParam("init_delta_xy", this->filterParams.initDeltaXY);
       nh.getParam("init_delta_vxy", this->filterParams.initDeltaVxy);
       nh.getParam("sigma_resampling_xy", this->filterParams.sigmaResamplingXY);
-      nh.getParam("sigma_resampling_vxy", this->filterParams.sigmaResamplingVxy);
+      nh.getParam("sigma_ratio_resampling_vxy", this->filterParams.sigmaRatioResamplingVxy);
+      nh.getParam("sigma_min_resampling_vxy", this->filterParams.sigmaMinResamplingVxy);
       nh.getParam("person_radius", this->filterParams.personRadius);
       nh.getParam("matching_legs_alpha", this->filterParams.matchingLegsAlpha);
       nh.getParam("matching_legs_beta", this->filterParams.matchingLegsBeta);
@@ -80,6 +81,7 @@ CpipolTrackerNode::CpipolTrackerNode() : nh(ros::this_node::getName()) , it(this
                   this->legDetectionsSubs = nh.subscribe("legDetections", 100, &CpipolTrackerNode::legDetections_callback, this);
                   this->bodyDetectionsSubs = nh.subscribe("bodyDetections", 100, &CpipolTrackerNode::bodyDetections_callback, this);
                   this->faceDetectionsSubs = nh.subscribe("faceDetections", 100, &CpipolTrackerNode::faceDetections_callback, this);
+                  this->body3dDetectionsSubs = nh.subscribe("body3dDetections", 100, &CpipolTrackerNode::body3dDetections_callback, this);
                   break;
             default:
                   break;
@@ -189,6 +191,7 @@ void CpipolTrackerNode::process()
       tracker.resetDetectionSets(LEGS);
       tracker.resetDetectionSets(BODY);
       tracker.resetDetectionSets(FACE);
+      tracker.resetDetectionSets(BODY3D);
       //tracker.resetDetectionSets(TLD);
 
       //UNLOCK data reception mutexes (except image mutex which will be unlocked below)
@@ -216,260 +219,303 @@ void CpipolTrackerNode::process()
 
 void CpipolTrackerNode::fillMessages()
 {
-      std::list<CpersonTarget>::iterator iiF;
-      std::list<CpersonParticle>::iterator iiP;
-      std::list<CbodyObservation>::iterator iiB;
-      std::list<Cpoint3dObservation>::iterator iiL;
-      filterEstimate iiEst;
-      ostringstream markerText;
-      CbodyObservation tldDet;
-      double bodyBearing, transpFactor;
-      unsigned int ii=0;//, jj=0;
-      unsigned int bbx,bby,bbw,bbh;
+    std::list<CpersonTarget>::iterator iiF;
+    std::list<CpersonParticle>::iterator iiP;
+    std::list<CbodyObservation>::iterator iiB;
+    std::list<Cpoint3dObservation>::iterator iiL;
+    std::list<Cpoint3dObservation>::iterator iiB3;
+    filterEstimate iiEst;
+    ostringstream markerText;
+    CbodyObservation tldDet;
+    double bodyBearing, transpFactor, vOrientation;
+    unsigned int ii=0;//, jj=0;
+    unsigned int bbx,bby,bbw,bbh;
+    
+    //1. Main output message: peopleTrackingArray
+    personArrayMsg.peopleSet.clear();
+    personArrayMsg.header.frame_id = "/base_link";
+    personArrayMsg.header.stamp = ros::Time::now();
+    std::list<CpersonTarget> & targets = tracker.getTargetList();
+    personArrayMsg.peopleSet.resize(targets.size());
+    for (iiF=targets.begin(); iiF!=targets.end(); iiF++)
+    {
+        if ( iiF->getMaxStatus() > CANDIDATE )
+        {
+            iiF->getEstimate(iiEst);
+            personArrayMsg.peopleSet[ii].targetId = iiF->getId();
+            personArrayMsg.peopleSet[ii].targetStatus = iiF->getStatus();
+            personArrayMsg.peopleSet[ii].x = iiEst.position.getX();
+            personArrayMsg.peopleSet[ii].y = iiEst.position.getY();
+            personArrayMsg.peopleSet[ii].vx = iiEst.velocity.getX();
+            personArrayMsg.peopleSet[ii].vy = iiEst.velocity.getY();
+            personArrayMsg.peopleSet[ii].covariances[0] = iiEst.position.getMatrixElement(0,0);
+            personArrayMsg.peopleSet[ii].covariances[5] = iiEst.position.getMatrixElement(1,1);
+            personArrayMsg.peopleSet[ii].covariances[10] = iiEst.velocity.getMatrixElement(0,0);
+            personArrayMsg.peopleSet[ii].covariances[15] = iiEst.velocity.getMatrixElement(1,1);
+            ii++;
+        }
+    }
       
-      //1. Main output message: peopleTrackingArray
-      personArrayMsg.peopleSet.clear();
-      personArrayMsg.header.frame_id = "/base_link";
-      personArrayMsg.header.stamp = ros::Time::now();
-      std::list<CpersonTarget> & targets = tracker.getTargetList();
-      personArrayMsg.peopleSet.resize(targets.size());
-      for (iiF=targets.begin(); iiF!=targets.end(); iiF++)
-      {
-            if ( iiF->getMaxStatus() > CANDIDATE )
-            {
-                  iiF->getEstimate(iiEst);
-                  personArrayMsg.peopleSet[ii].targetId = iiF->getId();
-                  personArrayMsg.peopleSet[ii].targetStatus = iiF->getStatus();
-                  personArrayMsg.peopleSet[ii].x = iiEst.position.getX();
-                  personArrayMsg.peopleSet[ii].y = iiEst.position.getY();
-                  personArrayMsg.peopleSet[ii].vx = iiEst.velocity.getX();
-                  personArrayMsg.peopleSet[ii].vy = iiEst.velocity.getY();
-                  personArrayMsg.peopleSet[ii].covariances[0] = iiEst.position.getMatrixElement(0,0);
-                  personArrayMsg.peopleSet[ii].covariances[5] = iiEst.position.getMatrixElement(1,1);
-                  personArrayMsg.peopleSet[ii].covariances[10] = iiEst.velocity.getMatrixElement(0,0);
-                  personArrayMsg.peopleSet[ii].covariances[15] = iiEst.velocity.getMatrixElement(1,1);
-                  ii++;
-            }
-      }
-      
-      //erase message data if previous iteration had greater array size
-      personArrayMsg.peopleSet.erase(personArrayMsg.peopleSet.begin()+ii,personArrayMsg.peopleSet.end());
-      
-      //2. VISUALIZATION MESSAGE: Marker array
-      if (this->verboseMode) std::cout << std::endl << "*** Filling Debug Markers Message" << std::endl;
-      std::list<Cpoint3dObservation> & laserDetSet = tracker.getLaserDetSet();
-      std::list<CbodyObservation> & bodyDetSet = tracker.getBodyDetSet();
-      MarkerArrayMsg.markers.clear();
-      MarkerArrayMsg.markers.resize( laserDetSet.size() + bodyDetSet.size()*4 + targets.size() + filterParams.numParticles*targets.size() + 1 ); //ALERT: add particleRatioToBeDrawn ???        
-      ii = 0;
-      //if (this->verboseMode) std::cout << "\tlaserDetSet.size(): " << laserDetSet.size() << "\tbodyDetSet.size(): " << bodyDetSet.size() << "\ttargets.size(): " << targets.size() << "\tMarkerArrayMsg.markers.size() " << MarkerArrayMsg.markers.size() << std::endl; 
+    //erase message data if previous iteration had greater array size
+    personArrayMsg.peopleSet.erase(personArrayMsg.peopleSet.begin()+ii,personArrayMsg.peopleSet.end());
+    
+    //2. VISUALIZATION MESSAGE: Marker array
+    if (this->verboseMode) std::cout << std::endl << "*** Filling Debug Markers Message" << std::endl;
+    std::list<Cpoint3dObservation> & laserDetSet = tracker.getLaserDetSet();
+    std::list<CbodyObservation> & bodyDetSet = tracker.getBodyDetSet();
+    std::list<Cpoint3dObservation> & body3dDetSet = tracker.getBody3dDetSet();
+    MarkerArrayMsg.markers.clear();
+    //MarkerArrayMsg.markers.resize( laserDetSet.size() + bodyDetSet.size() + body3dDetSet.size() + targets.size()*2 + ceil(this->ratioParticlesDisplayed*filterParams.numParticles*targets.size()) + 1 ); //ALERT: add particleRatioToBeDrawn ???
+    MarkerArrayMsg.markers.resize( laserDetSet.size() + bodyDetSet.size() + body3dDetSet.size() + targets.size()*2 + filterParams.numParticles*targets.size() + 1 ); //ALERT: add particleRatioToBeDrawn ???        
+    ii = 0;
+    //if (this->verboseMode) std::cout << "\tlaserDetSet.size(): " << laserDetSet.size() << "\tbodyDetSet.size(): " << bodyDetSet.size() << "\ttargets.size(): " << targets.size() << "\tMarkerArrayMsg.markers.size() " << MarkerArrayMsg.markers.size() << std::endl; 
 
-      //2a. laser detections
-      for (iiL=laserDetSet.begin(); iiL!=laserDetSet.end(); iiL++)
-      {
+    //2a. laser detections
+    for (iiL=laserDetSet.begin(); iiL!=laserDetSet.end(); iiL++)
+    {
+        //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << std::endl;
+        this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
+        this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
+        this->MarkerArrayMsg.markers[ii].id = ii;
+        this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::CYLINDER;
+        this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
+        this->MarkerArrayMsg.markers[ii].pose.position.x = iiL->point.getX();
+        this->MarkerArrayMsg.markers[ii].pose.position.y = iiL->point.getY();
+        this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
+        this->MarkerArrayMsg.markers[ii].scale.x = MARKER_SIZE/3;
+        this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE/3;
+        this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE/3;
+        this->MarkerArrayMsg.markers[ii].color.a = MARKER_TRANSPARENCY;
+        this->MarkerArrayMsg.markers[ii].color.r = 1;
+        this->MarkerArrayMsg.markers[ii].color.g = 0.2;
+        this->MarkerArrayMsg.markers[ii].color.b = 0.2;
+        this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION);
+        ii++;                   
+    }
+    
+    //2b. body detections, both 2D and 3D
+    if (this->viewBodyDetections)
+    {
+        //2D
+        for (iiB=bodyDetSet.begin(); iiB!=bodyDetSet.end(); iiB++)
+        {
             //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << std::endl;
+            //arrow indicates detection bearing
+            this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
+            this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
+            this->MarkerArrayMsg.markers[ii].id = ii;
+            this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::ARROW;
+            this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
+            this->MarkerArrayMsg.markers[ii].pose.position.x = 0;
+            this->MarkerArrayMsg.markers[ii].pose.position.y = 0;
+            this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
+            this->MarkerArrayMsg.markers[ii].scale.x = MARKER_SIZE*10;
+            this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE/10;
+            this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE/10;
+            this->MarkerArrayMsg.markers[ii].color.a = MARKER_TRANSPARENCY;
+            this->MarkerArrayMsg.markers[ii].color.r = 0;
+            this->MarkerArrayMsg.markers[ii].color.g = 1;
+            this->MarkerArrayMsg.markers[ii].color.b = 1;
+            this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION*3);
+            bodyBearing = atan2(iiB->direction.getY(),iiB->direction.getX());
+            geometry_msgs::Quaternion bearingQuaternion = tf::createQuaternionMsgFromYaw(bodyBearing);
+            this->MarkerArrayMsg.markers[ii].pose.orientation.x = bearingQuaternion.x;
+            this->MarkerArrayMsg.markers[ii].pose.orientation.y = bearingQuaternion.y;
+            this->MarkerArrayMsg.markers[ii].pose.orientation.z = bearingQuaternion.z;
+            this->MarkerArrayMsg.markers[ii].pose.orientation.w = bearingQuaternion.w;
+            ii++;
+        }
+        
+        //3D
+        for (iiB3=body3dDetSet.begin(); iiB3!=body3dDetSet.end(); iiB3++)
+        {
+            //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << std::endl;
+            //arrow indicates detection bearing
+            this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
+            this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
+            this->MarkerArrayMsg.markers[ii].id = ii;
+            this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::CUBE;
+            this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
+            this->MarkerArrayMsg.markers[ii].pose.position.x = iiB3->point.getX();
+            this->MarkerArrayMsg.markers[ii].pose.position.y = iiB3->point.getY();
+            this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
+            this->MarkerArrayMsg.markers[ii].scale.x = MARKER_SIZE/2;
+            this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE/2;
+            this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE/2;
+            this->MarkerArrayMsg.markers[ii].color.a = MARKER_TRANSPARENCY;
+            this->MarkerArrayMsg.markers[ii].color.r = 1.;
+            this->MarkerArrayMsg.markers[ii].color.g = 0.;
+            this->MarkerArrayMsg.markers[ii].color.b = 1.;
+            this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION);
+            ii++;                   
+        }        
+    }
+
+    //2c. target positions, target Id's and particles
+    for (iiF=targets.begin(); iiF!=targets.end(); iiF++)
+    {
+        //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << std::endl;
+        if ( iiF->getMaxStatus() > CANDIDATE )
+        {
+            iiF->getEstimate(iiEst);
+            
+            //cylinder: target position
             this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
             this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
             this->MarkerArrayMsg.markers[ii].id = ii;
             this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::CYLINDER;
             this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
-            this->MarkerArrayMsg.markers[ii].pose.position.x = iiL->point.getX();
-            this->MarkerArrayMsg.markers[ii].pose.position.y = iiL->point.getY();
-            this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
-            this->MarkerArrayMsg.markers[ii].scale.x = MARKER_SIZE/3;
-            this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE/3;
-            this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE/3;
-            this->MarkerArrayMsg.markers[ii].color.a = MARKER_TRANSPARENCY;
-            this->MarkerArrayMsg.markers[ii].color.r = 1;
-            this->MarkerArrayMsg.markers[ii].color.g = 0.2;
-            this->MarkerArrayMsg.markers[ii].color.b = 0.2;
+            this->MarkerArrayMsg.markers[ii].pose.position.x = iiEst.position.getX();
+            this->MarkerArrayMsg.markers[ii].pose.position.y = iiEst.position.getY();
+            if (iiF->pOcclusion > 0.5) this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
+            else this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
+            this->MarkerArrayMsg.markers[ii].scale.x = MARKER_SIZE;
+
+            //marker size depending on occlusion
+            this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE;
+            if (iiF->pOcclusion > 0.5) this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE*2;
+            else this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE;
+            
+            //marker transp depending on status
+            switch(iiF->getMaxStatus())
+            {
+                case LEGGED_TARGET: transpFactor = 0.1; break;
+                case VISUALLY_CONFIRMED: transpFactor = 0.5; break;
+                case FRIEND_IN_SIGHT: transpFactor = 1; break;
+                //case FRIEND_OUT_OF_RANGE: transpFactor = 1; break;
+                default: transpFactor = 0.1; break; 
+            }
+            this->MarkerArrayMsg.markers[ii].color.a = MARKER_TRANSPARENCY*transpFactor;
+            this->MarkerArrayMsg.markers[ii].color.r = 0;
+            this->MarkerArrayMsg.markers[ii].color.g = 0;
+            this->MarkerArrayMsg.markers[ii].color.b = 1.0;
             this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION);
-            ii++;                   
-      }
-      
-      //2b. body detections
-      if (this->viewBodyDetections)
-      {
-            for (iiB=bodyDetSet.begin(); iiB!=bodyDetSet.end(); iiB++)
+            ii++;
+            
+            //add text for well confirmed targets: target ID + used detections + STOP/GO mode
+            if ( iiF->getMaxStatus() > LEGGED_TARGET )
             {
-                  //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << std::endl;
-                  //arrow indicating bearing and rgb eigen
-                  this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
-                  this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
-                  this->MarkerArrayMsg.markers[ii].id = ii;
-                  this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::ARROW;
-                  this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
-                  this->MarkerArrayMsg.markers[ii].pose.position.x = 0;
-                  this->MarkerArrayMsg.markers[ii].pose.position.y = 0;
-                  this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
-                  this->MarkerArrayMsg.markers[ii].scale.x = MARKER_SIZE*10;
-                  this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE/10;
-                  this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE/10;
-                  this->MarkerArrayMsg.markers[ii].color.a = MARKER_TRANSPARENCY;
-                  this->MarkerArrayMsg.markers[ii].color.r = 0;
-                  this->MarkerArrayMsg.markers[ii].color.g = 1;
-                  this->MarkerArrayMsg.markers[ii].color.b = 1;
-                  this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION*3);
-                  bodyBearing = atan2(iiB->direction.getY(),iiB->direction.getX());
-                  geometry_msgs::Quaternion bearingQuaternion = tf::createQuaternionMsgFromYaw(bodyBearing);
-                  this->MarkerArrayMsg.markers[ii].pose.orientation.x = bearingQuaternion.x;
-                  this->MarkerArrayMsg.markers[ii].pose.orientation.y = bearingQuaternion.y;
-                  this->MarkerArrayMsg.markers[ii].pose.orientation.z = bearingQuaternion.z;
-                  this->MarkerArrayMsg.markers[ii].pose.orientation.w = bearingQuaternion.w;
-                  ii++;
-                  
-                  //three cylinders indicating RGB clusters
-                        /*
-                  for (jj=0; (jj<iiB->rgbCenters.size()) || (jj<3); jj++)
-                  {
-                        //if (this->verboseMode) std::cout << "rgbCenters.size(): " << iiB->rgbCenters.size() << std::endl;
-                        this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
-                        this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
-                        this->MarkerArrayMsg.markers[ii].id = ii;
-                        this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::CYLINDER;
-                        this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
-                        this->MarkerArrayMsg.markers[ii].pose.position.x = 2*cos(bodyBearing);
-                        this->MarkerArrayMsg.markers[ii].pose.position.y = 2*sin(bodyBearing);
-                        this->MarkerArrayMsg.markers[ii].pose.position.z = jj*MARKER_SIZE;
-                        this->MarkerArrayMsg.markers[ii].scale.x = MARKER_SIZE/2;
-                        this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE/2;
-                        this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE;
-                        this->MarkerArrayMsg.markers[ii].color.a = MARKER_TRANSPARENCY;
-                        this->MarkerArrayMsg.markers[ii].color.r = iiB->rgbCenters.at(jj).getX();
-                        this->MarkerArrayMsg.markers[ii].color.g = iiB->rgbCenters.at(jj).getY();
-                        this->MarkerArrayMsg.markers[ii].color.b = iiB->rgbCenters.at(jj).getZ();
-                        this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION*3);
-                        ii++;
-                  }
-                  */
+                this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
+                this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
+                this->MarkerArrayMsg.markers[ii].id = ii;
+                this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+                this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
+                this->MarkerArrayMsg.markers[ii].pose.position.x = iiEst.position.getX()+0.4;
+                this->MarkerArrayMsg.markers[ii].pose.position.y = iiEst.position.getY()+0.4;
+                this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
+                this->MarkerArrayMsg.markers[ii].scale.z = MARKER_TEXT_SIZE;
+                this->MarkerArrayMsg.markers[ii].color.a = 1;
+                this->MarkerArrayMsg.markers[ii].color.r = 0.0;
+                this->MarkerArrayMsg.markers[ii].color.g = 0.0;
+                this->MarkerArrayMsg.markers[ii].color.b = 0.0;
+                this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION);
+                markerText.str("");
+                markerText << iiF->getId() << "/";
+                for (unsigned int jj=0; jj<NUM_DETECTORS; jj++)
+                {
+                    for (unsigned int kk=0; kk<iiF->aDecisions[jj].size(); kk++)
+                    {
+                        if ( iiF->aDecisions[jj].at(kk) )
+                        {
+                            markerText << jj;
+                            break;
+                        }
+                    }
+                }
+            
+                //add a label according current motion mode
+                switch( iiF->getMotionMode() )
+                {
+                    case MODE_STOP: markerText << ", STOP"; break;
+                    case MODE_GO: markerText << ", GO"; break;    
+                    default: break;
+                }            
+                this->MarkerArrayMsg.markers[ii].text = markerText.str();
+                
+                ii++; //increment marker index due to marker text
             }
-      }
 
-      //2c. target positions, target Id's and particles
-      for (iiF=targets.begin(); iiF!=targets.end(); iiF++)
-      {
-            //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << std::endl;
-            if ( iiF->getMaxStatus() > CANDIDATE )
+            //add velocity arrow, only for "serious" targets
+            if ( iiF->getMaxStatus() > LEGGED_TARGET )
             {
-                  iiF->getEstimate(iiEst);
-                  
-                  //cylinder: target position
-                  this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
-                  this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
-                  this->MarkerArrayMsg.markers[ii].id = ii;
-                  this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::CYLINDER;
-                  this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
-                  this->MarkerArrayMsg.markers[ii].pose.position.x = iiEst.position.getX();
-                  this->MarkerArrayMsg.markers[ii].pose.position.y = iiEst.position.getY();
-                  if (iiF->pOcclusion > 0.5) this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
-                  else this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
-                  this->MarkerArrayMsg.markers[ii].scale.x = MARKER_SIZE;
-      
-                  //marker size depending on occlusion
-                  this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE;
-                  if (iiF->pOcclusion > 0.5) this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE*2;
-                  else this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE;
-                  
-                  //marker transp depending on status
-                  switch(iiF->getMaxStatus())
-                  {
-                        case LEGGED_TARGET: transpFactor = 0.1; break;
-                        case VISUALLY_CONFIRMED: transpFactor = 0.5; break;
-                        case FRIEND_IN_SIGHT: transpFactor = 1; break;
-                        //case FRIEND_OUT_OF_RANGE: transpFactor = 1; break;
-                        default: transpFactor = 0.1; break; 
-                  }
-                  this->MarkerArrayMsg.markers[ii].color.a = MARKER_TRANSPARENCY*transpFactor;
-                  this->MarkerArrayMsg.markers[ii].color.r = 0;
-                  this->MarkerArrayMsg.markers[ii].color.g = 0;
-                  this->MarkerArrayMsg.markers[ii].color.b = 1.0;
-                  this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION);
-                  ii++;
-                  
-                  //text: target ID
-                  this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
-                  this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
-                  this->MarkerArrayMsg.markers[ii].id = ii;
-                  this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-                  this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
-                  this->MarkerArrayMsg.markers[ii].pose.position.x = iiEst.position.getX()+0.4;
-                  this->MarkerArrayMsg.markers[ii].pose.position.y = iiEst.position.getY()+0.4;
-                  this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
-                  this->MarkerArrayMsg.markers[ii].scale.z = MARKER_TEXT_SIZE;
-                  this->MarkerArrayMsg.markers[ii].color.a = 1;
-                  this->MarkerArrayMsg.markers[ii].color.r = 0.0;
-                  this->MarkerArrayMsg.markers[ii].color.g = 0.0;
-                  this->MarkerArrayMsg.markers[ii].color.b = 0.0;
-                  this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION);
-                  markerText.str("");
-                  markerText << iiF->getId() << "/";
-                  for (unsigned int jj=0; jj<NUM_DETECTORS; jj++)
-                  {
-                        for (unsigned int kk=0; kk<iiF->aDecisions[jj].size(); kk++)
-                        {
-                              if ( iiF->aDecisions[jj].at(kk) )
-                              {
-                                    markerText << jj;
-                                    break;
-                              }
-                        }
-                  }
-                  this->MarkerArrayMsg.markers[ii].text = markerText.str();
-                  ii++;
-
-                  //text: debugging ! Velocities
-//                   this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
-//                   this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
-//                   this->MarkerArrayMsg.markers[ii].id = ii;
-//                   this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-//                   this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
-//                   this->MarkerArrayMsg.markers[ii].pose.position.x = iiEst.position.getX()+0.4;
-//                   this->MarkerArrayMsg.markers[ii].pose.position.y = iiEst.position.getY()-0.4;
-//                   this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
-//                   this->MarkerArrayMsg.markers[ii].scale.z = MARKER_TEXT_SIZE;
-//                   this->MarkerArrayMsg.markers[ii].color.a = 1;
-//                   this->MarkerArrayMsg.markers[ii].color.r = 0.0;
-//                   this->MarkerArrayMsg.markers[ii].color.g = 0.0;
-//                   this->MarkerArrayMsg.markers[ii].color.b = 0.0;
-//                   this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION);
-//                   markerText.precision(2);
-//                   markerText.str("");
-//                   markerText << "(" << iiEst.velocity.getX() << "," << iiEst.velocity.getY() << ")";
-//                   this->MarkerArrayMsg.markers[ii].text = markerText.str();
-//                   ii++;                  
-                  
-                  //particles
-                  std::list<CpersonParticle> & pSet = iiF->getParticleSet();
-                  //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << "; pSet.size(): " << pSet.size() << std::endl;
-                  for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
-                  {
-                        //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << "; ii: " << ii << std::endl;
-                        double rnd = (double)rand()/(double)RAND_MAX;
-                        if ( rnd < ratioParticlesDisplayed )
-                        {
-                              this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
-                              this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
-                              this->MarkerArrayMsg.markers[ii].id = ii;
-                              this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::CYLINDER;
-                              this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
-                              this->MarkerArrayMsg.markers[ii].pose.position.x = iiP->position.getX();
-                              this->MarkerArrayMsg.markers[ii].pose.position.y = iiP->position.getY();
-                              this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
-                              this->MarkerArrayMsg.markers[ii].scale.x = MARKER_SIZE/10;
-                              this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE/10;
-                              this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE/10;
-                              this->MarkerArrayMsg.markers[ii].color.a = MARKER_TRANSPARENCY;
-                              this->MarkerArrayMsg.markers[ii].color.r = 0.5;
-                              this->MarkerArrayMsg.markers[ii].color.g = 1.5;
-                              this->MarkerArrayMsg.markers[ii].color.b = 0.0;
-                              this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION);
-                              ii++;
-                        }
-                  }           
+                this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
+                this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
+                this->MarkerArrayMsg.markers[ii].id = ii;
+                this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::ARROW;
+                this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
+                this->MarkerArrayMsg.markers[ii].pose.position.x = iiEst.position.getX();;
+                this->MarkerArrayMsg.markers[ii].pose.position.y = iiEst.position.getY();;
+                this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
+                this->MarkerArrayMsg.markers[ii].scale.x = MARKER_SIZE*5*iiEst.velocity.norm();
+                this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE/10;
+                this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE/10;
+                this->MarkerArrayMsg.markers[ii].color.a = MARKER_TRANSPARENCY;
+                this->MarkerArrayMsg.markers[ii].color.r = 0;
+                this->MarkerArrayMsg.markers[ii].color.g = 0;
+                this->MarkerArrayMsg.markers[ii].color.b = 1;
+                this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION*3);
+                vOrientation = atan2(iiEst.velocity.getY(),iiEst.velocity.getX());
+                geometry_msgs::Quaternion bearingQuaternion = tf::createQuaternionMsgFromYaw(vOrientation);
+                this->MarkerArrayMsg.markers[ii].pose.orientation.x = bearingQuaternion.x;
+                this->MarkerArrayMsg.markers[ii].pose.orientation.y = bearingQuaternion.y;
+                this->MarkerArrayMsg.markers[ii].pose.orientation.z = bearingQuaternion.z;
+                this->MarkerArrayMsg.markers[ii].pose.orientation.w = bearingQuaternion.w;
+                ii++;
             }
-      }
+
+            //text: debugging ! Velocities
+//             this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
+//             this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
+//             this->MarkerArrayMsg.markers[ii].id = ii;
+//             this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+//             this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
+//             this->MarkerArrayMsg.markers[ii].pose.position.x = iiEst.position.getX()+0.4;
+//             this->MarkerArrayMsg.markers[ii].pose.position.y = iiEst.position.getY()-0.4;
+//             this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
+//             this->MarkerArrayMsg.markers[ii].scale.z = MARKER_TEXT_SIZE;
+//             this->MarkerArrayMsg.markers[ii].color.a = 1;
+//             this->MarkerArrayMsg.markers[ii].color.r = 0.0;
+//             this->MarkerArrayMsg.markers[ii].color.g = 0.0;
+//             this->MarkerArrayMsg.markers[ii].color.b = 0.0;
+//             this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION);
+//             markerText.precision(2);
+//             markerText.str("");
+//             markerText << "(" << iiEst.velocity.getX() << "," << iiEst.velocity.getY() << ")";
+//             this->MarkerArrayMsg.markers[ii].text = markerText.str();
+//             ii++;                  
+    
+            //particles
+            std::list<CpersonParticle> & pSet = iiF->getParticleSet();
+            //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << "; pSet.size(): " << pSet.size() << std::endl;
+            for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
+            {
+                //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << "; ii: " << ii << std::endl;
+                double rnd = (double)rand()/(double)RAND_MAX;
+                if ( rnd < ratioParticlesDisplayed )
+                {
+                    this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
+                    this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
+                    this->MarkerArrayMsg.markers[ii].id = ii;
+                    this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::CYLINDER;
+                    this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
+                    this->MarkerArrayMsg.markers[ii].pose.position.x = iiP->position.getX();
+                    this->MarkerArrayMsg.markers[ii].pose.position.y = iiP->position.getY();
+                    this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
+                    this->MarkerArrayMsg.markers[ii].scale.x = MARKER_SIZE/10;
+                    this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE/10;
+                    this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE/10;
+                    this->MarkerArrayMsg.markers[ii].color.a = MARKER_TRANSPARENCY;
+                    this->MarkerArrayMsg.markers[ii].color.r = 0.5;
+                    this->MarkerArrayMsg.markers[ii].color.g = 1.5;
+                    this->MarkerArrayMsg.markers[ii].color.b = 0.0;
+                    this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION);
+                    ii++;
+                }
+            }           
+        }
+    }
       
-      //2d. Arrow mark for the current TLD detection
+    //2d. Arrow mark for the current TLD detection
 //       tracker.getTLDdetection(tldDet);
 //       if (tldDet.bbW != 0) //check if a bounding box is set
 //       {
@@ -513,8 +559,8 @@ void CpipolTrackerNode::fillMessages()
 //             tldMessageFilled = true;
 //       }
 
-      //erase message data if previous iteration had greater array size
-      MarkerArrayMsg.markers.erase(MarkerArrayMsg.markers.begin()+ii,MarkerArrayMsg.markers.end());   
+    //erase message data if previous iteration had greater array size
+    MarkerArrayMsg.markers.erase(MarkerArrayMsg.markers.begin()+ii,MarkerArrayMsg.markers.end());   
 }
 
 void CpipolTrackerNode::odometry_callback(const nav_msgs::Odometry::ConstPtr& msg) 
@@ -780,6 +826,52 @@ void CpipolTrackerNode::faceDetections_callback(const pal_detection_msgs::FaceDe
       }
 }
 
+void CpipolTrackerNode::body3dDetections_callback(const pal_detection_msgs::PersonDetections::ConstPtr& msg)
+{
+      unsigned int ii;
+      Cpoint3dObservation newDetection;
+      std::string frame_id;      
+      Eigen::Vector3d tcam_base; //translation of camera device wrt base
+      Eigen::Quaterniond qcam_base; //quaternion of camera device wrt base
+      Eigen::Vector3d det_cam; //detection wrt camera frame
+      Eigen::Vector3d det_base; //detection wrt base frame      
+      
+      //get msg->camera_pose.frame_id and check if it is the base_link. If not, warn and exit callback
+      frame_id = msg->camera_pose.header.frame_id;
+      if (frame_id != "base_link")
+      {
+            std::cout << "WARNING: Body 3d detections not referenced to base_link" << std::endl;
+            return;
+      }
+
+      //sensor frame pose (translation + orientation in quaternion form)
+      tcam_base << msg->camera_pose.transform.translation.x,
+                  msg->camera_pose.transform.translation.y, 
+                  msg->camera_pose.transform.translation.z;
+      qcam_base = Eigen::Quaterniond(msg->camera_pose.transform.rotation.w,
+                                    msg->camera_pose.transform.rotation.x,
+                                    msg->camera_pose.transform.rotation.y,
+                                    msg->camera_pose.transform.rotation.z);
+      
+    //sets current (received) detections
+    for (ii=0; ii<msg->persons.size(); ii++)
+    {
+        //set time stamp
+        newDetection.timeStamp.set(msg->header.stamp.sec, msg->header.stamp.nsec);
+        
+        //compute transf from camera coordinates to base coordinates
+        det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z;
+        det_base = qcam_base.matrix()*det_cam + tcam_base;
+
+        //Set detection
+        newDetection.point.setXYZ(det_base(0), det_base(1), det_base(2));
+
+        //add detection to tracker list
+        tracker.addDetectionBody3d(newDetection);
+    }
+
+}
+
 void CpipolTrackerNode::followMe_callback(const std_msgs::Int32::ConstPtr& msg) 
 {
       tracker.setFollowMeTargetId(msg->data);
@@ -803,7 +895,7 @@ void CpipolTrackerNode::cameraInfo_callback(const sensor_msgs::CameraInfo & msg)
 {
       
       camK << msg.K[0],msg.K[1],msg.K[2],msg.K[3],msg.K[4],msg.K[5],msg.K[6],msg.K[7],msg.K[8];
-      std::cout << "Camera Info Message Received. Camera calibration data set." << std::endl;
+      std::cout << "Camera Info Message Received. Camera calibration data loaded." << std::endl;
       this->cameraInfoSubs.shutdown();
 }
 

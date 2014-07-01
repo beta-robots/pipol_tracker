@@ -198,7 +198,7 @@ class CpersonTarget : public CpersonParticleFilter
 		* Predicts the next position, given this->track and the delta time of prediction. 
 		* Sets pediction to predictedPoint.
 		*/		
-		void predict(double dT, Cpoint3d & predictedPoint);
+// 		void predict(double dT, Cpoint3d & predictedPoint);
 		
 		/**
 		* \brief Single person motion prediction
@@ -207,7 +207,7 @@ class CpersonTarget : public CpersonParticleFilter
 		* The extra point replaces the last point in track. It will be typically a particle.
 		* Returns the association probability and sets pediction to predictedPoint.
 		*/		
-		void predict(double dT, Cpoint3d & extraPoint, Cpoint3d & predictedPoint);
+// 		void predict(double dT, Cpoint3d & extraPoint, Cpoint3d & predictedPoint);
             
             /** \brief Resets matchScores table
             * 
@@ -235,7 +235,7 @@ class CpersonTarget : public CpersonParticleFilter
             * Resizes association decision table
             * 
             */                                                                                                                                                                
-            void resizeAssociationDecisions(unsigned int nLegsDet, unsigned int nBodyDet, unsigned int nFaceDet);                
+            void resizeAssociationDecisions(const unsigned int nLegsDet, const unsigned int nBodyDet, const unsigned int nFaceDet, const unsigned int nBody3dDet);                
 
 		/**
 		 * \brief Returns the association probability 

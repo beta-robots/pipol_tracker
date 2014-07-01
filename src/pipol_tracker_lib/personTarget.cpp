@@ -133,15 +133,15 @@ void CpersonTarget::getPositionEstimate(Cpoint3dCov & est)
 // 	
 // }
 
-void CpersonTarget::predict(double dT, Cpoint3d & predictedPoint)
-{
-	// to do 
-}	
-
-void CpersonTarget::predict(double dT, Cpoint3d & extraPoint, Cpoint3d & predictedPoint)
-{
-        // to do
-}
+// void CpersonTarget::predict(double dT, Cpoint3d & predictedPoint)
+// {
+// 	// to do 
+// }	
+// 
+// void CpersonTarget::predict(double dT, Cpoint3d & extraPoint, Cpoint3d & predictedPoint)
+// {
+//         // to do
+// }
 
 void CpersonTarget::resetMatchScores()
 {
@@ -158,7 +158,7 @@ void CpersonTarget::resetAssociationDecisions()
         for (unsigned int ii=0; ii<NUM_DETECTORS; ii++) aDecisions[ii].clear();
 }
 
-void CpersonTarget::resizeAssociationDecisions(unsigned int nLegsDet, unsigned int nBodyDet, unsigned int nFaceDet)
+void CpersonTarget::resizeAssociationDecisions(const unsigned int nLegsDet, const unsigned int nBodyDet, const unsigned int nFaceDet, const unsigned int nBody3dDet)
 {
         aDecisions[LEGS].resize(nLegsDet);
         aDecisions[BODY].resize(nBodyDet);

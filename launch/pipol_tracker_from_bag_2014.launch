@@ -5,13 +5,15 @@
 	<node	pkg="rosbag"
 		type="play"
 		name="rosbag"
-		args="-l --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20140607_robotStopped.bag"/>	
+		args="-l --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20140629_robotMoving_withGoals.bag"/>	
 <!--        20140422_robotMoving.bag -->
 <!--        20140422_robotStopped.bag -->
 <!--        20140604_robotMoving.bag -->
 <!--        20140604_robotStopped.bag -->
 <!--        20140607_robotMoving.bag -->
 <!--        20140607_robotStopped.bag -->
+<!--        20140629_robotMoving.bag -->
+<!--        20140629_robotMoving_withGoals.bag -->
 
 	<!-- 	Launch people_tracking_rai node -->
 	<group ns="$(env ROBOT)">
@@ -28,6 +30,8 @@
 				to="/fullbody_2d_detector/detections" />
                   <remap from="/$(env ROBOT)/pipol_tracker_node/faceDetections"
                         to="/pal_face/faces" />				
+                  <remap from="/$(env ROBOT)/pipol_tracker_node/body3dDetections"
+                        to="/head_mount_xtion/users" />                        
 			<remap from="/$(env ROBOT)/pipol_tracker_node/image_in"
 				to="/head_mount_xtion/rgb/image_rect_color" />				
                   <remap from="/$(env ROBOT)/pipol_tracker_node/cameraInfo_in"

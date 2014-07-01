@@ -36,6 +36,7 @@
 #include <pal_detection_msgs/LegDetections.h> //leg detections (input)
 #include <pal_detection_msgs/Detections2d.h> //body detections (input)
 #include <pal_detection_msgs/FaceDetections.h> //face detections (input)
+#include <pal_detection_msgs/PersonDetections.h> //3d body detections (input)
 
 
 //ROS messages belonging to open-TLD pkg
@@ -78,6 +79,7 @@ class CpipolTrackerNode
             ros::Subscriber legDetectionsSubs;
             ros::Subscriber bodyDetectionsSubs;
             ros::Subscriber faceDetectionsSubs;
+            ros::Subscriber body3dDetectionsSubs;
             ros::Subscriber followMeSubs;
             //ros::Subscriber tldDetectionsSubs;
             image_transport::Subscriber imageSubs;
@@ -132,6 +134,7 @@ class CpipolTrackerNode
             void legDetections_callback(const pal_detection_msgs::LegDetections::ConstPtr& msg);
             void bodyDetections_callback(const pal_detection_msgs::Detections2d::ConstPtr& msg);
             void faceDetections_callback(const pal_detection_msgs::FaceDetections::ConstPtr& msg);            
+            void body3dDetections_callback(const pal_detection_msgs::PersonDetections::ConstPtr& msg);
             void followMe_callback(const std_msgs::Int32::ConstPtr& msg);
             void image_callback(const sensor_msgs::ImageConstPtr& msg);
             void cameraInfo_callback(const sensor_msgs::CameraInfo & msg);

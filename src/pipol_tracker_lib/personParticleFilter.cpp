@@ -27,7 +27,8 @@ void CpersonParticleFilter::setDefaultParameters()
         params.initDeltaXY = INIT_DELTA_XY;
         params.initDeltaVxy = INIT_DELTA_VXY;
         params.sigmaResamplingXY = SIGMA_FIXED_RESAMPLING_XY;
-        params.sigmaResamplingVxy = SIGMA_FIXED_RESAMPLING_VXY;
+        params.sigmaRatioResamplingVxy = SIGMA_RATIO_RESAMPLING_VXY;
+        params.sigmaMinResamplingVxy = SIGMA_MIN_RESAMPLING_VXY;
         params.personRadius = PERSON_RADIUS;
         params.matchingLegsAlpha = MATCHING_LEGS_ALPHA;
         params.matchingLegsBeta = MATCHING_LEGS_BETA;
@@ -42,7 +43,8 @@ void CpersonParticleFilter::setParameters(const pFilterParameters & pfp)
         params.initDeltaXY = pfp.initDeltaXY;
         params.initDeltaVxy = pfp.initDeltaVxy;
         params.sigmaResamplingXY = pfp.sigmaResamplingXY;
-        params.sigmaResamplingVxy = pfp.sigmaResamplingVxy;
+        params.sigmaRatioResamplingVxy = pfp.sigmaRatioResamplingVxy;
+        params.sigmaMinResamplingVxy = pfp.sigmaMinResamplingVxy;
         params.personRadius = pfp.personRadius;
         params.matchingLegsAlpha = pfp.matchingLegsAlpha; 
         params.matchingLegsBeta = pfp.matchingLegsBeta; 
@@ -175,7 +177,7 @@ void CpersonParticleFilter::predictPset(CodometryObservation & odo)
 
 void CpersonParticleFilter::predictPset()
 {
-        double dT;
+        double dT, rnd;
         CtimeStamp now;
         std::list<CpersonParticle>::iterator iiP;
         
@@ -183,9 +185,29 @@ void CpersonParticleFilter::predictPset()
         dT = now.get() - tsLastPrior.get();
         tsLastPrior.set(now.get());
 
-        for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
+        //call prediction model according current motion mode and transition probabilities between STOP & GO
+        switch(motionMode)
         {
-                iiP->predict(dT);
+            case MODE_STOP:
+                for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
+                {
+                    rnd = ((double)rand()) / ((double)RAND_MAX);
+                    if ( rnd < PROB_STOP2STOP ) iiP->predictStopped(dT);
+                    else iiP->predictVlinear(dT);
+                }
+                break;
+                
+            case MODE_GO:
+                for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
+                {
+                    rnd = ((double)rand()) / ((double)RAND_MAX);
+                    if ( rnd < PROB_GO2GO ) iiP->predictVlinear(dT);
+                    else iiP->predictStopped(dT);
+                }
+                break;
+    
+            default: 
+                break;
         }
 }
 
@@ -254,46 +276,48 @@ void CpersonParticleFilter::normalizePset()
 
 void CpersonParticleFilter::resamplePset()
 {
-        double rnd, cw;
-        unsigned int ii=0;
-        std::list<CpersonParticle>::iterator iiP, jjP;
-        double pX, pY, pVx, pVy; //the sample values to generate a new particle
-        CpersonParticle *newP; //to generate new particles
-        
-        //normalize pSet (It could be not normalized due to particle deletion)
-        this->normalizePset(); 
+    double rnd, cw;
+    unsigned int ii=0;
+    std::list<CpersonParticle>::iterator iiP, jjP;
+    double pX, pY, pVx, pVy; //the sample values to generate a new particle
+    CpersonParticle *newP; //to generate new particles
+    
+    //normalize pSet (It could be not normalized due to particle deletion)
+    this->normalizePset(); 
 
-        //draws a random unmber in [0,1/NP]
-        rnd=((double)rand()) / (((double)RAND_MAX)*(double)params.numParticles);
-        
-        //sets pSet pointers
-        jjP = pSet.end();
-        jjP--;//points to the last particle of the current set. Used at end of the function to delete the old set
-        iiP = pSet.begin();
-        cw = iiP->getW();//initialized to first weight
-        
-        //main resampling loop. Chooses old particles to be reampled according rnd and weights
-        while(ii<params.numParticles)
+    //draws a random unmber in [0,1/NP]
+    rnd=((double)rand()) / (((double)RAND_MAX)*(double)params.numParticles);
+    
+    //sets pSet pointers
+    jjP = pSet.end();
+    jjP--;//points to the last particle of the current set. Used at end of the function to delete the old set
+    iiP = pSet.begin();
+    cw = iiP->getW();//initialized to first weight
+    
+    //main resampling loop. Chooses old particles to be reampled according rnd and weights
+    while(ii<params.numParticles)
+    {
+        while (rnd > cw) 
         {
-                while (rnd > cw) 
-                {
-                        iiP++;
-                        cw += iiP->getW();
-                }
-                pX = iiP->position.getX() + random_normal(0,params.sigmaResamplingXY); //centered at particle ii
-                pY = iiP->position.getY() + random_normal(0,params.sigmaResamplingXY); //centered at particle ii
-                pVx = iiP->velocity.getX() + random_normal(0,params.sigmaResamplingVxy);
-                pVy = iiP->velocity.getY() + random_normal(0,params.sigmaResamplingVxy);
-                newP = new CpersonParticle(pX,pY,pVx,pVy,1.0/(double)params.numParticles);
-                pSet.push_back(*newP);
-                rnd += 1.0/(double)params.numParticles;
-                ii++;
-                delete newP;
+            iiP++;
+            cw += iiP->getW();
         }
+        pX = iiP->position.getX() + random_normal(0,params.sigmaResamplingXY); //centered at particle ii
+        pY = iiP->position.getY() + random_normal(0,params.sigmaResamplingXY); //centered at particle ii
+//         pVx = iiP->velocity.getX() + random_normal(0,params.sigmaMinResamplingVxy);
+//         pVy = iiP->velocity.getY() + random_normal(0,params.sigmaMinResamplingVxy);
+        pVx = iiP->velocity.getX() + random_normal(0,params.sigmaRatioResamplingVxy*iiP->velocity.getX()+params.sigmaMinResamplingVxy);
+        pVy = iiP->velocity.getY() + random_normal(0,params.sigmaRatioResamplingVxy*iiP->velocity.getY()+params.sigmaMinResamplingVxy);                
+        newP = new CpersonParticle(pX,pY,pVx,pVy,1.0/(double)params.numParticles);
+        pSet.push_back(*newP);
+        rnd += 1.0/(double)params.numParticles;
+        ii++;
+        delete newP;
+    }
         
-        //erase former particles of the set
-        jjP++;
-        pSet.erase(pSet.begin(),jjP);
+    //erase former particles of the set
+    jjP++;
+    pSet.erase(pSet.begin(),jjP);
 }
 
 void CpersonParticleFilter::updateEstimate()
@@ -338,6 +362,17 @@ void CpersonParticleFilter::updateEstimate()
         this->estimate.velocity.setXYZ(vx,vy,0);              
         this->estimate.position.setXYcov(xxCov,yyCov,xyCov);
         this->estimate.velocity.setXYcov(vxCov,vyCov,vxyCov);
+}
+
+void CpersonParticleFilter::setMotionMode()
+{
+    if ( this->estimate.velocity.norm() < MAX_SPEED_STOPPED) motionMode = MODE_STOP;
+    else motionMode = MODE_GO;
+}
+
+unsigned int CpersonParticleFilter::getMotionMode()
+{
+    return motionMode;
 }
 
 double CpersonParticleFilter::legMatchingFunction(Cpoint3d & p1)

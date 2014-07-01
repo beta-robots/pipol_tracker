@@ -16,15 +16,22 @@ const double SQRT_2 = 1.4142;
 const double ZERO_LIKELIHOOD = 1e-30;
 
 //detector index
-const unsigned int NUM_DETECTORS = 3; //TLD does not count as the other detectors 
-enum detectorIds {LEGS=0, BODY, FACE, TLD};
+const unsigned int NUM_DETECTORS = 4; //TLD does not count as the other detectors 
+enum detectorIds {LEGS=0, BODY, FACE, BODY3D, TLD};
+
+//motion model modes
+enum motionModes {MODE_STOP=0, MODE_GO};
 
 //default parameter values
 const unsigned int DEFAULT_NP = 300; //number of particles [#]
 const double INIT_DELTA_XY = 0.2; //init sample range for x,y components [m]
 const double INIT_DELTA_VXY = 1.5; //init sample range for vx,vy components [m/s]
 const double SIGMA_FIXED_RESAMPLING_XY = 0.05; //resampling constants noise (sigma) for x,y components [m]
-const double SIGMA_FIXED_RESAMPLING_VXY = 0.3; ////resampling constants noise (sigma) for vx,vy components [m/s]
+const double SIGMA_RATIO_RESAMPLING_VXY = 0.2; ////resampling constants noise (sigma) for vx,vy components [m/s]
+const double SIGMA_MIN_RESAMPLING_VXY = 0.05; ////resampling constants noise (sigma) for vx,vy components [m/s]
+const double MAX_SPEED_STOPPED = 0.1;
+const double PROB_STOP2STOP = 0.9; //prob for a given STOPPED target to remain STOPPED in the next iteration, [0,1]
+const double PROB_GO2GO = 0.8; //prob for a given GO target to remain GO in the next iteration, [0,1]
 const double PERSON_RADIUS = 0.2; //Considered person radius [m]
 const double MATCHING_LEGS_ALPHA = 0.1;//For legs likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
 const double MATCHING_LEGS_BETA = 10;//For legs likelihood, Off-band expoenential decayment, set in [2,50]
@@ -44,7 +51,8 @@ struct pFilterParameters
         double initDeltaXY; //initial resampling box size for x,y components, [m]
         double initDeltaVxy; //initial resampling box size for vx,vy components, [m/s]
         double sigmaResamplingXY; //resampling std dev for x,y components, [m]
-        double sigmaResamplingVxy; //resampling std dev for vx,vy components, [m/s]
+        double sigmaRatioResamplingVxy; //resampling std dev for vx,vy components, [m/s]
+        double sigmaMinResamplingVxy; //resampling std dev for vx,vy components, [m/s]
         double personRadius; //considered radius of the tracked person, [m]
         double matchingLegsAlpha; //For legs likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
         double matchingLegsBeta; //For legs likelihood, Off-band expoenential decayment, set in [2,50]
@@ -101,6 +109,13 @@ class CpersonParticleFilter
             * 
             */
             CtimeStamp tsLastPrior;                
+            
+            /** \brief Indicates motion mode
+            * 
+            * Indicates wether the target is in STOP or GO mode
+            * 
+            **/
+            unsigned int motionMode;            
             
             /** \brief Iteration counter
             * 
@@ -264,6 +279,8 @@ class CpersonParticleFilter
             void normalizePset();
             void resamplePset();
             void updateEstimate();
+            void setMotionMode();
+            unsigned int getMotionMode();
             double legMatchingFunction(Cpoint3d & p1);
             double legMatchingFunction(Cpoint3d & p1, Cpoint3d & p2);
             double bodyMatchingFunction(Cpoint3d & pD);

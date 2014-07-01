@@ -113,6 +113,13 @@ class CpeopleTracker
              */                     
             std::list<CfaceObservation> faceDetSet;
             
+            /** \brief List of body 3d detections
+             * 
+             * List of current body 3d detections received from the body 3d detector
+             * 
+             */         
+            std::list<Cpoint3dObservation> body3dDetSet;            
+            
             /** \brief Current TLD detection
              * 
              * Current TLD detection. TLD only outputs one detection, so it is not a list
@@ -161,8 +168,6 @@ class CpeopleTracker
 		void setDefaultParameters();
 		void setParameters(const trackerParameters & tp);
 		void setFilterParameters(const pFilterParameters & pfp);
-            //void setOnBoardCamPose(Cposition3d & camP);
-            void setOnBoardCamCalMatrix();
             
             /** \brief Sets followMeTargetId
              * 
@@ -220,6 +225,13 @@ class CpeopleTracker
              */                     
             void addDetection(CfaceObservation & newDet);
 
+            /** \brief Adds a body 3d detection
+             * 
+             * Adds a body 3d detection to the body3d detection set
+             * 
+             */                     
+            void addDetectionBody3d(Cpoint3dObservation & newDet);            
+            
             /** \brief Sets the TLD detection
              * 
              * Sets the TLD detection
@@ -350,6 +362,14 @@ class CpeopleTracker
 		 * 
 		 */		
 		std::list<CbodyObservation> & getBodyDetSet();
+            
+            /** \brief Returns a reference to the body3d detection set
+             * 
+             * Returns a reference to the body3d detection set.
+             * Useful for debugging and visualization
+             * 
+             */         
+            std::list<Cpoint3dObservation> & getBody3dDetSet();            
 		
 		/** \brief Sets current image
 		 * 

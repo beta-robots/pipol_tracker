@@ -15,7 +15,7 @@
 class CpersonParticle
 {
 	protected:
-		double ww;
+		double ww_;
 		
 	public:
 		Cpoint3d position;
@@ -28,7 +28,8 @@ class CpersonParticle
 
 		void setW(double wt);		
 		double getW();
-		void predict(double deltaT);
+            void predictStopped(double deltaT);
+		void predictVlinear(double deltaT);
 		void printParticle(bool endLine = true);
 		bool operator<(CpersonParticle px); 
 };
