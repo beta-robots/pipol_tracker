@@ -246,6 +246,17 @@ void CpersonParticleFilter::computeWeights(CfaceObservation & pDet, vector<doubl
         }       
 }
 
+void CpersonParticleFilter::computeWeightsBody3d(Cpoint3dObservation & pDet, vector<double> & ww)
+{
+        std::list<CpersonParticle>::iterator iiP;
+        unsigned int ii;
+        
+        for (iiP=pSet.begin(), ii=0;iiP!=pSet.end();iiP++, ii++)
+        {
+                ww.at(ii) = body3dMatchingFunction(iiP->position, pDet.point);
+        }       
+}
+
 void CpersonParticleFilter::setWeights(const vector<double> & ww)
 {
         std::list<CpersonParticle>::iterator iiP;

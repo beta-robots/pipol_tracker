@@ -275,6 +275,7 @@ class CpersonParticleFilter
             void computeWeights(Cpoint3dObservation & pDet, vector<double> & ww);
             void computeWeights(CbodyObservation & pDet, vector<double> & ww);
             void computeWeights(CfaceObservation & pDet, vector<double> & ww);
+            void computeWeightsBody3d(Cpoint3dObservation & pDet, vector<double> & ww);
             void setWeights(const vector<double> & ww);
             void normalizePset();
             void resamplePset();

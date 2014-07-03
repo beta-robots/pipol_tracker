@@ -561,7 +561,7 @@ void CpeopleTracker::updateAssociationTables()
            
             matchingValue = iiT->body3dMatchingFunction(jjB3d->point);
             iiT->matchScores[BODY3D].push_back(matchingValue);
-            std::cout << "B3dD" << jjB3d->getId() << ", T" << iiT->getId() << ": match: " << matchingValue << std::endl;
+            //std::cout << "B3dD" << jjB3d->getId() << ", T" << iiT->getId() << ": match: " << matchingValue << std::endl;
         }
     }
 
@@ -853,12 +853,12 @@ void CpeopleTracker::propagateFilters()
 void CpeopleTracker::correctFilters()
 {
 	std::list<CpersonTarget>::iterator iiT;
-	std::list<Cpoint3dObservation>::iterator jjL;
+	std::list<Cpoint3dObservation>::iterator jjL, jjB3d;
 	std::list<CbodyObservation>::iterator jjB;
       std::list<CfaceObservation>::iterator jjF;
 	unsigned int numP,ii,jj;
-	bool associated_legs=false, associated_body=false, associated_face =false;
-	vector<double> ww_fusion, ww_legs, ww_body, ww_face;	
+	bool associated_legs = false, associated_body = false, associated_face = false, associated_body3d = false;
+	vector<double> ww_fusion, ww_legs, ww_body, ww_face, ww_body3d;	
 //       bool targetOccluded;
 		
 	for (iiT=targetList.begin(),ii=0;iiT!=targetList.end();iiT++,ii++)
@@ -922,8 +922,24 @@ void CpeopleTracker::correctFilters()
                   for (ii=0; ii<numP; ii++) ww_face.at(ii) = 1;//face detector does not correct ii-th target
             }
 
+            ww_body3d.resize(numP);//init vector sizes
+            for (jj=0; jj<numP; jj++) ww_body3d.at(jj) = 0;//reset values
+            associated_body3d = false;
+            for (jjB3d=body3dDetSet.begin(),jj=0;jjB3d!=body3dDetSet.end();jjB3d++,jj++)
+            {
+                  if ( iiT->aDecisions[BODY3D].at(jj) ) //face detection jj is associated with target ii
+                  {
+                        associated_body3d = true;
+                        iiT->computeWeightsBody3d(*jjB3d, ww_body3d);
+                  }
+            }
+            if (!associated_body3d) 
+            {
+                  for (ii=0; ii<numP; ii++) ww_body3d.at(ii) = 1;//face detector does not correct ii-th target
+            }            
+            
 		//Check whether the iiT target has been associated to some detection or not
-            if ( (associated_legs) || (associated_body) || (associated_face) )
+            if ( (associated_legs) || (associated_body) || (associated_face) || (associated_body3d) )
             {
                   ww_fusion.clear();
                   //ww_fusion.reserve(numP);
@@ -931,7 +947,7 @@ void CpeopleTracker::correctFilters()
                   for (ii=0; ii<numP; ii++)
                   {
                         //ww_fusion.push_back( ww_legs.at(ii)*ww_body.at(ii)*ww_face.at(ii) );
-                        ww_fusion.at(ii) =  ww_legs.at(ii)*ww_body.at(ii)*ww_face.at(ii);
+                        ww_fusion.at(ii) =  ww_legs.at(ii)*ww_body.at(ii)*ww_face.at(ii)*ww_body3d.at(ii);
                   }
                   iiT->setWeights(ww_fusion);
             }
