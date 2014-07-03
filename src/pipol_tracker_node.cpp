@@ -486,13 +486,14 @@ void CpipolTrackerNode::fillMessages()
 //             ii++;                  
     
             //particles
-            std::list<CpersonParticle> & pSet = iiF->getParticleSet();
+            //std::list<CpersonParticle> & pSet = iiF->getParticleSet();
             //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << "; pSet.size(): " << pSet.size() << std::endl;
+/*
             for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
             {
                 //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << "; ii: " << ii << std::endl;
                 double rnd = (double)rand()/(double)RAND_MAX;
-                if ( rnd < ratioParticlesDisplayed )
+                if ( rnd < ratioParticlesDisplayed  )
                 {
                     this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
                     this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
@@ -512,7 +513,7 @@ void CpipolTrackerNode::fillMessages()
                     this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION);
                     ii++;
                 }
-            }           
+            } */          
         }
     }
       
@@ -862,7 +863,10 @@ void CpipolTrackerNode::body3dDetections_callback(const pal_detection_msgs::Pers
         newDetection.timeStamp.set(msg->header.stamp.sec, msg->header.stamp.nsec);
         
         //compute transf from camera coordinates to base coordinates
-        det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z;
+	if (msg->persons[ii].position3D.point.z < 1) // empirical calibration of depth on user map
+		det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z;
+	else
+	        det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z * 4.5 / 3.5; 
         det_base = qcam_base.matrix()*det_cam + tcam_base;
 
         //Set detection
