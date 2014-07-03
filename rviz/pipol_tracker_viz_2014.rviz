@@ -104,12 +104,12 @@ Visualization Manager:
       Transport Hint: raw
       Value: true
     - Class: rviz/Axes
-      Enabled: true
+      Enabled: false
       Length: 0.3
       Name: depth_camera
       Radius: 0.05
       Reference Frame: head_mount_xtion_rgb_optical_frame
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 255; 245; 166

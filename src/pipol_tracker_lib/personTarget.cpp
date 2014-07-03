@@ -163,6 +163,7 @@ void CpersonTarget::resizeAssociationDecisions(const unsigned int nLegsDet, cons
         aDecisions[LEGS].resize(nLegsDet);
         aDecisions[BODY].resize(nBodyDet);
         aDecisions[FACE].resize(nFaceDet);
+        aDecisions[BODY3D].resize(nBody3dDet);
 }
 
 double CpersonTarget::associationProb(Cpoint3d & pDet)
@@ -189,9 +190,11 @@ void CpersonTarget::addEstimateToTrack()
 void CpersonTarget::print()
 {
 	std::list<filterEstimate>::iterator iiE;
+      
+      CpersonParticleFilter::print();
 	
-	std::cout << "Target ID: " << id << std::endl;
-      std::cout << "countVisuallyCorrected: " << countVisuallyCorrected << std::endl;
+// 	std::cout << "Target ID: " << id << std::endl;
+//       std::cout << "countVisuallyCorrected: " << countVisuallyCorrected << std::endl;
 // 	for (iiE=track.begin();iiE!=track.end();iiE++)
 // 	{
 // 		std::cout << "   "; iiE->ts.print(); std::cout << std::endl;

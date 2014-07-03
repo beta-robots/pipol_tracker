@@ -211,7 +211,7 @@ void CpersonParticleFilter::predictPset()
         }
 }
 
-void CpersonParticleFilter::computeWeights(Cpoint3dObservation & pDet, vector<double> & ww, double assocP)
+void CpersonParticleFilter::computeWeights(Cpoint3dObservation & pDet, vector<double> & ww)
 {
         std::list<CpersonParticle>::iterator iiP;
         unsigned int ii;
@@ -220,29 +220,29 @@ void CpersonParticleFilter::computeWeights(Cpoint3dObservation & pDet, vector<do
         {
                 //dd = pDet.point.mahalanobisDistance2D(iiP->position);
                 //ww.at(ii) += assocP*erfc(dM/SQRT_2);
-                ww.at(ii) = legMatchingFunction(iiP->position, pDet.point)*assocP;
+                ww.at(ii) = legMatchingFunction(iiP->position, pDet.point);
         }
 }
 
-void CpersonParticleFilter::computeWeights(CbodyObservation & pDet, vector<double> & ww, double assocP)
+void CpersonParticleFilter::computeWeights(CbodyObservation & pDet, vector<double> & ww)
 {
         std::list<CpersonParticle>::iterator iiP;
         unsigned int ii;
         
         for (iiP=pSet.begin(), ii=0;iiP!=pSet.end();iiP++, ii++)
         {
-                ww.at(ii) = bodyMatchingFunction(pDet.direction, iiP->position)*assocP;
+                ww.at(ii) = bodyMatchingFunction(pDet.direction, iiP->position);
         }       
 }
 
-void CpersonParticleFilter::computeWeights(CfaceObservation & pDet, vector<double> & ww, double assocP)
+void CpersonParticleFilter::computeWeights(CfaceObservation & pDet, vector<double> & ww)
 {
         std::list<CpersonParticle>::iterator iiP;
         unsigned int ii;
         
         for (iiP=pSet.begin(), ii=0;iiP!=pSet.end();iiP++, ii++)
         {
-                ww.at(ii) = faceMatchingFunction(pDet.faceLoc, iiP->position)*assocP;
+                ww.at(ii) = faceMatchingFunction(pDet.faceLoc, iiP->position);
         }       
 }
 
@@ -322,46 +322,46 @@ void CpersonParticleFilter::resamplePset()
 
 void CpersonParticleFilter::updateEstimate()
 {
-        std::list<CpersonParticle>::iterator iiP;
-        double xx, yy; 
-        double vx, vy;
-        double xxCov, yyCov, xyCov;
-        double vxCov, vyCov, vxyCov;
+    std::list<CpersonParticle>::iterator iiP;
+    double xx, yy; 
+    double vx, vy;
+    double xxCov, yyCov, xyCov;
+    double vxCov, vyCov, vxyCov;
 
-        //sets time stamp of the current estimate
-        estimate.ts.setToNow();
-        
-        //normalizes particle wieghts.
-        this->normalizePset(); 
-        
-        //sets estimated mean
-        xx = 0; yy = 0; vx = 0; vy = 0;
-        for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
-        {
-                xx += iiP->position.getX()*iiP->getW();
-                yy += iiP->position.getY()*iiP->getW();
-                vx += iiP->velocity.getX()*iiP->getW();
-                vy += iiP->velocity.getY()*iiP->getW();
-        }
-        
-        //compute estimated position/velocity uncertainties as the sample covariance matrix
-        xxCov = 0; yyCov = 0; xyCov = 0;
-        vxCov = 0; vyCov = 0; vxyCov = 0;
-        for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
-        {
-                xxCov += (iiP->position.getX()-xx)*(iiP->position.getX()-xx)*iiP->getW();
-                yyCov += (iiP->position.getY()-yy)*(iiP->position.getY()-yy)*iiP->getW();
-                xyCov += (iiP->position.getX()-xx)*(iiP->position.getY()-yy)*iiP->getW();
-                vxCov += (iiP->velocity.getX()-vx)*(iiP->velocity.getX()-vx)*iiP->getW();
-                vyCov += (iiP->velocity.getY()-vy)*(iiP->velocity.getY()-vy)*iiP->getW();
-                vxyCov += (iiP->velocity.getX()-vx)*(iiP->velocity.getY()-vy)*iiP->getW();              
-        }
-        
-        //sets values to this->target object
-        this->estimate.position.setXYZ(xx,yy,0);
-        this->estimate.velocity.setXYZ(vx,vy,0);              
-        this->estimate.position.setXYcov(xxCov,yyCov,xyCov);
-        this->estimate.velocity.setXYcov(vxCov,vyCov,vxyCov);
+    //sets time stamp of the current estimate
+    estimate.ts.setToNow();
+    
+    //normalizes particle wieghts.
+    this->normalizePset(); 
+    
+    //sets estimated mean
+    xx = 0; yy = 0; vx = 0; vy = 0;
+    for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
+    {
+            xx += iiP->position.getX()*iiP->getW();
+            yy += iiP->position.getY()*iiP->getW();
+            vx += iiP->velocity.getX()*iiP->getW();
+            vy += iiP->velocity.getY()*iiP->getW();
+    }
+    
+    //compute estimated position/velocity uncertainties as the sample covariance matrix
+    xxCov = 0; yyCov = 0; xyCov = 0;
+    vxCov = 0; vyCov = 0; vxyCov = 0;
+    for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
+    {
+            xxCov += (iiP->position.getX()-xx)*(iiP->position.getX()-xx)*iiP->getW();
+            yyCov += (iiP->position.getY()-yy)*(iiP->position.getY()-yy)*iiP->getW();
+            xyCov += (iiP->position.getX()-xx)*(iiP->position.getY()-yy)*iiP->getW();
+            vxCov += (iiP->velocity.getX()-vx)*(iiP->velocity.getX()-vx)*iiP->getW();
+            vyCov += (iiP->velocity.getY()-vy)*(iiP->velocity.getY()-vy)*iiP->getW();
+            vxyCov += (iiP->velocity.getX()-vx)*(iiP->velocity.getY()-vy)*iiP->getW();              
+    }
+    
+    //sets values to this->target object
+    this->estimate.position.setXYZ(xx,yy,0);
+    this->estimate.velocity.setXYZ(vx,vy,0);              
+    this->estimate.position.setXYcov(xxCov,yyCov,xyCov);
+    this->estimate.velocity.setXYcov(vxCov,vyCov,vxyCov);
 }
 
 void CpersonParticleFilter::setMotionMode()
@@ -377,102 +377,112 @@ unsigned int CpersonParticleFilter::getMotionMode()
 
 double CpersonParticleFilter::legMatchingFunction(Cpoint3d & p1)
 {
-        return legMatchingFunction(p1,this->estimate.position);
-        //return this->estimate.position.mahalanobisDistance(p1); 
+    return legMatchingFunction(p1,this->estimate.position);
+    //return this->estimate.position.mahalanobisDistance(p1); 
 }
 
 double CpersonParticleFilter::legMatchingFunction(Cpoint3d & p1, Cpoint3d & p2)
 {
-      double dd, score;
+    double dd, score;
 
-      dd = p1.d2point(p2);
-      if ( dd <= params.personRadius )
-      {
-            score = dConstants.legsK1*dd*dd+1;
-      }
-      else
-      {
-            score = params.matchingLegsAlpha*exp( (params.personRadius-dd)*params.matchingLegsBeta );
-      }
-      return  score;
-
-//       dd = p1.d2point(p2);
-//       score = 0.5 + (1/M_PI)*atan(10000*(params.personRadius-dd));
-      return score;
+    dd = p1.d2point(p2);
+    if ( dd <= params.personRadius )
+    {
+        score = dConstants.legsK1*dd*dd+1;
+    }
+    else
+    {
+        score = params.matchingLegsAlpha*exp( (params.personRadius-dd)*params.matchingLegsBeta );
+    }
+    return  score;
 }
 
 double CpersonParticleFilter::bodyMatchingFunction(Cpoint3d & pD)
 {
-        return bodyMatchingFunction(pD,this->estimate.position);
+    return bodyMatchingFunction(pD,this->estimate.position);
 }
 
 double CpersonParticleFilter::bodyMatchingFunction(Cpoint3d & pD, Cpoint3d & pT)
 {
-        double scBearing,scRange;
-        double deltaAlpha, alphaD, alphaT, alphaDist, k1;
-                
-        //bearing score
-        alphaD = atan2(pD.getY(), pD.getX());
-        alphaT = atan2(pT.getY(), pT.getX());
-        alphaDist = fabs(alphaD - alphaT);
-//         deltaAlpha = fabs(atan2(params.personRadius, pT.norm())); //why was it pD.norm() ???
-        deltaAlpha = fabs(atan2(0.25, pT.norm())); //why was it pD.norm() ???
-        k1 = -params.matchingBearingAlpha/(deltaAlpha*deltaAlpha);
-        if ( alphaDist <= deltaAlpha )
-        {
-                scBearing = k1*alphaDist*alphaDist+1;
-        }
-        else
-        {
-                scBearing = params.matchingBearingAlpha*exp( (deltaAlpha-alphaDist)*params.matchingBearingBeta );
-        }       
+    double scBearing,scRange;
+    double deltaAlpha, alphaD, alphaT, alphaDist, k1;
+            
+    //bearing score
+    alphaD = atan2(pD.getY(), pD.getX());
+    alphaT = atan2(pT.getY(), pT.getX());
+    alphaDist = fabs(alphaD - alphaT);
+    deltaAlpha = fabs(atan2(params.personRadius, pT.norm()));
+    k1 = -params.matchingBearingAlpha/(deltaAlpha*deltaAlpha);
+    if ( alphaDist <= deltaAlpha )
+    {
+            scBearing = k1*alphaDist*alphaDist+1;
+    }
+    else
+    {
+            scBearing = params.matchingBearingAlpha*exp( (deltaAlpha-alphaDist)*params.matchingBearingBeta );
+    }       
 
-      //bearing score
-//       alphaD = atan2(pD.getY(), pD.getX());
-//       alphaT = atan2(pT.getY(), pT.getX());
-//       alphaDist = fabs(alphaD - alphaT);      
-//       deltaAlpha = fabs(atan2(params.personRadius, pT.norm())); //why was it pD.norm() ???
-//       scBearing = 0.5 + (1/M_PI)*atan(10000*(deltaAlpha-alphaDist));
-      
-      //range score
-      if ( pT.norm() < 2 ) scRange = 0;
-      else scRange = 0.5 - (1/M_PI)*atan(1000*(2.-pT.norm()));
-      //std::cout << "pt.norm(): " << pT.norm() << "; " << "scRange: " << scRange << std::endl;
-      
-      //return score
-      return scBearing*scRange;
+    //range score
+    if ( pT.norm() < 2 ) scRange = 0;
+    else scRange = 0.5 - (1/M_PI)*atan(1000*(2.-pT.norm()));
+    
+    //return score
+    return scBearing*scRange;
 }
 
 double CpersonParticleFilter::faceMatchingFunction(Cpoint3d & pD)
 {
-       return faceMatchingFunction(pD,this->estimate.position);
+    return faceMatchingFunction(pD,this->estimate.position);
 }
 double CpersonParticleFilter::faceMatchingFunction(Cpoint3d & pD, Cpoint3d & pT)
 {
-        double sc;
-        double dd;
-                
-        //compute distance on the ground plane
-        dd = sqrt( pow( pD.getX()-pT.getX(), 2 ) + pow( pD.getY()-pT.getY(), 2 ) );
-        sc = 0.5 + (1/M_PI)*atan(10000*(params.personRadius-dd));
+    double sc;
+    double dd;
+            
+    //compute distance on the ground plane
+    dd = sqrt( pow( pD.getX()-pT.getX(), 2 ) + pow( pD.getY()-pT.getY(), 2 ) );
+    sc = 0.5 + (1/M_PI)*atan(10000*(params.personRadius-dd));
 
-        //return score
-        return sc;
+    //return score
+    return sc;
+}
+
+double CpersonParticleFilter::body3dMatchingFunction(Cpoint3d & p1)
+{
+    return body3dMatchingFunction(p1,this->estimate.position);
+}
+
+double CpersonParticleFilter::body3dMatchingFunction(Cpoint3d & p1, Cpoint3d & p2)
+{
+    double dd, score;
+
+    //at the moment, using the same model as for legs ( see CpersonParticleFilter::legMatchingFunction() above )
+    //TODO: refine the model ...
+    dd = p1.d2point(p2);
+    if ( dd <= params.personRadius )
+    {
+        score = dConstants.legsK1*dd*dd+1; 
+    }
+    else
+    {
+        score = params.matchingLegsAlpha*exp( (params.personRadius-dd)*params.matchingLegsBeta );
+    }
+    return  score;
 }
 
 void CpersonParticleFilter::print(unsigned int tId)
 {
-        std::cout << "----------- Filter " << tId << " --------- " << std::endl;
-        estimate.position.printPointCov();
-        estimate.velocity.printPointCov();
+    std::cout << "----------- Filter " << tId << " --------- " << std::endl;
+    estimate.position.printPointCov();
+    estimate.velocity.printPointCov();
 }
 
 void CpersonParticleFilter::printParticleSet()
 {
-        std::list<CpersonParticle>::iterator iiP;
+    std::list<CpersonParticle>::iterator iiP;
 
-        for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
-        {
-                iiP->printParticle();
-        }
+    for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
+    {
+        iiP->printParticle();
+    }
 }

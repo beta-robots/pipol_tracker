@@ -12,9 +12,6 @@ const double ZERO_MATCH = 1e-10;
 //track maximum size
 const double TRACK_SIZE = 10;
 
-//status values
-//enum targetStatus {TO_BE_REMOVED=0, CANDIDATE, LEGGED_TARGET, VISUALLY_CONFIRMED, FRIEND_IN_SIGHT, FRIEND_OUT_OF_RANGE};
-
 //status values (v2)
 enum statusMask {     
       TO_BE_REMOVED = 0x0001,
@@ -184,31 +181,6 @@ class CpersonTarget : public CpersonParticleFilter
 		*/		
 		void getPositionEstimate(Cpoint3dCov & est);
 		
-		/**
-		* \brief Adds a new estimate to the track
-		*
-		* Adds a new estimate to the track
-		* Pushes back point/timeStamp to respective vectors. If track.size()>PERSON_PATH_SIZE, removes the former element in vectors
-		*/		
-// 		void addToTrack(const filterEstimate &est);
-		
-		/**
-		* \brief Single person motion prediction
-		*
-		* Predicts the next position, given this->track and the delta time of prediction. 
-		* Sets pediction to predictedPoint.
-		*/		
-// 		void predict(double dT, Cpoint3d & predictedPoint);
-		
-		/**
-		* \brief Single person motion prediction
-		*
-		* Predicts the next position, given this->track, an extra point and the delta time of prediction.
-		* The extra point replaces the last point in track. It will be typically a particle.
-		* Returns the association probability and sets pediction to predictedPoint.
-		*/		
-// 		void predict(double dT, Cpoint3d & extraPoint, Cpoint3d & predictedPoint);
-            
             /** \brief Resets matchScores table
             * 
             * Resets matchScores table
@@ -247,7 +219,7 @@ class CpersonTarget : public CpersonParticleFilter
             
             /** \brief adds this->estimate to target track
             * 
-            * adds this->estimate to target track
+            * adds this->estimate to target track, to keep track of the most recent estimates
             * 
             **/
             void addEstimateToTrack();                

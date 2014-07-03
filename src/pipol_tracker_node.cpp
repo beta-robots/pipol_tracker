@@ -327,6 +327,7 @@ void CpipolTrackerNode::fillMessages()
         }
         
         //3D
+        //std::cout << "body3dDetSet.size(): "<< body3dDetSet.size() << std::endl;
         for (iiB3=body3dDetSet.begin(); iiB3!=body3dDetSet.end(); iiB3++)
         {
             //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << std::endl;
@@ -828,32 +829,33 @@ void CpipolTrackerNode::faceDetections_callback(const pal_detection_msgs::FaceDe
 
 void CpipolTrackerNode::body3dDetections_callback(const pal_detection_msgs::PersonDetections::ConstPtr& msg)
 {
-      unsigned int ii;
-      Cpoint3dObservation newDetection;
-      std::string frame_id;      
-      Eigen::Vector3d tcam_base; //translation of camera device wrt base
-      Eigen::Quaterniond qcam_base; //quaternion of camera device wrt base
-      Eigen::Vector3d det_cam; //detection wrt camera frame
-      Eigen::Vector3d det_base; //detection wrt base frame      
-      
-      //get msg->camera_pose.frame_id and check if it is the base_link. If not, warn and exit callback
-      frame_id = msg->camera_pose.header.frame_id;
-      if (frame_id != "base_link")
-      {
-            std::cout << "WARNING: Body 3d detections not referenced to base_link" << std::endl;
-            return;
-      }
+    unsigned int ii;
+    Cpoint3dObservation newDetection;
+    std::string frame_id;      
+    Eigen::Vector3d tcam_base; //translation of camera device wrt base
+    Eigen::Quaterniond qcam_base; //quaternion of camera device wrt base
+    Eigen::Vector3d det_cam; //detection wrt camera frame
+    Eigen::Vector3d det_base; //detection wrt base frame      
+    
+    //get msg->camera_pose.frame_id and check if it is the base_link. If not, warn and exit callback
+    frame_id = msg->camera_pose.header.frame_id;
+    if (frame_id != "base_link")
+    {
+        std::cout << "WARNING: Body 3d detections not referenced to base_link" << std::endl;
+        return;
+    }
 
-      //sensor frame pose (translation + orientation in quaternion form)
-      tcam_base << msg->camera_pose.transform.translation.x,
-                  msg->camera_pose.transform.translation.y, 
-                  msg->camera_pose.transform.translation.z;
-      qcam_base = Eigen::Quaterniond(msg->camera_pose.transform.rotation.w,
-                                    msg->camera_pose.transform.rotation.x,
-                                    msg->camera_pose.transform.rotation.y,
-                                    msg->camera_pose.transform.rotation.z);
-      
+    //sensor frame pose (translation + orientation in quaternion form)
+    tcam_base << msg->camera_pose.transform.translation.x,
+                msg->camera_pose.transform.translation.y, 
+                msg->camera_pose.transform.translation.z;
+    qcam_base = Eigen::Quaterniond(msg->camera_pose.transform.rotation.w,
+                                msg->camera_pose.transform.rotation.x,
+                                msg->camera_pose.transform.rotation.y,
+                                msg->camera_pose.transform.rotation.z);
+    
     //sets current (received) detections
+    tracker.resetDetectionSets(BODY3D);//required since this callback can be executed faster than tracker itself
     for (ii=0; ii<msg->persons.size(); ii++)
     {
         //set time stamp
@@ -864,7 +866,8 @@ void CpipolTrackerNode::body3dDetections_callback(const pal_detection_msgs::Pers
         det_base = qcam_base.matrix()*det_cam + tcam_base;
 
         //Set detection
-        newDetection.point.setXYZ(det_base(0), det_base(1), det_base(2));
+        //newDetection.point.setXYZ(det_base(0), det_base(1), det_base(2));
+        newDetection.point.setXYZ(det_base(0), det_base(1), 0.0); //projection to XY plane
 
         //add detection to tracker list
         tracker.addDetectionBody3d(newDetection);

@@ -112,7 +112,7 @@ class CpersonParticleFilter
             
             /** \brief Indicates motion mode
             * 
-            * Indicates wether the target is in STOP or GO mode
+            * Indicates whether the target is in STOP or GO mode
             * 
             **/
             unsigned int motionMode;            
@@ -272,9 +272,9 @@ class CpersonParticleFilter
             **/                
             void predictPset();
             
-            void computeWeights(Cpoint3dObservation & pDet, vector<double> & ww, double assocP = 1.0);//-->we can remove default argument
-            void computeWeights(CbodyObservation & pDet, vector<double> & ww, double assocP = 1.0);//-->we can remove default argument
-            void computeWeights(CfaceObservation & pDet, vector<double> & ww, double assocP = 1.0);//-->we can remove default argument
+            void computeWeights(Cpoint3dObservation & pDet, vector<double> & ww);
+            void computeWeights(CbodyObservation & pDet, vector<double> & ww);
+            void computeWeights(CfaceObservation & pDet, vector<double> & ww);
             void setWeights(const vector<double> & ww);
             void normalizePset();
             void resamplePset();
@@ -287,6 +287,8 @@ class CpersonParticleFilter
             double bodyMatchingFunction(Cpoint3d & pD, Cpoint3d & pT);
             double faceMatchingFunction(Cpoint3d & pD);
             double faceMatchingFunction(Cpoint3d & pD, Cpoint3d & pT);
+            double body3dMatchingFunction(Cpoint3d & pD);
+            double body3dMatchingFunction(Cpoint3d & pD, Cpoint3d & pT);            
             virtual void print(unsigned int tId=0);
             void printParticleSet();
 };
