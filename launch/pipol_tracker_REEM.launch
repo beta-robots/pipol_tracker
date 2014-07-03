@@ -14,7 +14,9 @@
                   <remap from="/pipol_tracker_node/bodyDetections"
                         to="/fullbody_2d_detector/detections" />
                   <remap from="/pipol_tracker_node/faceDetections"
-                        to="/pal_face/faces" />                   
+                        to="/pal_face/faces" />  
+                  <remap from="/pipol_tracker_node/body3dDetections"
+                        to="/head_mount_xtion/users" />                                                
                   <remap from="/pipol_tracker_node/image_in"
                         to="/head_mount_xtion/rgb/image_rect_color" />                    
                   <remap from="/pipol_tracker_node/cameraInfo_in"
