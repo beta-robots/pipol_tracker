@@ -2,7 +2,7 @@
 #*************** particle filter parameters ************************
 
 #number of particles per target
-num_particles: 300
+num_particles: 150
 
 #when a new filter/target is launched, XY space is sampled along init_delta_xy from the first detection point [m]
 init_delta_xy: 0.2
@@ -17,13 +17,16 @@ sigma_resampling_xy: 0.01
 sigma_ratio_resampling_vxy: 0.1
 
 #minimum value for standard deviation applied at resampling step along VxVy dimensions [m/s]
-sigma_min_resampling_vxy: 0.1
+sigma_min_resampling_vxy: 0.15
 
-#person radius used in LEG and BODY matching functions. Smaller the radius, more precise should be detections [m]
-person_radius: 0.25
+#person radius used in LEG matching functions. Smaller the radius, more precise should be detections [m]
+person_radius_legs: 0.3
 
-#LEG and BODY cost function parameters. 
-matching_legs_alpha: 0.05
+#person radius used in BODY and FACES matching functions. Smaller the radius, more precise should be detections [m]
+person_radius_body: 0.2
+
+#LEG and BODY matching function parameters. 
+matching_legs_alpha: 0.1
 matching_legs_beta: 10
 matching_bearing_alpha: 0.2
 matching_bearing_beta: 10
@@ -31,23 +34,26 @@ matching_bearing_beta: 10
 
 #****************** tracker parameters *********************************
 
+#node rate [hz]
+tracker_rate: 25.0
+
 #If targets closer than this distance, merging function is called [m]
-minimum_distance_between_people: 0.25
+minimum_distance_between_people: 0.2
 
 #Lower probabilities are treated as ZERO
 minimum_association_prob: 0.000001
 
 #detections farther than this distance are ignored [m]
-max_detection_distance_accepted: 6
+max_detection_distance_accepted: 5
 
 #detections closer than this distance are ignored [m]
 min_detection_distance_accepted: 0.1
 
 #leg detections with azimut gerater than this are ignored [deg]
-max_detection_azimut_accepted: 80
+max_detection_azimut_accepted: 90
 
 #If a target, not in occlusion, remains max_consecutive_uncorrected_iterations without having associated any detection, the target is deleted
-max_consecutive_uncorrected_iterations: 10
+max_consecutive_uncorrected_iterations: 30
 
 # a CANDIDATE target requires minimum_iterations_to_be_target to be considered as a LEGGED target
 minimum_iterations_to_be_target: 5
@@ -70,8 +76,8 @@ verbose_mode: 0
 #year: 2013 or 2014 (messages changed. 2013 only useful for recorded rosbags)
 year: 2014
 
-#send visualization markers corresponding to body detections , 0->Off, 1->On
+#Publish visualization markers corresponding to body detections , 0->Off, 1->On
 view_body_detections: 1
 
-# ratio of particles which are published as visualization markers
-ratio_particles_displayed: 0.1
+#Publish visualization markers of a subset of particles. 0->Off, 1->On
+view_particles: 1

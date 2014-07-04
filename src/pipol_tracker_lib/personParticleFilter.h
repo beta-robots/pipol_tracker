@@ -32,7 +32,8 @@ const double SIGMA_MIN_RESAMPLING_VXY = 0.05; ////resampling constants noise (si
 const double MAX_SPEED_STOPPED = 0.1;
 const double PROB_STOP2STOP = 0.9; //prob for a given STOPPED target to remain STOPPED in the next iteration, [0,1]
 const double PROB_GO2GO = 0.8; //prob for a given GO target to remain GO in the next iteration, [0,1]
-const double PERSON_RADIUS = 0.2; //Considered person radius [m]
+const double PERSON_RADIUS_LEGS = 0.35; //Considered person radius [m]
+const double PERSON_RADIUS_BODY = 0.25; //Considered person radius [m]
 const double MATCHING_LEGS_ALPHA = 0.1;//For legs likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
 const double MATCHING_LEGS_BETA = 10;//For legs likelihood, Off-band expoenential decayment, set in [2,50]
 const double MATCHING_BODY_ALPHA = 0.1;//For bearing likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
@@ -53,7 +54,8 @@ struct pFilterParameters
         double sigmaResamplingXY; //resampling std dev for x,y components, [m]
         double sigmaRatioResamplingVxy; //resampling std dev for vx,vy components, [m/s]
         double sigmaMinResamplingVxy; //resampling std dev for vx,vy components, [m/s]
-        double personRadius; //considered radius of the tracked person, [m]
+        double personRadiusLegs; //considered radius of the tracked person, for legs [m]
+        double personRadiusBody; //considered radius of the tracked person, for body [m]
         double matchingLegsAlpha; //For legs likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
         double matchingLegsBeta; //For legs likelihood, Off-band expoenential decayment, set in [2,50]
         double matchingBearingAlpha; //For bearing likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
@@ -69,6 +71,7 @@ struct pFilterParameters
 struct derivedConstants
 {
         double legsK1;
+        double bodyK1;
 };
 
 /**

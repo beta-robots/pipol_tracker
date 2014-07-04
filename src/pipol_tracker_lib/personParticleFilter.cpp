@@ -29,12 +29,14 @@ void CpersonParticleFilter::setDefaultParameters()
         params.sigmaResamplingXY = SIGMA_FIXED_RESAMPLING_XY;
         params.sigmaRatioResamplingVxy = SIGMA_RATIO_RESAMPLING_VXY;
         params.sigmaMinResamplingVxy = SIGMA_MIN_RESAMPLING_VXY;
-        params.personRadius = PERSON_RADIUS;
+        params.personRadiusLegs = PERSON_RADIUS_LEGS;
+        params.personRadiusBody = PERSON_RADIUS_BODY;
         params.matchingLegsAlpha = MATCHING_LEGS_ALPHA;
         params.matchingLegsBeta = MATCHING_LEGS_BETA;
         params.matchingBearingAlpha = MATCHING_BODY_ALPHA;
         params.matchingBearingBeta = MATCHING_BODY_BETA;
-        dConstants.legsK1 = -params.matchingLegsAlpha/(params.personRadius*params.personRadius);
+        dConstants.legsK1 = -params.matchingLegsAlpha/(params.personRadiusLegs*params.personRadiusLegs);
+        dConstants.bodyK1 = -params.matchingLegsAlpha/(params.personRadiusBody*params.personRadiusBody);
 }
 
 void CpersonParticleFilter::setParameters(const pFilterParameters & pfp)
@@ -45,12 +47,14 @@ void CpersonParticleFilter::setParameters(const pFilterParameters & pfp)
         params.sigmaResamplingXY = pfp.sigmaResamplingXY;
         params.sigmaRatioResamplingVxy = pfp.sigmaRatioResamplingVxy;
         params.sigmaMinResamplingVxy = pfp.sigmaMinResamplingVxy;
-        params.personRadius = pfp.personRadius;
+        params.personRadiusLegs = pfp.personRadiusLegs;
+        params.personRadiusBody = pfp.personRadiusBody;
         params.matchingLegsAlpha = pfp.matchingLegsAlpha; 
         params.matchingLegsBeta = pfp.matchingLegsBeta; 
         params.matchingBearingAlpha = pfp.matchingBearingAlpha;
         params.matchingBearingBeta = pfp.matchingBearingBeta;
-        dConstants.legsK1 = -params.matchingLegsAlpha/(params.personRadius*params.personRadius);
+        dConstants.legsK1 = -params.matchingLegsAlpha/(params.personRadiusLegs*params.personRadiusLegs);
+        dConstants.bodyK1 = -params.matchingLegsAlpha/(params.personRadiusBody*params.personRadiusBody);
 }
 
 unsigned int CpersonParticleFilter::getNP()
@@ -60,7 +64,7 @@ unsigned int CpersonParticleFilter::getNP()
 
 double CpersonParticleFilter::getPersonRadius()
 {
-        return params.personRadius;
+        return params.personRadiusLegs;
 }
 
 unsigned int CpersonParticleFilter::getIterations()
@@ -397,13 +401,13 @@ double CpersonParticleFilter::legMatchingFunction(Cpoint3d & p1, Cpoint3d & p2)
     double dd, score;
 
     dd = p1.d2point(p2);
-    if ( dd <= params.personRadius )
+    if ( dd <= params.personRadiusLegs )
     {
         score = dConstants.legsK1*dd*dd+1;
     }
     else
     {
-        score = params.matchingLegsAlpha*exp( (params.personRadius-dd)*params.matchingLegsBeta );
+        score = params.matchingLegsAlpha*exp( (params.personRadiusLegs-dd)*params.matchingLegsBeta );
     }
     return  score;
 }
@@ -422,7 +426,7 @@ double CpersonParticleFilter::bodyMatchingFunction(Cpoint3d & pD, Cpoint3d & pT)
     alphaD = atan2(pD.getY(), pD.getX());
     alphaT = atan2(pT.getY(), pT.getX());
     alphaDist = fabs(alphaD - alphaT);
-    deltaAlpha = fabs(atan2(params.personRadius, pT.norm()));
+    deltaAlpha = fabs(atan2(params.personRadiusBody, pT.norm()));
     k1 = -params.matchingBearingAlpha/(deltaAlpha*deltaAlpha);
     if ( alphaDist <= deltaAlpha )
     {
@@ -452,7 +456,7 @@ double CpersonParticleFilter::faceMatchingFunction(Cpoint3d & pD, Cpoint3d & pT)
             
     //compute distance on the ground plane
     dd = sqrt( pow( pD.getX()-pT.getX(), 2 ) + pow( pD.getY()-pT.getY(), 2 ) );
-    sc = 0.5 + (1/M_PI)*atan(10000*(params.personRadius-dd));
+    sc = 0.5 + (1/M_PI)*atan(10000*(params.personRadiusBody-dd));
 
     //return score
     return sc;
@@ -468,15 +472,14 @@ double CpersonParticleFilter::body3dMatchingFunction(Cpoint3d & p1, Cpoint3d & p
     double dd, score;
 
     //at the moment, using the same model as for legs ( see CpersonParticleFilter::legMatchingFunction() above )
-    //TODO: refine the model ...
     dd = p1.d2point(p2);
-    if ( dd <= params.personRadius )
+    if ( dd <= params.personRadiusBody )
     {
-        score = dConstants.legsK1*dd*dd+1; 
+        score = dConstants.bodyK1*dd*dd+1; 
     }
     else
     {
-        score = params.matchingLegsAlpha*exp( (params.personRadius-dd)*params.matchingLegsBeta );
+        score = params.matchingLegsAlpha*exp( (params.personRadiusBody-dd)*params.matchingLegsBeta );
     }
     return  score;
 }

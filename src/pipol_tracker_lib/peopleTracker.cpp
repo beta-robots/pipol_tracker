@@ -37,7 +37,8 @@ void CpeopleTracker::setDefaultParameters()
 	filterParams.sigmaResamplingXY = SIGMA_FIXED_RESAMPLING_XY;
 	filterParams.sigmaRatioResamplingVxy = SIGMA_RATIO_RESAMPLING_VXY;
       filterParams.sigmaMinResamplingVxy = SIGMA_MIN_RESAMPLING_VXY;
-	filterParams.personRadius = PERSON_RADIUS;
+	filterParams.personRadiusLegs = PERSON_RADIUS_LEGS;
+      filterParams.personRadiusBody = PERSON_RADIUS_BODY;
 	filterParams.matchingLegsAlpha = MATCHING_LEGS_ALPHA;
 	filterParams.matchingLegsBeta = MATCHING_LEGS_BETA;
 	filterParams.matchingBearingAlpha = MATCHING_BODY_ALPHA;
@@ -80,7 +81,8 @@ void CpeopleTracker::setFilterParameters(const pFilterParameters & pfp)
 	filterParams.sigmaResamplingXY = pfp.sigmaResamplingXY;
 	filterParams.sigmaRatioResamplingVxy = pfp.sigmaRatioResamplingVxy;
       filterParams.sigmaMinResamplingVxy = pfp.sigmaMinResamplingVxy;
-	filterParams.personRadius = pfp.personRadius;
+	filterParams.personRadiusLegs = pfp.personRadiusLegs;
+      filterParams.personRadiusBody = pfp.personRadiusBody;
 	filterParams.matchingLegsAlpha = pfp.matchingLegsAlpha; 
 	filterParams.matchingLegsBeta = pfp.matchingLegsBeta; 
 	filterParams.matchingBearingAlpha = pfp.matchingBearingAlpha;
