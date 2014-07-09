@@ -18,7 +18,7 @@
                   to="/person/image" />
             <remap from="/iri_people_tracking_rai/followMe"
                   to="/followMe/targetId" />                                                          
-        <rosparam file="$(find iri_people_tracking_rai)/launch/peopleTrackingParams.yaml" command="load" />
+        <rosparam command="load" file="$(find pipol_tracker_pkg)/config/pipol_tracker_params.yaml"/>
 	</node>
 </launch>
 

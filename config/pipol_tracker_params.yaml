@@ -2,34 +2,45 @@
 #*************** particle filter parameters ************************
 
 #number of particles per target
-num_particles: 300
+num_particles: 200
 
-#when a new filter/target is launched, XY space is sampled along init_delta_xy from the first detection point 
-init_delta_xy: 0.3
+#when a new filter/target is launched, XY space is sampled along init_delta_xy from the first detection point [m]
+init_delta_xy: 0.2
 
-#when a new filter/target is launched, VxVy space is sampled along init_delta_vxy from 0
+#when a new filter/target is launched, VxVy space is sampled along init_delta_vxy from 0 [m/s]
 init_delta_vxy: 0.5
 
-#resampling standard deviation applied at the end of each filter iteration along XY dimensions
+#resampling standard deviation applied at the end of each filter iteration along XY dimensions [m]
 sigma_resampling_xy: 0.01
 
-#resampling standard deviation applied at the end of each filter iteration along VxVy dimensions
-sigma_resampling_vxy: 0.1
+#ratio of target velocity to compute resampling standard deviation applied at resampling step along VxVy dimensions [·]
+sigma_ratio_resampling_vxy: 0.1
 
-#person radius used in LEG and BODY matching functions. Smaller the radius, more precise should be detections
-person_radius: 0.35
+#minimum value for standard deviation applied at resampling step along VxVy dimensions [m/s]
+sigma_min_resampling_vxy: 0.15
 
-#LEG and BODy cost function parameters. 
+#person radius used in LEG matching functions. Smaller the radius, more precise should be detections [m]
+person_radius_legs: 0.25
+
+#person radius used in BODY and FACES matching functions. Smaller the radius, more precise should be detections [m]
+person_radius_body: 0.2
+
+#LEG, BODY and BODY3D matching function parameters. 
 matching_legs_alpha: 0.1
 matching_legs_beta: 10
-matching_bearing_alpha: 0.1
+matching_bearing_alpha: 0.2
 matching_bearing_beta: 10
+matching_body3d_alpha: 0.2
+matching_body3d_beta: 10
 
 
 #****************** tracker parameters *********************************
 
-#If targets closer than this distance, merging function is called
-minimum_distance_between_people: 0.25
+#node rate [hz]
+tracker_rate: 20.0
+
+#If targets closer than this distance, merging function is called [m]
+minimum_distance_between_people: 0.2
 
 #Lower probabilities are treated as ZERO
 minimum_association_prob: 0.000001
@@ -41,13 +52,13 @@ max_detection_distance_accepted: 5
 min_detection_distance_accepted: 0.1
 
 #leg detections with azimut gerater than this are ignored [deg]
-max_detection_azimut_accepted: 60
+max_detection_azimut_accepted: 90
 
 #If a target, not in occlusion, remains max_consecutive_uncorrected_iterations without having associated any detection, the target is deleted
-max_consecutive_uncorrected_iterations: 8
+max_consecutive_uncorrected_iterations: 30
 
 # a CANDIDATE target requires minimum_iterations_to_be_target to be considered as a LEGGED target
-minimum_iterations_to_be_target: 10
+minimum_iterations_to_be_target: 5
 
 # a LEGGED target requires minimum_iterations_to_be_visually_confirmed iterations with FACE or BODY detections associated, to be considered as VISUALLY_CONFIRMED
 minimum_iterations_to_be_visually_confirmed: 5
@@ -64,8 +75,11 @@ minimum_appearance_region_size: 100
 #verbose mode. 0->Off, 1->On
 verbose_mode: 0
 
-#send visualization markers corresponding to body detections , 0->Off, 1->On
+#year: 2013 or 2014 (messages changed. 2013 only useful for recorded rosbags)
+year: 2014
+
+#Publish visualization markers corresponding to body detections , 0->Off, 1->On
 view_body_detections: 1
 
-# ratio of particles which are sent as visualization markers
-ratio_particles_displayed: 0.1
+#Publish visualization markers of a subset of particles. 0->Off, 1->On
+view_particles: 0
