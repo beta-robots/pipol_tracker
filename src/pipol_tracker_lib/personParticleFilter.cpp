@@ -35,8 +35,10 @@ void CpersonParticleFilter::setDefaultParameters()
         params.matchingLegsBeta = MATCHING_LEGS_BETA;
         params.matchingBearingAlpha = MATCHING_BODY_ALPHA;
         params.matchingBearingBeta = MATCHING_BODY_BETA;
+        params.matchingBody3dAlpha = MATCHING_BODY3D_ALPHA;
+        params.matchingBody3dBeta = MATCHING_BODY3D_BETA;        
         dConstants.legsK1 = -params.matchingLegsAlpha/(params.personRadiusLegs*params.personRadiusLegs);
-        dConstants.bodyK1 = -params.matchingLegsAlpha/(params.personRadiusBody*params.personRadiusBody);
+        dConstants.body3dK1 = -params.matchingBody3dAlpha/(params.personRadiusBody*params.personRadiusBody);
 }
 
 void CpersonParticleFilter::setParameters(const pFilterParameters & pfp)
@@ -53,8 +55,10 @@ void CpersonParticleFilter::setParameters(const pFilterParameters & pfp)
         params.matchingLegsBeta = pfp.matchingLegsBeta; 
         params.matchingBearingAlpha = pfp.matchingBearingAlpha;
         params.matchingBearingBeta = pfp.matchingBearingBeta;
+        params.matchingBody3dAlpha = pfp.matchingBody3dAlpha;
+        params.matchingBody3dBeta = pfp.matchingBody3dBeta;                
         dConstants.legsK1 = -params.matchingLegsAlpha/(params.personRadiusLegs*params.personRadiusLegs);
-        dConstants.bodyK1 = -params.matchingLegsAlpha/(params.personRadiusBody*params.personRadiusBody);
+        dConstants.body3dK1 = -params.matchingBody3dAlpha/(params.personRadiusBody*params.personRadiusBody);
 }
 
 unsigned int CpersonParticleFilter::getNP()
@@ -319,8 +323,6 @@ void CpersonParticleFilter::resamplePset()
         }
         pX = iiP->position.getX() + random_normal(0,params.sigmaResamplingXY); //centered at particle ii
         pY = iiP->position.getY() + random_normal(0,params.sigmaResamplingXY); //centered at particle ii
-//         pVx = iiP->velocity.getX() + random_normal(0,params.sigmaMinResamplingVxy);
-//         pVy = iiP->velocity.getY() + random_normal(0,params.sigmaMinResamplingVxy);
         pVx = iiP->velocity.getX() + random_normal(0,params.sigmaRatioResamplingVxy*iiP->velocity.getX()+params.sigmaMinResamplingVxy);
         pVy = iiP->velocity.getY() + random_normal(0,params.sigmaRatioResamplingVxy*iiP->velocity.getY()+params.sigmaMinResamplingVxy);                
         newP = new CpersonParticle(pX,pY,pVx,pVy,1.0/(double)params.numParticles);
@@ -475,11 +477,11 @@ double CpersonParticleFilter::body3dMatchingFunction(Cpoint3d & p1, Cpoint3d & p
     dd = p1.d2point(p2);
     if ( dd <= params.personRadiusBody )
     {
-        score = dConstants.bodyK1*dd*dd+1; 
+        score = dConstants.body3dK1*dd*dd+1; 
     }
     else
     {
-        score = params.matchingLegsAlpha*exp( (params.personRadiusBody-dd)*params.matchingLegsBeta );
+        score = params.matchingBody3dAlpha*exp( (params.personRadiusBody-dd)*params.matchingBody3dBeta );
     }
     return  score;
 }

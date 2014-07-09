@@ -17,7 +17,7 @@ sigma_resampling_xy: 0.01
 sigma_resampling_vxy: 0.1
 
 #person radius used in LEG and BODY matching functions. Smaller the radius, more precise should be detections
-person_radius: 0.25
+person_radius: 0.35
 
 #LEG and BODy cost function parameters. 
 matching_legs_alpha: 0.1

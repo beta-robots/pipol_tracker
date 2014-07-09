@@ -43,6 +43,8 @@ void CpeopleTracker::setDefaultParameters()
 	filterParams.matchingLegsBeta = MATCHING_LEGS_BETA;
 	filterParams.matchingBearingAlpha = MATCHING_BODY_ALPHA;
 	filterParams.matchingBearingBeta = MATCHING_BODY_BETA;
+      filterParams.matchingBody3dAlpha = MATCHING_BODY3D_ALPHA;
+      filterParams.matchingBody3dBeta = MATCHING_BODY3D_BETA;            
 }
 
 void CpeopleTracker::setParameters(const trackerParameters & tp)
@@ -87,6 +89,8 @@ void CpeopleTracker::setFilterParameters(const pFilterParameters & pfp)
 	filterParams.matchingLegsBeta = pfp.matchingLegsBeta; 
 	filterParams.matchingBearingAlpha = pfp.matchingBearingAlpha;
 	filterParams.matchingBearingBeta = pfp.matchingBearingBeta;
+      filterParams.matchingBody3dAlpha = pfp.matchingBody3dAlpha;
+      filterParams.matchingBody3dBeta = pfp.matchingBody3dBeta;      
 }
 
 void CpeopleTracker::setFollowMeTargetId(int fmtid)
@@ -584,7 +588,8 @@ void CpeopleTracker::updateAssociationTables()
                         assocProb *= iiT->matchScores[BODY3D].at(ii);
                 }
             }
-            iiT->aProbs[BODY3D].push_back((1-iiT->pOcclusion)*assocProb);
+            //iiT->aProbs[BODY3D].push_back((1-iiT->pOcclusion)*assocProb);
+            iiT->aProbs[BODY3D].push_back(assocProb);
         }
     }
     
@@ -961,8 +966,8 @@ void CpeopleTracker::correctFilters()
             //update target counters
 //             iiT->updateCounters( (associated_legs || associated_body || associated_face) , (associated_body || associated_face) , targetOccluded );
             iiT->updateCounters( 
-                  (associated_legs || associated_body || associated_face),
-                  (associated_body || associated_face),
+                  (associated_legs || associated_body || associated_face || associated_body3d),
+                  (associated_body || associated_face || associated_body3d),
                   iiT->isStatus(IN_OCCLUSION) );
       }
 }

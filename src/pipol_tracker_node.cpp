@@ -26,6 +26,8 @@ CpipolTrackerNode::CpipolTrackerNode() : nh(ros::this_node::getName()) , it(this
       nh.getParam("matching_legs_beta", this->filterParams.matchingLegsBeta);
       nh.getParam("matching_bearing_alpha", this->filterParams.matchingBearingAlpha);
       nh.getParam("matching_bearing_beta", this->filterParams.matchingBearingBeta);
+      nh.getParam("matching_body3d_alpha", this->filterParams.matchingBody3dAlpha);
+      nh.getParam("matching_body3d_beta", this->filterParams.matchingBody3dBeta);      
 //    nh.getParam("power_rgb_cos", intParam); this->filterParams.powerRGBcos = (unsigned int)intParam;
 
       //init user parameters. tracker parameters
@@ -490,6 +492,35 @@ void CpipolTrackerNode::fillMessages()
                     }
                 }           
             }
+
+            //std::list<CpersonParticle> & pSet = iiF->getParticleSet();
+            //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << "; pSet.size(): " << pSet.size() << std::endl;
+/*
+            for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
+            {
+                //if (this->verboseMode) std::cout << "mainNodeThread: " << __LINE__ << "; ii: " << ii << std::endl;
+                double rnd = (double)rand()/(double)RAND_MAX;
+                if ( rnd < ratioParticlesDisplayed  )
+                {
+                    this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
+                    this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
+                    this->MarkerArrayMsg.markers[ii].id = ii;
+                    this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::CYLINDER;
+                    this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
+                    this->MarkerArrayMsg.markers[ii].pose.position.x = iiP->position.getX();
+                    this->MarkerArrayMsg.markers[ii].pose.position.y = iiP->position.getY();
+                    this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
+                    this->MarkerArrayMsg.markers[ii].scale.x = MARKER_SIZE/10;
+                    this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE/10;
+                    this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE/10;
+                    this->MarkerArrayMsg.markers[ii].color.a = MARKER_TRANSPARENCY;
+                    this->MarkerArrayMsg.markers[ii].color.r = 0.5;
+                    this->MarkerArrayMsg.markers[ii].color.g = 1.5;
+                    this->MarkerArrayMsg.markers[ii].color.b = 0.0;
+                    this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION);
+                    ii++;
+                }
+            } */          
         }
     }
             
@@ -849,6 +880,11 @@ void CpipolTrackerNode::body3dDetections_callback(const pal_detection_msgs::Pers
             det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*4.5/3.5;
  
         //compute transf from camera coordinates to base coordinates
+        if (msg->persons[ii].position3D.point.z < 1) // empirical calibration of depth on user map
+		det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z;
+        else
+	        det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z * 4.5 / 3.5; 
+
         det_base = qcam_base.matrix()*det_cam + tcam_base;
 
         //Set detection

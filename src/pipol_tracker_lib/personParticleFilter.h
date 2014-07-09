@@ -38,6 +38,8 @@ const double MATCHING_LEGS_ALPHA = 0.1;//For legs likelihood, Difference between
 const double MATCHING_LEGS_BETA = 10;//For legs likelihood, Off-band expoenential decayment, set in [2,50]
 const double MATCHING_BODY_ALPHA = 0.1;//For bearing likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
 const double MATCHING_BODY_BETA = 10;//For bearing likelihood, Off-band expoenential decayment, set in [2,50]
+const double MATCHING_BODY3D_ALPHA = 0.2;
+const double MATCHING_BODY3D_BETA = 10;
 const unsigned int MAX_REMOVING_ITERATIONS = 7;
 
 /**
@@ -60,6 +62,8 @@ struct pFilterParameters
         double matchingLegsBeta; //For legs likelihood, Off-band expoenential decayment, set in [2,50]
         double matchingBearingAlpha; //For bearing likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
         double matchingBearingBeta; //For bearing likelihood, Off-band expoenential decayment, set in [2,50]    
+        double matchingBody3dAlpha;
+        double matchingBody3dBeta;
 };
 
 /**
@@ -71,7 +75,7 @@ struct pFilterParameters
 struct derivedConstants
 {
         double legsK1;
-        double bodyK1;
+        double body3dK1;
 };
 
 /**

@@ -2,7 +2,7 @@
 #*************** particle filter parameters ************************
 
 #number of particles per target
-num_particles: 150
+num_particles: 200
 
 #when a new filter/target is launched, XY space is sampled along init_delta_xy from the first detection point [m]
 init_delta_xy: 0.2
@@ -20,22 +20,24 @@ sigma_ratio_resampling_vxy: 0.1
 sigma_min_resampling_vxy: 0.15
 
 #person radius used in LEG matching functions. Smaller the radius, more precise should be detections [m]
-person_radius_legs: 0.3
+person_radius_legs: 0.25
 
 #person radius used in BODY and FACES matching functions. Smaller the radius, more precise should be detections [m]
 person_radius_body: 0.2
 
-#LEG and BODY matching function parameters. 
+#LEG, BODY and BODY3D matching function parameters. 
 matching_legs_alpha: 0.1
 matching_legs_beta: 10
 matching_bearing_alpha: 0.2
 matching_bearing_beta: 10
+matching_body3d_alpha: 0.2
+matching_body3d_beta: 10
 
 
 #****************** tracker parameters *********************************
 
 #node rate [hz]
-tracker_rate: 25.0
+tracker_rate: 20.0
 
 #If targets closer than this distance, merging function is called [m]
 minimum_distance_between_people: 0.2

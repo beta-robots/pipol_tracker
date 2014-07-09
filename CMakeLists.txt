@@ -86,7 +86,7 @@ include_directories(src/pipol_tracker_lib/ ${OpenCV_INCLUDE_DIR} ${EIGEN_INCLUDE
 
 ## Declare a cpp executable
 add_executable(pipol_tracker_node ${SRCS_ROS_NODE} ${SRCS_PT_LIB})
-add_dependencies(pipol_tracker_node ${PROJECT_NAME}_EXPORTED_TARGETS ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(pipol_tracker_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(pipol_tracker_node ${OpenCV_LIBS} ${catkin_LIBRARIES})
 
 install(TARGETS pipol_tracker_node
