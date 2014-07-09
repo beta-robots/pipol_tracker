@@ -877,14 +877,8 @@ void CpipolTrackerNode::body3dDetections_callback(const pal_detection_msgs::Pers
         if ( msg->persons[ii].position3D.point.z < 1. )
             det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z;
         else  
-            det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*4.5/3.5;
+            det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*4.1/3.5;
  
-        //compute transf from camera coordinates to base coordinates
-        if (msg->persons[ii].position3D.point.z < 1) // empirical calibration of depth on user map
-		det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z;
-        else
-	        det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z * 4.5 / 3.5; 
-
         det_base = qcam_base.matrix()*det_cam + tcam_base;
 
         //Set detection

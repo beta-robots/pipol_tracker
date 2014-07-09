@@ -104,13 +104,6 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Value: true
-    - Class: rviz/Axes
-      Enabled: true
-      Length: 0.3
-      Name: depth_camera
-      Radius: 0.05
-      Reference Frame: head_mount_xtion_rgb_optical_frame
-      Value: true
     - Class: rviz/Image
       Enabled: true
       Image Topic: /head_mount_xtion/user_map
@@ -146,22 +139,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.796121
+      Distance: 0.507508
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.606482
-        Y: -0.844806
-        Z: 9.38015
+        X: 1.29061
+        Y: -0.808749
+        Z: 9.65075
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 1.1448
+      Pitch: 1.4548
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 3.15262
+      Yaw: 3.14262
     Saved: ~
 Window Geometry:
   Displays:

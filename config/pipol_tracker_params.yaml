@@ -17,7 +17,7 @@ sigma_resampling_xy: 0.01
 sigma_ratio_resampling_vxy: 0.1
 
 #minimum value for standard deviation applied at resampling step along VxVy dimensions [m/s]
-sigma_min_resampling_vxy: 0.15
+sigma_min_resampling_vxy: 0.2
 
 #person radius used in LEG matching functions. Smaller the radius, more precise should be detections [m]
 person_radius_legs: 0.25
@@ -28,16 +28,16 @@ person_radius_body: 0.2
 #LEG, BODY and BODY3D matching function parameters. 
 matching_legs_alpha: 0.1
 matching_legs_beta: 10
-matching_bearing_alpha: 0.2
+matching_bearing_alpha: 0.4
 matching_bearing_beta: 10
-matching_body3d_alpha: 0.2
+matching_body3d_alpha: 0.4
 matching_body3d_beta: 10
 
 
 #****************** tracker parameters *********************************
 
 #node rate [hz]
-tracker_rate: 20.0
+tracker_rate: 30.0
 
 #If targets closer than this distance, merging function is called [m]
 minimum_distance_between_people: 0.2
@@ -55,10 +55,10 @@ min_detection_distance_accepted: 0.1
 max_detection_azimut_accepted: 90
 
 #If a target, not in occlusion, remains max_consecutive_uncorrected_iterations without having associated any detection, the target is deleted
-max_consecutive_uncorrected_iterations: 30
+max_consecutive_uncorrected_iterations: 60
 
 # a CANDIDATE target requires minimum_iterations_to_be_target to be considered as a LEGGED target
-minimum_iterations_to_be_target: 5
+imrodnimum_iterations_to_be_target: 5
 
 # a LEGGED target requires minimum_iterations_to_be_visually_confirmed iterations with FACE or BODY detections associated, to be considered as VISUALLY_CONFIRMED
 minimum_iterations_to_be_visually_confirmed: 5
@@ -67,7 +67,7 @@ minimum_iterations_to_be_visually_confirmed: 5
 minimum_iterations_to_be_friend: 5
 
 #DEPRECATED! minimum number of pixels for appearance model 
-minimum_appearance_region_size: 100
+# minimum_appearance_region_size: 100
 
 
 #****************** ROS node options *************************************
