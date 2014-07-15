@@ -37,6 +37,8 @@ SET(SRCS_PT_LIB
       src/pipol_tracker_lib/observations/bodyObservation.cpp
       src/pipol_tracker_lib/observations/faceObservation.cpp
       src/pipol_tracker_lib/random/simpleRnd.cpp
+      src/pipol_tracker_lib/association_node.cpp
+      src/pipol_tracker_lib/association_tree.cpp
 )
 
 
@@ -96,3 +98,6 @@ foreach(dir launch config)
     install(DIRECTORY ${dir}/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/${dir})
 endforeach(dir)
+
+#testing 
+ADD_SUBDIRECTORY(src/pipol_tracker_lib/examples)
