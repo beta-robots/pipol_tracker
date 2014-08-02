@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
     unsigned int nd_ = 2; //2 detections
     unsigned int nt_ = 3; //3 targets
     double prob_;
+    std::vector<std::pair<unsigned int, unsigned int> > associations_;
     
     //inits
     srand ( time(NULL) );
@@ -33,9 +34,10 @@ int main(int argc, char *argv[])
     }
     tree_.printScoreTable();
     
-    std::cout << "TEST 2. Reset score table" << std::endl;
+    std::cout << "TEST 2. Reset " << std::endl;
     tree_.reset();
     tree_.printScoreTable();
+    tree_.printTerminusNodes();
 
     std::cout << "TEST 3. Grow the tree" << std::endl;
     tree_.resizeScoreTable(nd_,nt_);
@@ -51,7 +53,16 @@ int main(int argc, char *argv[])
     tree_.buildTree();
     tree_.computeTree();
     tree_.printTree();
-        
+    tree_.printTerminusNodes();
+    tree_.bestHypothesis(associations_);
+    std::cout << "BEST ASSOCIATION EVENT: " << std::endl;
+    for(unsigned int ii=0; ii< associations_.size(); ii++)
+    {
+        std::cout << associations_.at(ii).first << "," << associations_.at(ii).second << " ";
+    }
+    std::cout << std::endl; 
+    tree_.reset();
+    
     //end
     return 0;
 }

@@ -2,7 +2,7 @@
 #include "association_tree.h"
 
 AssociationTree::AssociationTree() :
-    root_(0,0,1)
+    root_(0,0,1, NULL)
 {
     //
 }
@@ -19,6 +19,7 @@ void AssociationTree::reset()
         scores_.at(ii).clear();
     }
     scores_.clear();
+    terminus_node_list_.clear();
 }
         
 void AssociationTree::resizeScoreTable(const unsigned int _n_det, const unsigned int _n_tar)
@@ -56,7 +57,34 @@ void AssociationTree::buildTree()
 
 void AssociationTree::computeTree()
 {
-    root_.computeTreeProb(1.);
+    root_.computeTreeProb(1., terminus_node_list_);
+}
+
+void AssociationTree::bestHypothesis(std::vector<std::pair<unsigned int, unsigned int> > & _pairs)
+{
+    std::list<AssociationNode*>::iterator it, bestNode;
+    double bestProb = 0.;
+    bool rootReached = false;
+    AssociationNode * anPtr;
+    
+    //choose best node based on best tree probability
+    for (it = terminus_node_list_.begin(); it != terminus_node_list_.end(); it++)
+    {
+        if ( (*it)->getTreeProb() > bestProb ) 
+        {
+            bestNode = it;
+            bestProb = (*it)->getTreeProb();
+        }
+    }
+    std::cout << "bestHypothesis(): "; (*bestNode)->printNode();
+    
+    //init iterator
+    anPtr = *bestNode;
+    while( ! anPtr->isRoot() )
+    {
+        _pairs.push_back( std::pair<unsigned int, unsigned int>(anPtr->getDetectionIndex(), anPtr->getTargetIndex()) );
+        anPtr = anPtr->upNodePtr();
+    }        
 }
 
 void AssociationTree::printScoreTable() const
@@ -74,6 +102,19 @@ void AssociationTree::printScoreTable() const
     
 void AssociationTree::printTree() const
 {
-    root_.print();
+    root_.printTree();
 }
 
+void AssociationTree::printTerminusNodes() 
+{
+    std::list<AssociationNode*>::iterator it;
+//     std::list<AssociationNode&>::iterator it;
+    unsigned int ii; 
+    
+    for (it = terminus_node_list_.begin(), ii=0; it != terminus_node_list_.end(); it++, ii++)
+    {
+        //std::cout << __LINE__ << ": " << ii << std::endl;
+        (*it)->printNode();
+        //it->printNode();
+    }
+}

@@ -4,10 +4,11 @@
 
 //std
 #include <list>
+//#include <pair>
+//#include <memory>
 
 //pipol tracker
 #include "association_node.h"
-
 
 /** \brief The whole decision tree
  * 
@@ -19,7 +20,8 @@ class AssociationTree
     protected:
         std::vector< std::vector<double> > scores_;//scores table. Size is (num_detections_) x (num_targets_+1)
         AssociationNode root_;
-        //std::list<std::Pair<unsigned int, unsigned int> > association_list_;
+        std::list<AssociationNode*> terminus_node_list_;
+//         std::list<std::weak_ptr<AssociationNode> > terminus_node_list_; //TODO Use c++11 compiler !! After RoboCup!!
 
     public:
         /** \brief Constructor
@@ -87,6 +89,15 @@ class AssociationTree
         */        
         void computeTree();
         
+        /** \brief Decides best hypothesis
+         * 
+         * Decides best hypothesis according tree computation made by computeTree()
+         * Pairs are returned in the param _pairs:
+         * \param _pairs Returned pairs
+         * 
+         **/
+        void bestHypothesis(std::vector<std::pair<unsigned int, unsigned int> > & _pairs);
+        
         /** \brief Prints the score table
         * 
         * Prints the score table
@@ -100,5 +111,12 @@ class AssociationTree
         * 
         */                        
         void printTree() const;       
+        
+        /** \brief Prints the tree
+        * 
+        * Prints the tree
+        * 
+        */                        
+        void printTerminusNodes();       
 };
 #endif            

@@ -6,26 +6,11 @@
 //std
 #include <iostream>
 #include <vector>
+#include <list>
 #include <algorithm> //find()
 
 //constants
 const double PROB_ZERO_ = 1e-6;
-
-//enums
-// /** \brief node types
-//  * 
-//  * Node types: 
-//  *    - ROOT indicates top of the tree
-//  *    - BRANCH indicates mid-level
-//  *    - LEAF indicates last-level
-//  *
-//  **/
-// typedef enum 
-// {
-//     ROOT, //top node
-//     BRANCH, //mid-level nodes
-//     LEAF //end nodes
-// } NodeType;
 
 /** \brief A node in the association decision tree 
  * 
@@ -41,6 +26,7 @@ class AssociationNode
         double node_prob_; ///< Node Probability. Probability that detection associates to target.
         double tree_prob_; ///< Tree Probability. Joint Probability from the root node up to this (product of node probabilities)
         std::vector<AssociationNode> node_list_; ///< List of nodes below of this in the association tree
+        AssociationNode * up_node_ptr_; ///< Pointer to up node
 
     public:
         /** \brief Constructor
@@ -49,7 +35,7 @@ class AssociationNode
         * with the probability _prob;
         * 
         */        
-        AssociationNode(const unsigned int _det_idx, const unsigned int _tar_idx, const double _prob);            
+        AssociationNode(const unsigned int _det_idx, const unsigned int _tar_idx, const double _prob, AssociationNode * _un_ptr);            
         
         /** \brief Destructor
         * 
@@ -58,12 +44,19 @@ class AssociationNode
         */        
         virtual ~AssociationNode();
         
-        /** \brief Returns node_type_
+        /** \brief True if this is the root node
          * 
-         * Returns node_type_
+         * True if this is the root node, which is equivalent to check if up_node_ptr_ == NULL
          * 
          **/
-        //NodeType type() const;
+        bool isRoot() const;
+
+        /** \brief True if this is node is terminus (no more nodes below)
+         * 
+         * True if this is node is terminus (no more nodes below), which is equivalent to check node_list_.empty()
+         * 
+         **/        
+        bool isTerminus() const; 
         
         /** \brief Returns det_idx_
          * 
@@ -92,6 +85,13 @@ class AssociationNode
          * 
          **/
         double getTreeProb() const;
+
+        /** \brief Returns a copy of up_node_ptr_
+         * 
+         * Returns a copy of up_node_ptr_
+         * 
+         **/
+        AssociationNode * upNodePtr() const;
         
         /** \brief Computes node probability
          * 
@@ -108,10 +108,12 @@ class AssociationNode
         /** \brief Computes tree probabilities recursively
          * 
          * Computes tree probabilities recursively, while setting tree_prob_ data member
+         * Updates the terminus node list with all nodes that are terminus
          * \param _up_prob probability of upper node
+         * \param _tn_list: List of terminus nodes. It will be filled when terminus nodes are reached while recurisve computing tree
          * 
          **/
-        double computeTreeProb(const double & _up_prob);
+        double computeTreeProb(const double & _up_prob, std::list<AssociationNode*> & _tn_list);
         
         /** \brief Grows tree recursively
          * 
@@ -123,12 +125,19 @@ class AssociationNode
          **/        
         void growTree(const unsigned int _det_i, const std::vector< std::vector<double> > & _stab, std::vector<unsigned int> & _ex_vec);
         
-        /** \brief Prints node info recursively
+        /** \brief Prints node info
          * 
          * Prints node info
-         * \param _ntabs Number of tabulators befor printing. Useful for recursively print a whole tree
          * 
          **/
-        void print(const unsigned int _ntabs = 0) const;
+        void printNode() const;
+        
+        /** \brief Prints the tree, by printing node info recursively
+         * 
+         * Prints the tree, by printing node info recursively
+         * \param _ntabs Number of tabulators before printing. Useful for recursively print a whole tree
+         * 
+         **/
+        void printTree(const unsigned int _ntabs = 0) const;       
 };
 #endif
