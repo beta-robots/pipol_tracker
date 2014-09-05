@@ -131,7 +131,8 @@ void CpipolTrackerNode::process()
 
       //DATA ASSOCIATION
       //if (this->verboseMode) std::cout << std::endl << "*** Target/Detection association" << std::endl;
-      tracker.updateAssociationTables();
+      //tracker.updateAssociationTables();
+      tracker.updateAssociationTablesTree();
             
       //MARK BOUNDING BOXES OF VISUAL DETECTIONS (& LEARN CURRENT DETECTED APPEARANCES -> TO DO !!)
       if ( cvImgPtrSubs!=NULL )

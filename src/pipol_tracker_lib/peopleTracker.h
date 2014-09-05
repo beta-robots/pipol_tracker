@@ -3,6 +3,7 @@
 
 //#include "personPfilter.h"
 #include "personTarget.h"
+#include "association_tree.h"
 #include "geometry/point.h"
 #include "geometry/line.h"
 #include <opencv2/core/core.hpp>
@@ -155,13 +156,13 @@ class CpeopleTracker
 		 **/
 		cv::Mat img;
             
-            /** \brief Position of on-board camera with respect to robot base
+            /** \brief Association tree
              * 
-             * Position of on-board camera with respect to robot base
+             * Asociation tree. Used to stablish the most likely association event between detections and targets. 
              * 
              **/
-            //Cposition3d camINbase; 
-		
+            AssociationTree tree_;
+            
 	public:
 		CpeopleTracker();
 		virtual ~CpeopleTracker();
@@ -267,6 +268,7 @@ class CpeopleTracker
 		 * 
 		 */
 		void updateAssociationTables();
+            void updateAssociationTablesTree();
 		
 		/** \brief Sets association of target tIdx with detection dIdx
 		 * 

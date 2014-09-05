@@ -53,13 +53,11 @@ int main(int argc, char *argv[])
     tree_.buildTree();
     tree_.computeTree();
     tree_.printTree();
-    tree_.printTerminusNodes();
+    //tree_.printTerminusNodes();
     tree_.bestHypothesis(associations_);
     std::cout << "BEST ASSOCIATION EVENT: " << std::endl;
     for(unsigned int ii=0; ii< associations_.size(); ii++)
-    {
         std::cout << associations_.at(ii).first << "," << associations_.at(ii).second << " ";
-    }
     std::cout << std::endl; 
     tree_.reset();
     

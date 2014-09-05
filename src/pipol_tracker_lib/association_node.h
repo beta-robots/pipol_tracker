@@ -14,19 +14,21 @@ const double PROB_ZERO_ = 1e-6;
 
 /** \brief A node in the association decision tree 
  * 
- * A node in the association decision tree. A node associates the pair between a detection index and a target index, but not the detection Id and target Id. Therefore, Id to index mapping has to be implemented outside of this class.
+ * A node in the association decision tree. A node associates the pair between a detection index and a target index, which is
+ * usually diferent from detection Id and target Id. Therefore, Id to index mapping has to be implemented outside of this class.
  * 
 */
 class AssociationNode
 {
     protected:
-        //NodeType node_type_;
+        bool is_root_;///<true if the node is root
         unsigned int det_idx_; ///< detection node index
         unsigned int tar_idx_; ///< target node index  
         double node_prob_; ///< Node Probability. Probability that detection associates to target.
         double tree_prob_; ///< Tree Probability. Joint Probability from the root node up to this (product of node probabilities)
-        std::vector<AssociationNode> node_list_; ///< List of nodes below of this in the association tree
         AssociationNode * up_node_ptr_; ///< Pointer to up node
+        std::list<AssociationNode> node_list_; ///< List of nodes below of this in the association tree
+        
 
     public:
         /** \brief Constructor
@@ -35,7 +37,7 @@ class AssociationNode
         * with the probability _prob;
         * 
         */        
-        AssociationNode(const unsigned int _det_idx, const unsigned int _tar_idx, const double _prob, AssociationNode * _un_ptr);            
+        AssociationNode(const unsigned int _det_idx, const unsigned int _tar_idx, const double _prob, AssociationNode * _un_ptr, bool _is_root = false);            
         
         /** \brief Destructor
         * 
@@ -108,9 +110,9 @@ class AssociationNode
         /** \brief Computes tree probabilities recursively
          * 
          * Computes tree probabilities recursively, while setting tree_prob_ data member
-         * Updates the terminus node list with all nodes that are terminus
+         * Updates the terminus node list, passed as second parameter, with all nodes that are terminus
          * \param _up_prob probability of upper node
-         * \param _tn_list: List of terminus nodes. It will be filled when terminus nodes are reached while recurisve computing tree
+         * \param _tn_list: List of terminus nodes. Filled with terminus nodes, while recurisve computing tree
          * 
          **/
         double computeTreeProb(const double & _up_prob, std::list<AssociationNode*> & _tn_list);
@@ -137,7 +139,9 @@ class AssociationNode
          * Prints the tree, by printing node info recursively
          * \param _ntabs Number of tabulators before printing. Useful for recursively print a whole tree
          * 
+         * TODO: This function should be const, but we run recursively with an iterator over the node_list_ and compiler 
+         * claims saying it can't return a const iterator.
          **/
-        void printTree(const unsigned int _ntabs = 0) const;       
+        void printTree(const unsigned int _ntabs = 0);
 };
 #endif

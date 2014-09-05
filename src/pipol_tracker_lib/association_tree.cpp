@@ -2,7 +2,7 @@
 #include "association_tree.h"
 
 AssociationTree::AssociationTree() :
-    root_(0,0,1, NULL)
+    root_(0,0,1, NULL, true)
 {
     //
 }
@@ -44,9 +44,9 @@ unsigned int AssociationTree::numTargets()
         return scores_.at(0).size();
 }
      
-void AssociationTree::setScore(const unsigned int _det_i, const unsigned int _tar_j, const double _p_ij)
+void AssociationTree::setScore(const unsigned int _det_i, const unsigned int _tar_j, const double _m_ij)
 {
-    scores_.at(_det_i).at(_tar_j) = _p_ij;
+    scores_.at(_det_i).at(_tar_j) = _m_ij;
 }
      
 void AssociationTree::buildTree()
@@ -65,7 +65,10 @@ void AssociationTree::bestHypothesis(std::vector<std::pair<unsigned int, unsigne
     std::list<AssociationNode*>::iterator it, bestNode;
     double bestProb = 0.;
     bool rootReached = false;
-    AssociationNode * anPtr;
+    AssociationNode *anPtr;
+    
+    //check terminus_node_list_ is not empty
+    if ( terminus_node_list_.empty() ) return;
     
     //choose best node based on best tree probability
     for (it = terminus_node_list_.begin(); it != terminus_node_list_.end(); it++)
@@ -76,11 +79,12 @@ void AssociationTree::bestHypothesis(std::vector<std::pair<unsigned int, unsigne
             bestProb = (*it)->getTreeProb();
         }
     }
-    std::cout << "bestHypothesis(): "; (*bestNode)->printNode();
+    //std::cout << "bestHypothesis(): "; (*bestNode)->printNode();
     
-    //init iterator
-    anPtr = *bestNode;
-    while( ! anPtr->isRoot() )
+    //set pairs
+    anPtr = *bestNode; //init pointer
+    int ii=0;
+    while( ! anPtr->isRoot() ) //set pairs
     {
         _pairs.push_back( std::pair<unsigned int, unsigned int>(anPtr->getDetectionIndex(), anPtr->getTargetIndex()) );
         anPtr = anPtr->upNodePtr();
@@ -100,12 +104,12 @@ void AssociationTree::printScoreTable() const
     std::cout << std::endl;
 }
     
-void AssociationTree::printTree() const
+void AssociationTree::printTree()
 {
     root_.printTree();
 }
 
-void AssociationTree::printTerminusNodes() 
+void AssociationTree::printTerminusNodes()
 {
     std::list<AssociationNode*>::iterator it;
 //     std::list<AssociationNode&>::iterator it;

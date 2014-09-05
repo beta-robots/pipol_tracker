@@ -1,7 +1,8 @@
 
 #include "association_node.h"
 
-AssociationNode::AssociationNode(const unsigned int _det_idx, const unsigned int _tar_idx, const double _prob, AssociationNode * _un_ptr) :
+AssociationNode::AssociationNode(const unsigned int _det_idx, const unsigned int _tar_idx, const double _prob, AssociationNode * _un_ptr, bool _is_root) :
+    is_root_(_is_root),
     det_idx_(_det_idx),
     tar_idx_(_tar_idx),
     node_prob_(_prob),
@@ -17,8 +18,9 @@ AssociationNode::~AssociationNode()
 
 bool AssociationNode::isRoot() const
 {
-    if ( up_node_ptr_ == NULL ) return true;
-    else return false; 
+//     if ( up_node_ptr_ == NULL ) return true;
+//     else return false; 
+    return is_root_;
 }
 
 bool AssociationNode::isTerminus() const
@@ -49,6 +51,7 @@ double AssociationNode::getTreeProb() const
 
 AssociationNode* AssociationNode::upNodePtr() const
 {
+    //return &(*up_node_ptr_);
     return up_node_ptr_;
 }
 
@@ -86,6 +89,8 @@ double AssociationNode::computeNodeProb(const unsigned int _di, const unsigned i
 
 double AssociationNode::computeTreeProb(const double & _up_prob, std::list<AssociationNode*> & _tn_list)
 {
+    std::list<AssociationNode>::iterator it;
+    
     //compute joint probability
     tree_prob_ = _up_prob * node_prob_;
     
@@ -96,8 +101,10 @@ double AssociationNode::computeTreeProb(const double & _up_prob, std::list<Assoc
     }
     else //otherwise carry on recursivity
     {
-        for (unsigned int ii=0; ii<node_list_.size(); ii++)
-            node_list_.at(ii).computeTreeProb(tree_prob_, _tn_list);
+        //for (unsigned int ii=0; ii<node_list_.size(); ii++)
+            //node_list_.at(ii).computeTreeProb(tree_prob_, _tn_list);
+        for(it = node_list_.begin(); it != node_list_.end(); it++)
+            it->computeTreeProb(tree_prob_, _tn_list);
     }
 }
 
@@ -140,14 +147,17 @@ void AssociationNode::growTree(const unsigned int _det_i, const std::vector< std
 void AssociationNode::printNode() const
 {
     std::cout << "D" << det_idx_ << ",T" << tar_idx_ << ", np=" << node_prob_ << ", tp=" << tree_prob_ << std::endl;
+    //std::cout << "D" << det_idx_ << ",T" << tar_idx_ << ", np=" << node_prob_ << ", tp=" << tree_prob_ << ", this=" << this << ", up_ptr=" << up_node_ptr_ << std::endl;
 }
 
-void AssociationNode::printTree(const unsigned int _ntabs) const
+void AssociationNode::printTree(const unsigned int _ntabs) 
 {
+    std::list<AssociationNode>::iterator it;
+    
     for(unsigned int ii=0; ii<_ntabs; ii++) std::cout << "\t";
     printNode();
-    for (unsigned int ii=0; ii<node_list_.size(); ii++)
-    {
-            node_list_.at(ii).printTree(_ntabs+1);
-    }
+    
+    //for (unsigned int ii=0; ii<node_list_.size(); ii++)
+    //  node_list_.at(ii).printTree(_ntabs+1);
+    for(it = node_list_.begin(); it != node_list_.end(); it++) it->printTree(_ntabs+1);
 }

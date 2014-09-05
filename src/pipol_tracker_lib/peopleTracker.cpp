@@ -305,6 +305,102 @@ void CpeopleTracker::computeOcclusions()
       }
 }
 
+void CpeopleTracker::updateAssociationTablesTree()
+{
+    std::list<Cpoint3dObservation>::iterator iiL;//leg detections
+    std::list<CbodyObservation>::iterator iiB; //body2D detections
+    std::list<CpersonTarget>::iterator jjT; //targets
+    double matchingValue;
+    unsigned int ii = 0; //detections
+    unsigned int jj = 0; //targets
+    std::vector<std::pair<unsigned int, unsigned int> > associations;
+std::cout << __LINE__ << ": " << std::endl;
+
+    //reset and resize decision vectors
+    for (jjT=targetList.begin();jjT!=targetList.end();jjT++)
+    {
+        jjT->resetAssociationDecisions();     
+        jjT->resizeAssociationDecisions(laserDetSet.size(), bodyDetSet.size(), faceDetSet.size(), body3dDetSet.size());
+    }
+
+    //LEG DETECTOR
+std::cout << __LINE__ << ": laserDetSet.size(): " << laserDetSet.size() << std::endl;    
+        if( laserDetSet.size() != 0 )
+        {
+            //resets tree
+            tree_.reset();
+        
+            //Resizes input tree tables
+            tree_.resizeScoreTable(laserDetSet.size(), targetList.size());//num detections, num targets
+            
+            //set matching scores
+            for (iiL=laserDetSet.begin(),ii=0;iiL!=laserDetSet.end();iiL++,ii++)
+            {
+                for (jjT=targetList.begin(),jj=0;jjT!=targetList.end();jjT++,jj++)
+                {
+                    matchingValue = jjT->legMatchingFunction(iiL->point);
+                    tree_.setScore(ii,jj,matchingValue);
+                }
+            }
+std::cout << __LINE__ << ": laserDetSet.size(): " << laserDetSet.size() << std::endl;                
+            //build & compute tree
+            tree_.buildTree();
+std::cout << __LINE__ << ": laserDetSet.size(): " << laserDetSet.size() << std::endl;                
+            tree_.computeTree();
+std::cout << __LINE__ << ": laserDetSet.size(): " << laserDetSet.size() << std::endl;                
+
+            //Decides best event according to the tree
+            tree_.bestHypothesis(associations);
+std::cout << __LINE__ << ": laserDetSet.size(): " << laserDetSet.size() << std::endl;    
+            //sets association vectors
+            for(ii=0; ii< associations.size(); ii++)
+                setAssociationDecision(LEGS, associations.at(ii).second, associations.at(ii).first);
+
+            //resets association pairs
+            associations.clear();
+        }
+        
+    //BODY2D DETECTOR
+std::cout << __LINE__ << ": bodyDetSet.size(): " << bodyDetSet.size() << std::endl;    
+        if( bodyDetSet.size() != 0 )
+        {
+            //resets tree
+            tree_.reset();
+        
+            //Resizes input tree tables
+            tree_.resizeScoreTable(bodyDetSet.size(), targetList.size());//num detections, num targets
+            
+            //set matching scores
+            for (iiB=bodyDetSet.begin(),ii=0;iiB!=bodyDetSet.end();iiB++,ii++)
+            {
+                for (jjT=targetList.begin(),jj=0;jjT!=targetList.end();jjT++,jj++)
+                {
+                    matchingValue = jjT->bodyMatchingFunction(iiB->direction);
+                    tree_.setScore(ii,jj,matchingValue);
+                }
+            }
+            
+std::cout << __LINE__ << ": " << std::endl;
+            //build & compute tree
+            tree_.buildTree();
+std::cout << __LINE__ << ": " << std::endl;        
+            tree_.computeTree();
+std::cout << __LINE__ << ": " << std::endl;                    
+            
+            //Decides best event according to the tree
+            tree_.bestHypothesis(associations);
+std::cout << __LINE__ << ": " << std::endl;                    
+            
+            //sets association vectors
+            for(ii=0; ii< associations.size(); ii++)
+            {
+                std::cout << ii << "," << associations.at(ii).second << "," << associations.at(ii).first << std::endl;
+                setAssociationDecision(BODY, associations.at(ii).second, associations.at(ii).first);
+            }
+        }
+std::cout << __LINE__ << ": " << std::endl;                
+}
+
 void CpeopleTracker::updateAssociationTables()
 {
     std::list<Cpoint3dObservation>::iterator jjL, kkL, llL, jjB3d, kkB3d;
@@ -642,12 +738,12 @@ void CpeopleTracker::updateAssociationTables()
 
 void CpeopleTracker::setAssociationDecision(unsigned int detId, unsigned int tIdx, unsigned int dIdx)
 {
-	std::list<CpersonTarget>::iterator iiT;
-	unsigned int ii;
+	std::list<CpersonTarget>::iterator jjT;
+	unsigned int jj;
 	
-	for (iiT=targetList.begin(),ii=0; iiT!=targetList.end(); iiT++,ii++)
+	for (jjT=targetList.begin(),jj=0; jjT!=targetList.end(); jjT++,jj++)
 	{
-		if (ii == tIdx) iiT->aDecisions[detId].at(dIdx) = true;
+		if (jj == tIdx) jjT->aDecisions[detId].at(dIdx) = true;
             
             //debugging
 //             if (detId == BODY) 

@@ -3,7 +3,8 @@
 #define association_tree_H
 
 //std
-#include <list>
+// #include <list>
+// #include <vector>
 //#include <pair>
 //#include <memory>
 
@@ -73,7 +74,7 @@ class AssociationTree
          * Sets value to score table, at cell ij, corresponding to detection_i and target_j
          * 
          **/
-        void setScore(const unsigned int _det_i, const unsigned int _tar_j, const double _s_ij);
+        void setScore(const unsigned int _det_i, const unsigned int _tar_j, const double _m_ij);
         
         /** \brief Build tree from scores
         * 
@@ -109,12 +110,13 @@ class AssociationTree
         * 
         * Prints the tree
         * 
+        * TODO: this function should be const. See comments on printTree() at association_node.h
         */                        
-        void printTree() const;       
+        void printTree();       
         
-        /** \brief Prints the tree
+        /** \brief Prints terminus_node_list_
         * 
-        * Prints the tree
+        * Prints terminus_node_list_
         * 
         */                        
         void printTerminusNodes();       
