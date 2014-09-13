@@ -160,6 +160,7 @@ void CpersonTarget::resetAssociationDecisions()
 
 void CpersonTarget::resizeAssociationDecisions(const unsigned int nLegsDet, const unsigned int nBodyDet, const unsigned int nFaceDet, const unsigned int nBody3dDet)
 {
+        this->resetAssociationDecisions();
         aDecisions[LEGS].resize(nLegsDet);
         aDecisions[BODY].resize(nBodyDet);
         aDecisions[FACE].resize(nFaceDet);

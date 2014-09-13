@@ -128,12 +128,14 @@ void CpipolTrackerNode::process()
       tracker.updateFilterEstimates();
       tracker.updateTargetStatus();
       if (this->verboseMode) tracker.printPeopleSet();
-
+      
+std::cout << "NODE: " << __LINE__ << std::endl;                            
       //DATA ASSOCIATION
       //if (this->verboseMode) std::cout << std::endl << "*** Target/Detection association" << std::endl;
       //tracker.updateAssociationTables();
       tracker.updateAssociationTablesTree();
-            
+std::cout << "NODE: " << __LINE__ << std::endl;                            
+
       //MARK BOUNDING BOXES OF VISUAL DETECTIONS (& LEARN CURRENT DETECTED APPEARANCES -> TO DO !!)
       if ( cvImgPtrSubs!=NULL )
       {
@@ -163,23 +165,28 @@ void CpipolTrackerNode::process()
       //CORRECTION
       if (this->verboseMode) std::cout << std::endl << "*** Posterior peopleSet:" << std::endl;
       tracker.correctFilters();
+std::cout << "NODE: " << __LINE__ << std::endl;                                  
             
       //UPDATE FILTER ESTIMATES AND ADD THEM TO EACH TARGET TRACK
       tracker.updateFilterEstimates();
       tracker.addEstimatesToTracks();
       if (this->verboseMode) tracker.printPeopleSet();
+std::cout << "NODE: " << __LINE__ << std::endl;                                  
                   
       //LAUNCH NEW FILTERS IF NEW DETECTIONS ARE NOT ASSOCIATED
       if (this->verboseMode) std::cout << std::endl << "*** Create Filters" << std::endl;
       tracker.createFilters();
+std::cout << "NODE: " << __LINE__ << std::endl;                                  
 
       //REMOVE UNSUPPORTED TARGETS
       if (this->verboseMode) std::cout << std::endl << "*** Delete Filters" << std::endl;
       tracker.deleteFilters();
+std::cout << "NODE: " << __LINE__ << std::endl;                                  
             
       //RESAMPLING PARTICLE SETS 
       if (this->verboseMode) std::cout << std::endl << "*** Resampling" << std::endl;
       tracker.resampleFilters();
+std::cout << "NODE: " << __LINE__ << std::endl;                                  
       
       //Check if TLD tracker can be initialized, if so, initTLD
 //       if ( (exeMode == MULTI_TRACKING) && (tracker.getFollowMeTargetId()>0) )

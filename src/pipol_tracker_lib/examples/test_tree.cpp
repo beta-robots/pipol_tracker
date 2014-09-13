@@ -9,10 +9,10 @@ int main(int argc, char *argv[])
 {
     //variables
     AssociationTree tree_;
-    unsigned int nd_ = 2; //2 detections
+    unsigned int nd_ = 4; //2 detections
     unsigned int nt_ = 3; //3 targets
-    double prob_;
     std::vector<std::pair<unsigned int, unsigned int> > associations_;
+    std::vector<unsigned int> unassociated_;
     
     //inits
     srand ( time(NULL) );
@@ -23,44 +23,42 @@ int main(int argc, char *argv[])
     std::cout << "-------------------------------------------------" << std::endl;
         
     std::cout << "TEST 1. Resize and Fill score table" << std::endl;
-    tree_.resizeScoreTable(nd_,nt_);
-    for (unsigned int ii=0; ii<nd_; ii++)
-    {
-        for (unsigned int jj=0; jj<nt_+1; jj++)
-        {
-            prob_ = (double)rand()/(double)RAND_MAX;
-            tree_.setScore(ii,jj,prob_);
-        }
-    }
+    tree_.resize(nd_,nt_);
+    for (unsigned int ii=0; ii<tree_.numDetections(); ii++)
+        for (unsigned int jj=0; jj<tree_.numTargets()+1; jj++)
+            tree_.setScore(ii,jj,(double)rand()/(double)RAND_MAX);
     tree_.printScoreTable();
     
-    std::cout << "TEST 2. Reset " << std::endl;
+    std::cout << "TEST 2. Reset, Resize & Fill score table  " << std::endl;
     tree_.reset();
+    tree_.resize(nd_-1,nt_-1);
+    for (unsigned int ii=0; ii<tree_.numDetections(); ii++)
+        for (unsigned int jj=0; jj<tree_.numTargets()+1; jj++)
+            tree_.setScore(ii,jj,(double)rand()/(double)RAND_MAX);    
     tree_.printScoreTable();
     tree_.printTerminusNodes();
 
     std::cout << "TEST 3. Grow the tree" << std::endl;
-    tree_.resizeScoreTable(nd_,nt_);
-    for (unsigned int ii=0; ii<nd_; ii++)
-    {
-        for (unsigned int jj=0; jj<nt_+1; jj++)
-        {
-            prob_ = (double)rand()/(double)RAND_MAX;
-            tree_.setScore(ii,jj,prob_);
-        }
-    }    
-    tree_.printScoreTable();
-    tree_.buildTree();
+    tree_.growTree();
     tree_.computeTree();
+    tree_.treeDecision(associations_,unassociated_);
+    
+    //display tree
     tree_.printTree();
-    //tree_.printTerminusNodes();
-    tree_.bestHypothesis(associations_);
+
+    //display associations
     std::cout << "BEST ASSOCIATION EVENT: " << std::endl;
+    std::cout << "   PAIRS: ";
     for(unsigned int ii=0; ii< associations_.size(); ii++)
         std::cout << associations_.at(ii).first << "," << associations_.at(ii).second << " ";
+    std::cout << std::endl; 
+    std::cout << "   UNASSOCIATED DETs: ";
+    for(unsigned int ii=0; ii< unassociated_.size(); ii++)
+        std::cout << unassociated_.at(ii) << ", ";
     std::cout << std::endl; 
     tree_.reset();
     
     //end
     return 0;
 }
+

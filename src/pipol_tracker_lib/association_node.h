@@ -10,11 +10,11 @@
 #include <algorithm> //find()
 
 //constants
-const double PROB_ZERO_ = 1e-6;
+const double PROB_ZERO_ = 1e-60;
 
 /** \brief A node in the association decision tree 
  * 
- * A node in the association decision tree. A node associates the pair between a detection index and a target index, which is
+ * A node in the association decision tree. A node associates a pair between a detection index and a target index, which is
  * usually diferent from detection Id and target Id. Therefore, Id to index mapping has to be implemented outside of this class.
  * 
 */
@@ -33,7 +33,7 @@ class AssociationNode
     public:
         /** \brief Constructor
         * 
-        * Constructor with arguments _det_id and _tar_id which indicates association of detection and target, 
+        * Constructor with arguments _det_idx and _tar_idx which indicates association of detection and target, 
         * with the probability _prob;
         * 
         */        
@@ -105,7 +105,7 @@ class AssociationNode
          * Nodes require computing other ij probs to decide if they continue growing or not at function growTree().
          * 
          **/
-        double computeNodeProb(const unsigned int _di, const unsigned int _tj, const std::vector< std::vector<double> > & _stab);
+        double computeNodeProb(const unsigned int _nd, const unsigned int _nt, const unsigned int _di, const unsigned int _tj, const std::vector< std::vector<double> > & _stab) const;
 
         /** \brief Computes tree probabilities recursively
          * 
@@ -125,7 +125,14 @@ class AssociationNode
          * \param _ex_vec: vector of target index for which the tree should not continue growing 
          * 
          **/        
-        void growTree(const unsigned int _det_i, const std::vector< std::vector<double> > & _stab, std::vector<unsigned int> & _ex_vec);
+        void growTree(const unsigned int _nd, const unsigned int _nt, const unsigned int _det_i, const std::vector< std::vector<double> > & _stab, std::vector<unsigned int> & _excluded);
+        
+        /** \brief Destroys tree
+         * 
+         * Recursively destroys tree
+         * 
+         **/
+        void destroyTree();
         
         /** \brief Prints node info
          * 

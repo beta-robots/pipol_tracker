@@ -55,14 +55,14 @@ AssociationNode* AssociationNode::upNodePtr() const
     return up_node_ptr_;
 }
 
-double AssociationNode::computeNodeProb(const unsigned int _di, const unsigned int _tj, const std::vector< std::vector<double> > & _stab)
+double AssociationNode::computeNodeProb(const unsigned int _nd, const unsigned int _nt, const unsigned int _di, const unsigned int _tj, const std::vector< std::vector<double> > & _stab) const
 {
     double p_ij = 1.0; 
     
-    if ( _tj == 0 ) //Case target 0 -> unassociated detection
+    if ( _tj == _nt ) //Case void target -> unassociated detection
     {
         //Prob detection _di does not match to other targets than _tj
-        for (unsigned int kk=1; kk<_stab.at(_di).size(); kk++)
+        for (unsigned int kk=0; kk<_nt-1; kk++)
         {
             p_ij *= 1 - _stab.at(_di).at(kk); 
         }
@@ -73,13 +73,13 @@ double AssociationNode::computeNodeProb(const unsigned int _di, const unsigned i
         p_ij *= _stab.at(_di).at(_tj); 
         
         //step2. Prob detection _di does not match to other targets than _tj
-        for (unsigned int kk=0; kk<_stab.at(_di).size(); kk++)
+        for (unsigned int kk=0; kk<_nt; kk++)
         {
             if ( kk!=_tj ) p_ij *= 1 - _stab.at(_di).at(kk); 
         }
         
         //step3. Prob target _tj does not match to other detections than _di
-        for (unsigned int kk=0; kk<_stab.size(); kk++)
+        for (unsigned int kk=0; kk<_nd; kk++)
         {
             if ( kk!=_di ) p_ij *= 1 - _stab.at(kk).at(_tj); 
         }
@@ -101,47 +101,48 @@ double AssociationNode::computeTreeProb(const double & _up_prob, std::list<Assoc
     }
     else //otherwise carry on recursivity
     {
-        //for (unsigned int ii=0; ii<node_list_.size(); ii++)
-            //node_list_.at(ii).computeTreeProb(tree_prob_, _tn_list);
         for(it = node_list_.begin(); it != node_list_.end(); it++)
             it->computeTreeProb(tree_prob_, _tn_list);
     }
 }
 
-void AssociationNode::growTree(const unsigned int _det_i, const std::vector< std::vector<double> > & _stab, std::vector<unsigned int> & _ex_vec)
+void AssociationNode::growTree(const unsigned int _nd, const unsigned int _nt, const unsigned int _det_i, const std::vector< std::vector<double> > & _stab, std::vector<unsigned int> & _excluded)
 {
     unsigned int tar_j; //target index (not target id!)
-    unsigned int nt; //num of targets
     double p_ij;//probability that detection i comes from target j
     
-    if ( (_stab.size() == 0 ) || (_stab.at(_det_i).size() == 0 ) ) //check if no detections or no targets
+    if ( ( _nd == 0 ) || ( _nt == 0 ) ) //check if no detections or no targets
     {
         return;
     }
     
     //Recursive growing loop
-    nt = _stab.at(_det_i).size();//get num of target from the table size, including target void
-    for (tar_j=0; tar_j<nt; tar_j++) //for each target, including target void
+    for (tar_j=0; tar_j<_nt+1; tar_j++) //for each target, including target void
     {
-        //check if target is at excluded vector, meaning that it is already associated at this branch. Not for tar_j=0 (void target)
-        if ( (tar_j == 0) || ( std::find(_ex_vec.begin(), _ex_vec.end(), tar_j) == _ex_vec.end() ) )
+        //Carry on growing if target is void OR if target is not at excluded vector
+        if ( (tar_j == _nt) || ( std::find(_excluded.begin(), _excluded.end(), tar_j) == _excluded.end() ) )
         {
             //compute probability from the score table
-            p_ij = computeNodeProb(_det_i, tar_j, _stab); //std::cout << __LINE__ << ": p_ij: " << p_ij << std::endl; 
+            p_ij = computeNodeProb(_nd, _nt, _det_i, tar_j, _stab); //std::cout << __LINE__ << ": p_ij: " << p_ij << std::endl; 
 
             //Create node if prob is relevant, and carry on recursivity. Otherwise this current branch stops growing
             if (p_ij > PROB_ZERO_)
             {
                 node_list_.push_back(AssociationNode(_det_i, tar_j, p_ij, this));
-                if (_det_i+1 < _stab.size() ) //smaller than num detections
+                if (_det_i+1 < _nd ) //check if there is more detections to carry on recursivity 
                 {
-                    _ex_vec.push_back(tar_j);
-                    node_list_.back().growTree(_det_i+1, _stab, _ex_vec); //recursivity
-                    _ex_vec.pop_back();
+                    _excluded.push_back(tar_j);//push back target to excluded vector
+                    node_list_.back().growTree(_nd, _nt, _det_i+1, _stab, _excluded); //recursivity
+                    _excluded.pop_back();//pop back target to excluded vector
                 }
             }
         }
     }    
+}
+
+void AssociationNode::destroyTree()
+{
+    node_list_.clear();
 }
 
 void AssociationNode::printNode() const

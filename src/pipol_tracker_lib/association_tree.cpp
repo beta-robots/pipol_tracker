@@ -2,6 +2,8 @@
 #include "association_tree.h"
 
 AssociationTree::AssociationTree() :
+    nd_(0),
+    nt_(0),
     root_(0,0,1, NULL, true)
 {
     //
@@ -14,34 +16,34 @@ AssociationTree::~AssociationTree()
 
 void AssociationTree::reset()
 {
-    for ( unsigned int ii = 0; ii < scores_.size(); ii++)
+    for ( unsigned int ii = 0; ii < nd_; ii++)
     {
         scores_.at(ii).clear();
     }
     scores_.clear();
     terminus_node_list_.clear();
+    root_.destroyTree();
 }
         
-void AssociationTree::resizeScoreTable(const unsigned int _n_det, const unsigned int _n_tar)
+void AssociationTree::resize(const unsigned int _n_det, const unsigned int _n_tar)
 {
-    scores_.resize(_n_det);
-    for ( unsigned int ii = 0; ii < scores_.size(); ii++)
+    nd_ = _n_det;
+    nt_ = _n_tar;
+    scores_.resize(nd_);
+    for ( unsigned int ii = 0; ii < nd_; ii++)
     {
-        scores_.at(ii).resize(_n_tar+1);//"+1" to account for the unassociated detections (target "void")
+        scores_.at(ii).resize(nt_ + 1);//"+1" to account for void target, which manages unassociated detections
     }
 }
 
 unsigned int AssociationTree::numDetections()
 {
-    return scores_.size();
+    return nd_;
 }
      
 unsigned int AssociationTree::numTargets()
 {
-    if (scores_.size() == 0 )
-        return 0;
-    else
-        return scores_.at(0).size();
+    return nt_;
 }
      
 void AssociationTree::setScore(const unsigned int _det_i, const unsigned int _tar_j, const double _m_ij)
@@ -49,10 +51,10 @@ void AssociationTree::setScore(const unsigned int _det_i, const unsigned int _ta
     scores_.at(_det_i).at(_tar_j) = _m_ij;
 }
      
-void AssociationTree::buildTree()
+void AssociationTree::growTree()
 {
     std::vector<unsigned int> ex_vec;
-    root_.growTree(0,scores_, ex_vec);
+    root_.growTree(nd_, nt_, 0,scores_, ex_vec);
 }
 
 void AssociationTree::computeTree()
@@ -60,14 +62,14 @@ void AssociationTree::computeTree()
     root_.computeTreeProb(1., terminus_node_list_);
 }
 
-void AssociationTree::bestHypothesis(std::vector<std::pair<unsigned int, unsigned int> > & _pairs)
+void AssociationTree::treeDecision(std::vector<std::pair<unsigned int, unsigned int> > & _pairs, std::vector<unsigned int> &  _unassoc)
 {
     std::list<AssociationNode*>::iterator it, bestNode;
     double bestProb = 0.;
     bool rootReached = false;
     AssociationNode *anPtr;
     
-    //check terminus_node_list_ is not empty
+    //check if terminus_node_list_ is empty
     if ( terminus_node_list_.empty() ) return;
     
     //choose best node based on best tree probability
@@ -79,17 +81,29 @@ void AssociationTree::bestHypothesis(std::vector<std::pair<unsigned int, unsigne
             bestProb = (*it)->getTreeProb();
         }
     }
-    //std::cout << "bestHypothesis(): "; (*bestNode)->printNode();
+    //std::cout << "treeDecision(): "; (*bestNode)->printNode();
     
     //set pairs
     anPtr = *bestNode; //init pointer
     int ii=0;
     while( ! anPtr->isRoot() ) //set pairs
     {
-        _pairs.push_back( std::pair<unsigned int, unsigned int>(anPtr->getDetectionIndex(), anPtr->getTargetIndex()) );
+        if ( anPtr->getTargetIndex() == nt_) //detection with void target -> unassociated detection
+        {
+            _unassoc.push_back(anPtr->getDetectionIndex());
+        }
+        else
+        {
+            _pairs.push_back( std::pair<unsigned int, unsigned int>(anPtr->getDetectionIndex(), anPtr->getTargetIndex()) );
+        }
         anPtr = anPtr->upNodePtr();
     }        
 }
+
+// void AssociationTree::getUnassociated(std::vector<unsigned int> & _unass)
+// {
+//     
+// }
 
 void AssociationTree::printScoreTable() const
 {
@@ -106,19 +120,20 @@ void AssociationTree::printScoreTable() const
     
 void AssociationTree::printTree()
 {
-    root_.printTree();
+    if ( scores_.size() != 0 )
+    {
+        std::cout << "Nd: " << nd_ << "; Nt: " << nt_ << std::endl;
+        root_.printTree();
+    }
 }
 
 void AssociationTree::printTerminusNodes()
 {
     std::list<AssociationNode*>::iterator it;
-//     std::list<AssociationNode&>::iterator it;
     unsigned int ii; 
     
     for (it = terminus_node_list_.begin(), ii=0; it != terminus_node_list_.end(); it++, ii++)
     {
-        //std::cout << __LINE__ << ": " << ii << std::endl;
         (*it)->printNode();
-        //it->printNode();
     }
 }

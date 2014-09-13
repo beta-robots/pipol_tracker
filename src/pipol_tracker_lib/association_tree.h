@@ -19,7 +19,9 @@
 class AssociationTree
 {
     protected:
-        std::vector< std::vector<double> > scores_;//scores table. Size is (num_detections_) x (num_targets_+1)
+        unsigned int nd_; //num detections
+        unsigned int nt_; //num actual targets, without counting the void target
+        std::vector< std::vector<double> > scores_;//scores table. Size is (nd_) x (nt_+1), to account for the void target
         AssociationNode root_;
         std::list<AssociationNode*> terminus_node_list_;
 //         std::list<std::weak_ptr<AssociationNode> > terminus_node_list_; //TODO Use c++11 compiler !! After RoboCup!!
@@ -46,24 +48,23 @@ class AssociationTree
         */        
         void reset();            
         
-        /** \brief Resize
+        /** \brief Resizes tree
         * 
-        * Resize score table given num detections and num targets
+        * Sets nd_ and nt_ and resizes score table
         * 
         */        
-        void resizeScoreTable(const unsigned int _n_det, const unsigned int _n_tar);
+        void resize(const unsigned int _n_det, const unsigned int _n_tar);
 
-        /** \brief Returns num of detections
+        /** \brief Returns num of detections nd_
          * 
-         * Returns scores.size(), which is the num of detections accounted.
+         * Returns num of detections nd_
          * 
          **/
         unsigned int numDetections();
         
-        /** \brief Returns num of targets
+        /** \brief Returns num of actual targets nt_
          * 
-         * Returns scores.at(0).size(), which is the num of targets, counting also the "void" target.
-         * If no detections, it returns 0. 
+         * Returns num of actual targets nt_
          * 
          **/
         unsigned int numTargets();
@@ -81,7 +82,7 @@ class AssociationTree
         * Build tree from scores
         * 
         */        
-        void buildTree();
+        void growTree();
 
         /** \brief Computes tree probabilities
         * 
@@ -90,14 +91,22 @@ class AssociationTree
         */        
         void computeTree();
         
-        /** \brief Decides best hypothesis
+        /** \brief Gets tree decision
          * 
          * Decides best hypothesis according tree computation made by computeTree()
-         * Pairs are returned in the param _pairs:
-         * \param _pairs Returned pairs
+         * Return values are: 
+         * \param _pairs Returned pairs: vector of pairs (d_i, t_j)
+         * \param _unassoc Returned unassociated detections: vector of (d_i)
          * 
          **/
-        void bestHypothesis(std::vector<std::pair<unsigned int, unsigned int> > & _pairs);
+        void treeDecision(std::vector<std::pair<unsigned int, unsigned int> > & _pairs, std::vector<unsigned int> & _unassoc);
+        
+        /** \brief Gets unassociated detections
+         * 
+         * Gets unassociated detections
+         * 
+         **/
+//         void getUnassociated(std::vector<unsigned int> & _unass);
         
         /** \brief Prints the score table
         * 
