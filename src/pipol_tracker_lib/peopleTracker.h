@@ -276,7 +276,7 @@ class CpeopleTracker
 		 * detId = LEGS,BODY,FACE
 		 * 
 		 */
-		void setAssociationDecision(unsigned int detId, unsigned int tIdx, unsigned int dIdx);
+		void setAssociationDecision(unsigned int _detector_id, unsigned int _tj, unsigned int _di);
                 
             /** \brief Updates target status
             * 
@@ -387,35 +387,20 @@ class CpeopleTracker
 		 **/		
 		void getCurrentImage(cv::Mat & outImg);
 		
-		/** \brief Computes target appearance
-            * 
-            * Computes visual appearance of associated target/body detection pairs.
-            * Uses the current image (this->img) and bounding boxes of current body detections
-            *
-            **/
-		//void computeTargetAppearance();
-
-            /** \brief Marks box bodies on image
+            /** \brief Marks body bounding boxes on image
              * 
-             * Marks box bodies on image
+             * Marks body bounding boxes on image
              * 
              */
             void markBodies();
             
-            /** \brief Marks box faces on image
+            /** \brief Marks face bounding boxes on image
              * 
-             * Marks box faces on image
+             * Marks face bounding boxes on image
              * 
              */
             void markFaces();
 
-            /** \brief Marks TLD box on image
-             * 
-             * Marks TLD box on image
-             * 
-             */
-            void markTld();            
-            
             /** \brief Prints detection sets
             * 
             * Prints detection sets
@@ -429,6 +414,5 @@ class CpeopleTracker
             * 
             **/                            
 		void printPeopleSet();
-
 };
 #endif

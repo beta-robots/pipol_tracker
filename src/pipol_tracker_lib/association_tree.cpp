@@ -54,12 +54,15 @@ void AssociationTree::setScore(const unsigned int _det_i, const unsigned int _ta
 void AssociationTree::growTree()
 {
     std::vector<unsigned int> ex_vec;
-    root_.growTree(nd_, nt_, 0,scores_, ex_vec);
+    
+    if ( nd_ != 0 ) //check if detections
+        root_.growTree(nd_, nt_, 0,scores_, ex_vec);
 }
 
 void AssociationTree::computeTree()
 {
-    root_.computeTreeProb(1., terminus_node_list_);
+    if ( nd_ != 0 ) //check if detections
+        root_.computeTreeProb(1., terminus_node_list_);
 }
 
 void AssociationTree::treeDecision(std::vector<std::pair<unsigned int, unsigned int> > & _pairs, std::vector<unsigned int> &  _unassoc)

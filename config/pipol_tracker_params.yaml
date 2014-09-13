@@ -2,7 +2,7 @@
 #*************** particle filter parameters ************************
 
 #number of particles per target
-num_particles: 200
+num_particles: 500
 
 #when a new filter/target is launched, XY space is sampled along init_delta_xy from the first detection point [m]
 init_delta_xy: 0.2
@@ -17,13 +17,13 @@ sigma_resampling_xy: 0.01
 sigma_ratio_resampling_vxy: 0.1
 
 #minimum value for standard deviation applied at resampling step along VxVy dimensions [m/s]
-sigma_min_resampling_vxy: 0.2
+sigma_min_resampling_vxy: 0.1
 
 #person radius used in LEG matching functions. Smaller the radius, more precise should be detections [m]
-person_radius_legs: 0.25
+person_radius_legs: 0.4
 
 #person radius used in BODY and FACES matching functions. Smaller the radius, more precise should be detections [m]
-person_radius_body: 0.2
+person_radius_body: 0.25
 
 #LEG, BODY and BODY3D matching function parameters. 
 matching_legs_alpha: 0.1
@@ -40,7 +40,7 @@ matching_body3d_beta: 10
 tracker_rate: 30.0
 
 #If targets closer than this distance, merging function is called [m]
-minimum_distance_between_people: 0.2
+minimum_distance_between_people: 0.25
 
 #Lower probabilities are treated as ZERO
 minimum_association_prob: 0.000001
@@ -55,10 +55,10 @@ min_detection_distance_accepted: 0.1
 max_detection_azimut_accepted: 90
 
 #If a target, not in occlusion, remains max_consecutive_uncorrected_iterations without having associated any detection, the target is deleted
-max_consecutive_uncorrected_iterations: 60
+max_consecutive_uncorrected_iterations: 40
 
 # a CANDIDATE target requires minimum_iterations_to_be_target to be considered as a LEGGED target
-imrodnimum_iterations_to_be_target: 5
+minimum_iterations_to_be_target: 5
 
 # a LEGGED target requires minimum_iterations_to_be_visually_confirmed iterations with FACE or BODY detections associated, to be considered as VISUALLY_CONFIRMED
 minimum_iterations_to_be_visually_confirmed: 5

@@ -309,6 +309,8 @@ void CpeopleTracker::updateAssociationTablesTree()
 {
     std::list<Cpoint3dObservation>::iterator iiL;//leg detections
     std::list<CbodyObservation>::iterator iiB; //body2D detections
+    std::list<CfaceObservation>::iterator iiF; //face detections
+    std::list<Cpoint3dObservation>::iterator iiB3; //body3d detections
     std::list<CpersonTarget>::iterator jjT; //targets
     double matchingValue;
     unsigned int ii, jj, kk; //ii: detections, jj: targets, kk: auxiliar
@@ -339,69 +341,207 @@ std::cout << __LINE__ << ": laserDetSet.size(): " << laserDetSet.size() << "; Nt
                     tree_.setScore(ii,jj,matchingValue);
                 }
             }
-tree_.printScoreTable();
+//tree_.printScoreTable();
 std::cout << __LINE__ << std::endl;                
-            //build & compute tree
+            //grow & compute tree
             tree_.growTree();
 std::cout << __LINE__ << std::endl;                
             tree_.computeTree();
 std::cout << __LINE__ << std::endl;              
-tree_.printTree();
+//tree_.printTree();
 
             //Decides best event according to the tree
             tree_.treeDecision(associations, unassociated);
-std::cout << __LINE__ << std::endl;                
+std::cout << "   LEG PAIRS: ";
+for(ii=0; ii< associations.size(); ii++)
+    std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
+std::cout << std::endl; 
+std::cout << "   LEG UNASSOCIATED DETs: ";
+for(ii=0; ii< unassociated.size(); ii++)
+    std::cout << unassociated.at(ii) << ", ";
+std::cout << std::endl; 
+
             //sets association vectors
             for(kk=0; kk<associations.size(); kk++)
             {
-                std::cout << "   Pair: d" << associations.at(kk).first << " ,t" << associations.at(kk).second << std::endl;
                 setAssociationDecision(LEGS, associations.at(kk).second, associations.at(kk).first);
             }
             
             //mark detections as associated or not ( useful for create new targets at createFilters() )
             for (iiL=laserDetSet.begin(),ii=0;iiL!=laserDetSet.end();iiL++,ii++)
             {
-                //if 
+                //check if d_i is associated or not
+                if ( std::find(unassociated.begin(), unassociated.end(), ii) == unassociated.end() ) //associated case
+                {
+                    iiL->setAssociated(true);
+                }
+                else //unassociated case
+                {
+                    iiL->setAssociated(false);
+                }
             }
 
 std::cout << __LINE__ << std::endl;                
-            //resets association pairs
+            //resets association pairs and unassociated vector
             associations.clear();
+            unassociated.clear();
         }
         
     //BODY2D DETECTOR
-//         if( bodyDetSet.size() != 0 )
-//         {
-//             //resets tree
-//             tree_.reset();
-//         
-//             //Resizes input tree tables
-//             tree_.resizeScoreTable(bodyDetSet.size(), targetList.size());//num detections, num targets
-//             
-//             //set matching scores
-//             for (iiB=bodyDetSet.begin(),ii=0;iiB!=bodyDetSet.end();iiB++,ii++)
-//             {
-//                 for (jjT=targetList.begin(),jj=0;jjT!=targetList.end();jjT++,jj++)
-//                 {
-//                     matchingValue = jjT->bodyMatchingFunction(iiB->direction);
-//                     tree_.setScore(ii,jj,matchingValue);
-//                 }
-//             }
-//             
-//             //build & compute tree
-//             tree_.buildTree();
-//             tree_.computeTree();
-//             
-//             //Decides best event according to the tree
-//             tree_.treeDecision(associations);
-//             
-//             //sets association vectors
-//             for(ii=0; ii< associations.size(); ii++)
-//             {
-//                 std::cout << ii << "," << associations.at(ii).second << "," << associations.at(ii).first << std::endl;
-//                 setAssociationDecision(BODY, associations.at(ii).second, associations.at(ii).first);
-//             }
-//         }
+std::cout << __LINE__ << ": bodyDetSet.size(): " << bodyDetSet.size() << "; Nt: " << targetList.size() << std::endl;    
+        if( bodyDetSet.size() != 0 )
+        {
+            //resets tree
+            tree_.reset();
+        
+            //Resizes input tree tables
+            tree_.resize(bodyDetSet.size(), targetList.size());//Score table is sized Nd x (Nt+1), to consider void target
+            
+            //set matching scores to tree_ score table
+            for (iiB=bodyDetSet.begin(),ii=0;iiB!=bodyDetSet.end();iiB++,ii++) //detections start 
+            {
+                //Set matching values for all targets except void target. It is not required to set scores for void target, they are not used to compute p_{i,N_t+1}
+                for (jjT=targetList.begin(),jj=0;jjT!=targetList.end();jjT++,jj++) 
+                {
+                    matchingValue = jjT->bodyMatchingFunction(iiB->direction);
+                    tree_.setScore(ii,jj,matchingValue);
+                }
+            }
+//tree_.printScoreTable();
+std::cout << __LINE__ << std::endl;                
+            //grow & compute tree
+            tree_.growTree();
+std::cout << __LINE__ << std::endl;                
+            tree_.computeTree();
+std::cout << __LINE__ << std::endl;              
+//tree_.printTree();
+
+            //Decides best event according to the tree
+            tree_.treeDecision(associations, unassociated);
+std::cout << "   BODY PAIRS: ";
+for(ii=0; ii< associations.size(); ii++)
+    std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
+std::cout << std::endl; 
+std::cout << "   BODY UNASSOCIATED DETs: ";
+for(ii=0; ii< unassociated.size(); ii++)
+    std::cout << unassociated.at(ii) << ", ";
+std::cout << std::endl; 
+
+            //sets association vectors
+            for(kk=0; kk<associations.size(); kk++)
+            {
+                setAssociationDecision(BODY, associations.at(kk).second, associations.at(kk).first);
+            }
+            
+std::cout << __LINE__ << std::endl;                
+            //resets association pairs and unassociated vector
+            associations.clear();
+            unassociated.clear();
+        }
+
+    //FACE DETECTOR
+std::cout << __LINE__ << ": faceDetSet.size(): " << faceDetSet.size() << "; Nt: " << targetList.size() << std::endl;    
+        if( faceDetSet.size() != 0 )
+        {
+            //resets tree
+            tree_.reset();
+        
+            //Resizes input tree tables
+            tree_.resize(faceDetSet.size(), targetList.size());//Score table is sized Nd x (Nt+1), to consider void target
+            
+            //set matching scores to tree_ score table
+            for (iiF=faceDetSet.begin(),ii=0;iiF!=faceDetSet.end();iiF++,ii++) //detections start 
+            {
+                //Set matching values for all targets except void target. It is not required to set scores for void target, they are not used to compute p_{i,N_t+1}
+                for (jjT=targetList.begin(),jj=0;jjT!=targetList.end();jjT++,jj++) 
+                {
+                    matchingValue = jjT->faceMatchingFunction(iiF->faceLoc);
+                    tree_.setScore(ii,jj,matchingValue);
+                }
+            }
+//tree_.printScoreTable();
+std::cout << __LINE__ << std::endl;                
+            //grow & compute tree
+            tree_.growTree();
+std::cout << __LINE__ << std::endl;                
+            tree_.computeTree();
+std::cout << __LINE__ << std::endl;              
+//tree_.printTree();
+
+            //Decides best event according to the tree
+            tree_.treeDecision(associations, unassociated);
+std::cout << "   FACE PAIRS: ";
+for(ii=0; ii< associations.size(); ii++)
+    std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
+std::cout << std::endl; 
+std::cout << "   FACE UNASSOCIATED DETs: ";
+for(ii=0; ii< unassociated.size(); ii++)
+    std::cout << unassociated.at(ii) << ", ";
+std::cout << std::endl; 
+
+            //sets association vectors
+            for(kk=0; kk<associations.size(); kk++)
+            {
+                setAssociationDecision(FACE, associations.at(kk).second, associations.at(kk).first);
+            }
+            
+std::cout << __LINE__ << std::endl;                
+            //resets association pairs and unassociated vector
+            associations.clear();
+            unassociated.clear();
+        }
+        
+    //BODY3D DETECTOR
+std::cout << __LINE__ << ": body3dDetSet.size(): " << body3dDetSet.size() << "; Nt: " << targetList.size() << std::endl;    
+        if( body3dDetSet.size() != 0 )
+        {
+            //resets tree
+            tree_.reset();
+        
+            //Resizes input tree tables
+            tree_.resize(body3dDetSet.size(), targetList.size());//Score table is sized Nd x (Nt+1), to consider void target
+            
+            //set matching scores to tree_ score table
+            for (iiB3=body3dDetSet.begin(),ii=0;iiB3!=body3dDetSet.end();iiB3++,ii++) //detections start 
+            {
+                //Set matching values for all targets except void target. It is not required to set scores for void target, they are not used to compute p_{i,N_t+1}
+                for (jjT=targetList.begin(),jj=0;jjT!=targetList.end();jjT++,jj++) 
+                {
+                    matchingValue = jjT->body3dMatchingFunction(iiB3->point);
+                    tree_.setScore(ii,jj,matchingValue);
+                }
+            }
+//tree_.printScoreTable();
+std::cout << __LINE__ << std::endl;                
+            //grow & compute tree
+            tree_.growTree();
+std::cout << __LINE__ << std::endl;                
+            tree_.computeTree();
+std::cout << __LINE__ << std::endl;              
+//tree_.printTree();
+
+            //Decides best event according to the tree
+            tree_.treeDecision(associations, unassociated);
+std::cout << "   BODY3D PAIRS: ";
+for(ii=0; ii< associations.size(); ii++)
+    std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
+std::cout << std::endl; 
+std::cout << "   BODY3D UNASSOCIATED DETs: ";
+for(ii=0; ii< unassociated.size(); ii++)
+    std::cout << unassociated.at(ii) << ", ";
+std::cout << std::endl; 
+
+            //sets association vectors
+            for(kk=0; kk<associations.size(); kk++)
+            {
+                setAssociationDecision(BODY3D, associations.at(kk).second, associations.at(kk).first);
+            }
+            
+std::cout << __LINE__ << std::endl;                
+            //resets association pairs and unassociated vector
+            associations.clear();
+            unassociated.clear();
+        }        
 }
 
 void CpeopleTracker::updateAssociationTables()
@@ -739,18 +879,18 @@ void CpeopleTracker::updateAssociationTables()
     //for (iiT=targetList.begin();iiT!=targetList.end();iiT++) iiT->printTables();
 }
 
-void CpeopleTracker::setAssociationDecision(unsigned int detId, unsigned int tIdx, unsigned int dIdx)
+void CpeopleTracker::setAssociationDecision(unsigned int _detector_id, unsigned int _tj, unsigned int _di)
 {
 	std::list<CpersonTarget>::iterator jjT;
 	unsigned int jj;
 	
 	for (jjT=targetList.begin(),jj=0; jjT!=targetList.end(); jjT++,jj++)
 	{
-		if (jj == tIdx) 
+		if (jj == _tj) 
             {   
-                std::cout << detId << "," << dIdx << "," << tIdx << std::endl; 
-                std::cout << "aDecisions[detId].size(): " << jjT->aDecisions[detId].size() << std::endl; 
-                jjT->aDecisions[detId].at(dIdx) = true;
+                std::cout << _detector_id << ": " << _di << "," << _tj << std::endl; 
+                std::cout << "aDecisions[_detector_id].size(): " << jjT->aDecisions[_detector_id].size() << std::endl; 
+                jjT->aDecisions[_detector_id].at(_di) = true;
             }
             
             //debugging
@@ -790,19 +930,20 @@ void CpeopleTracker::createFilters()
       //createNewFilters();
       for (iiD=laserDetSet.begin(),ii=0;iiD!=laserDetSet.end();iiD++,ii++)
       {
-            associated = false;
-            for (jjT=targetList.begin();jjT!=targetList.end();jjT++)
-            {
-                  assocProb = jjT->aProbs[LEGS].at(ii);
-                  //std::cout << "Det: " << ii << "; Filter: " << jjT->getTargetId() << std::endl;
-                  //std::cout << "    assocP = " << assocProb << std::endl;
-                  if ( assocProb > params.minAssociationProb ) //iiD detection has been associated, at least, to filter jjT
-                  {
-                        associated = true;
-                        break;
-                  }
-            }
-            if (!associated) //iiD has not been associated to any target/filter, so we launch a new filter
+//             associated = false;
+//             for (jjT=targetList.begin();jjT!=targetList.end();jjT++)
+//             {
+//                   assocProb = jjT->aProbs[LEGS].at(ii);
+//                   //std::cout << "Det: " << ii << "; Filter: " << jjT->getTargetId() << std::endl;
+//                   //std::cout << "    assocP = " << assocProb << std::endl;
+//                   if ( assocProb > params.minAssociationProb ) //iiD detection has been associated, at least, to filter jjT
+//                   {
+//                         associated = true;
+//                         break;
+//                   }
+//             }
+//             if (!associated) //iiD has not been associated to any target/filter, so we launch a new filter
+            if ( !iiD->isAssociated() ) //iiD has not been associated to any target/filter, so we launch a new filter
             {
                   //first check if some target is causing occlusion of iiD detection
                   detectionInOcclusion = false;
@@ -1116,71 +1257,6 @@ void CpeopleTracker::getCurrentImage(cv::Mat & outImg)
 	outImg = this->img.clone();
 }
 
-/*
-void CpeopleTracker::computeTargetAppearance()
-{
-	cv::Rect_<int> bb;
-	std::list<CbodyObservation>::iterator jjB;
-      std::list<CpersonTarget>::iterator iiF;        
-      unsigned int ii,jj;
-      std::vector<HsHistogram> detApps;
-      double mValue; //matching value
-      std::ostringstream label;
-      cv::Scalar labelColor;
-
-	//for each body detection
-      detApps.resize(bodyDetSet.size());
-	for (jjB=bodyDetSet.begin(),jj=0;jjB!=bodyDetSet.end();jjB++,jj++)
-	{
-            //sets the bounding box of the detection jj
-		bb.x = jjB->bbX;
-		bb.y = jjB->bbY;
-		bb.width = jjB->bbW;
-		bb.height = jjB->bbH;
-                
-            //draws a red bounding box on the image according to detection jj
-		//cv::rectangle(img, bb, cv::Scalar(0,0,255), 3);
-                
-            //computes an appearance of the bounding box
-            detApps[jj].addAppearance(this->img,bb);
-            
-            //For each target "FRIEND_IN_SIGHT"
-            for (iiF=targetList.begin(),ii=0;iiF!=targetList.end();iiF++,ii++)
-            {
-                  if ( iiF->isStatus(FRIEND_IN_SIGHT) )
-                  {
-                        //computes matching value
-                        mValue = iiF->appearanceHistHS.match(&detApps[jj]);
-
-                        //if target iiF associated to jj body detection
-                        if ( iiF->aDecisions[BODY].at(jj) == true ) 
-                        {
-                              //draw a blue bounding box
-                              cv::rectangle(img, bb, cv::Scalar(255,0,0), 3);
-                              
-                              //Add appearance to the target model
-                              iiF->appearanceHistHS.addAppearance(img,bb);                                        
-      
-                              //set label color to blue
-                              labelColor = cv::Scalar(255,0,0);
-                        }
-                        else
-                        {
-                              //set label color to red
-                              labelColor = cv::Scalar(0,0,255);
-                        }
-
-                        //Display matching values
-                        label.str("");
-                        label << mValue; 
-                        cv::putText(img,label.str(),cv::Point(bb.x+bb.width,bb.y+ii*20),cv::FONT_HERSHEY_SIMPLEX,0.4,labelColor,1);
-                        //std::cout << "Matching appearance of target/detection " << iiF->getId() << "/" << jj << ": " << mValue << std::endl;
-                  }
-            }
-      }	
-}
-*/
-
 void CpeopleTracker::markBodies()
 {
       cv::Rect_<int> bb;
@@ -1215,28 +1291,6 @@ void CpeopleTracker::markFaces()
                 
             //draws a yellow bounding box on the image according to detection iiF
             cv::rectangle(img, bb, cv::Scalar(255,255,0), 3);
-      }
-}
-
-void CpeopleTracker::markTld()
-{
-      cv::Rect_<int> bb;
-      std::ostringstream label;
-      
-      label.precision(2);
-      
-      //draws a yellow bounding box on image according to current tld detection
-      if ( tldDetection.bbW > 0 )
-      {
-            bb.x = tldDetection.bbX;
-            bb.y = tldDetection.bbY;
-            bb.width = tldDetection.bbW;
-            bb.height = tldDetection.bbH;            
-            cv::rectangle(img, bb, cv::Scalar(20,180,240), 3);
-            label.str("");
-            label << tldDetection.rgbEigen.getX();//confidence stored in the rgbEigen.X field
-            cv::putText(img,label.str(),cv::Point(bb.x+bb.width,bb.y),cv::FONT_HERSHEY_SIMPLEX,0.6,cv::Scalar(20,180,240),1);
-            //std::cout << "markTld(): bb: " << bb.x << "," << bb.y << "," << bb.width << "," << bb.height << std::endl;
       }
 }
 
@@ -1431,6 +1485,71 @@ void CpeopleTracker::removeCrossAssociatedParticles()
 }
 */
 
+/*
+void CpeopleTracker::computeTargetAppearance()
+{
+      cv::Rect_<int> bb;
+      std::list<CbodyObservation>::iterator jjB;
+      std::list<CpersonTarget>::iterator iiF;        
+      unsigned int ii,jj;
+      std::vector<HsHistogram> detApps;
+      double mValue; //matching value
+      std::ostringstream label;
+      cv::Scalar labelColor;
+
+      //for each body detection
+      detApps.resize(bodyDetSet.size());
+      for (jjB=bodyDetSet.begin(),jj=0;jjB!=bodyDetSet.end();jjB++,jj++)
+      {
+            //sets the bounding box of the detection jj
+            bb.x = jjB->bbX;
+            bb.y = jjB->bbY;
+            bb.width = jjB->bbW;
+            bb.height = jjB->bbH;
+                
+            //draws a red bounding box on the image according to detection jj
+            //cv::rectangle(img, bb, cv::Scalar(0,0,255), 3);
+                
+            //computes an appearance of the bounding box
+            detApps[jj].addAppearance(this->img,bb);
+            
+            //For each target "FRIEND_IN_SIGHT"
+            for (iiF=targetList.begin(),ii=0;iiF!=targetList.end();iiF++,ii++)
+            {
+                  if ( iiF->isStatus(FRIEND_IN_SIGHT) )
+                  {
+                        //computes matching value
+                        mValue = iiF->appearanceHistHS.match(&detApps[jj]);
+
+                        //if target iiF associated to jj body detection
+                        if ( iiF->aDecisions[BODY].at(jj) == true ) 
+                        {
+                              //draw a blue bounding box
+                              cv::rectangle(img, bb, cv::Scalar(255,0,0), 3);
+                              
+                              //Add appearance to the target model
+                              iiF->appearanceHistHS.addAppearance(img,bb);                                        
+      
+                              //set label color to blue
+                              labelColor = cv::Scalar(255,0,0);
+                        }
+                        else
+                        {
+                              //set label color to red
+                              labelColor = cv::Scalar(0,0,255);
+                        }
+
+                        //Display matching values
+                        label.str("");
+                        label << mValue; 
+                        cv::putText(img,label.str(),cv::Point(bb.x+bb.width,bb.y+ii*20),cv::FONT_HERSHEY_SIMPLEX,0.4,labelColor,1);
+                        //std::cout << "Matching appearance of target/detection " << iiF->getId() << "/" << jj << ": " << mValue << std::endl;
+                  }
+            }
+      }     
+}
+*/
+
 // void CpeopleTracker::setOnBoardCamPose(Cposition3d & camP)
 // {
 //       this->camINbase = camP;
@@ -1442,4 +1561,29 @@ void CpeopleTracker::removeCrossAssociatedParticles()
 // {
 //       std::cout << "CpeopleTracker: Camera calibration matrix is: " << std::endl; 
 // }
+
+// void CpeopleTracker::markTld()
+// {
+//       cv::Rect_<int> bb;
+//       std::ostringstream label;
+//       
+//       label.precision(2);
+//       
+//       //draws a yellow bounding box on image according to current tld detection
+//       if ( tldDetection.bbW > 0 )
+//       {
+//             bb.x = tldDetection.bbX;
+//             bb.y = tldDetection.bbY;
+//             bb.width = tldDetection.bbW;
+//             bb.height = tldDetection.bbH;            
+//             cv::rectangle(img, bb, cv::Scalar(20,180,240), 3);
+//             label.str("");
+//             label << tldDetection.rgbEigen.getX();//confidence stored in the rgbEigen.X field
+//             cv::putText(img,label.str(),cv::Point(bb.x+bb.width,bb.y),cv::FONT_HERSHEY_SIMPLEX,0.6,cv::Scalar(20,180,240),1);
+//             //std::cout << "markTld(): bb: " << bb.x << "," << bb.y << "," << bb.width << "," << bb.height << std::endl;
+//       }
+// }
+
+
+
 

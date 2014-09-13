@@ -139,24 +139,14 @@ std::cout << "NODE: " << __LINE__ << std::endl;
       //MARK BOUNDING BOXES OF VISUAL DETECTIONS (& LEARN CURRENT DETECTED APPEARANCES -> TO DO !!)
       if ( cvImgPtrSubs!=NULL )
       {
-            //debug
-            //frameCount++;
-            //std::cout << "det/frames = " << (double)hogDetCount/(double)frameCount << std::endl;
-            
             //Set image to the tracker
             tracker.setCurrentImage(cvImgPtrSubs->image);
-            
-            //compute appearances of body detections
-            //tracker.computeTargetAppearance();
             
             //mark box bodies on image
             tracker.markBodies();            
             
             //mark box faces on image
             tracker.markFaces();
-            
-            //mark tld box
-            //tracker.markTld();
             
             //get marked image from the tracker
             tracker.getCurrentImage(cvImgPub.image);

@@ -62,7 +62,7 @@ double AssociationNode::computeNodeProb(const unsigned int _nd, const unsigned i
     if ( _tj == _nt ) //Case void target -> unassociated detection
     {
         //Prob detection _di does not match to other targets than _tj
-        for (unsigned int kk=0; kk<_nt-1; kk++)
+        for (unsigned int kk=0; kk<_nt; kk++)
         {
             p_ij *= 1 - _stab.at(_di).at(kk); 
         }
@@ -110,12 +110,7 @@ void AssociationNode::growTree(const unsigned int _nd, const unsigned int _nt, c
 {
     unsigned int tar_j; //target index (not target id!)
     double p_ij;//probability that detection i comes from target j
-    
-    if ( ( _nd == 0 ) || ( _nt == 0 ) ) //check if no detections or no targets
-    {
-        return;
-    }
-    
+        
     //Recursive growing loop
     for (tar_j=0; tar_j<_nt+1; tar_j++) //for each target, including target void
     {

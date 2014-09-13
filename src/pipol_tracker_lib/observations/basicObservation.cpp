@@ -61,3 +61,14 @@ void CbasicObservation::setId(unsigned int newId)
 {
 	id = newId;
 }
+
+void CbasicObservation::setAssociated(bool _assoc_flag)
+{
+    associated_ = _assoc_flag;
+}
+
+bool CbasicObservation::isAssociated() const
+{
+    return associated_;
+}
+

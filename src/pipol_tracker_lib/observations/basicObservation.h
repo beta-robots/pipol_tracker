@@ -23,26 +23,29 @@ const unsigned int CORRECT_DATA = 0x2;
 class CbasicObservation
 {
 	protected:
-		/**
-		* \brief Observation status
+		/** \brief Observation status
 		*
 		* Observation status as a bitwise OR of different status values.
 		*
 		*/		
 		unsigned int status;
 		
-		/**
-		* \brief Observation id
+		/** \brief Observation id
 		*
 		* Observation id. In some applications it could be necessary to identify observations with an ID
 		*
 		*/		
-		unsigned int id;		
+		unsigned int id;	
+            
+            /** \brief wheter this detection has been associated or not
+             * 
+             * wheter this detection has been associated or not
+             * 
+             **/
+            bool associated_;
 		
-	public: 
-		
-		/**
-		* \brief Time stamp
+	public: 		
+		/** \brief Time stamp
 		*
 		* Time where observation is taken. Expressed in seconds from 1th jan 1970.
 		*
@@ -50,24 +53,21 @@ class CbasicObservation
 		CtimeStamp timeStamp;
 
 	public:
-		/**
-		* \brief Constructor
+		/** \brief Constructor
 		*
 		* Constructor
 		*
 		*/				
 		CbasicObservation();
 
-		/**
-		* \brief Destructor
+		/** \brief Destructor
 		*
 		* Destructor
 		*
 		*/						
 		~CbasicObservation();
 
-		/**
-		* \brief Mark as new
+		/** \brief Mark as new
 		*
 		* Marks status value to indicate that the observation is new (not already used)
 		*
@@ -145,6 +145,21 @@ class CbasicObservation
 		*
 		*/																
 		void setId(unsigned int newId);
+            
+            /** \brief Set associated flag
+             * 
+             * Set associated flag
+             * 
+             **/
+            void setAssociated(bool _assoc_flag);
+            
+            /** \brief Check associated flag
+             * 
+             * Check associated flag
+             * 
+             **/
+            bool isAssociated() const;
+            
 				
 };	
 #endif

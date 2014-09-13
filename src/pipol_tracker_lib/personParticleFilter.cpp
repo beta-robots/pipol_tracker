@@ -13,6 +13,9 @@ CpersonParticleFilter::CpersonParticleFilter()
         
         //initializes parameters
         setDefaultParameters();
+        
+        //forcing GO mode
+        motionMode = MODE_GO;
 }
 
 CpersonParticleFilter::~CpersonParticleFilter()
@@ -193,30 +196,36 @@ void CpersonParticleFilter::predictPset()
         dT = now.get() - tsLastPrior.get();
         tsLastPrior.set(now.get());
 
-        //call prediction model according current motion mode and transition probabilities between STOP & GO
-        switch(motionMode)
+        for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
         {
-            case MODE_STOP:
-                for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
-                {
-                    rnd = ((double)rand()) / ((double)RAND_MAX);
-                    if ( rnd < PROB_STOP2STOP ) iiP->predictStopped(dT);
-                    else iiP->predictVlinear(dT);
-                }
-                break;
-                
-            case MODE_GO:
-                for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
-                {
-                    rnd = ((double)rand()) / ((double)RAND_MAX);
-                    if ( rnd < PROB_GO2GO ) iiP->predictVlinear(dT);
-                    else iiP->predictStopped(dT);
-                }
-                break;
-    
-            default: 
-                break;
+            iiP->predictVlinear(dT);
         }
+
+        
+        //call prediction model according current motion mode and transition probabilities between STOP & GO
+//         switch(motionMode)
+//         {
+//             case MODE_STOP:
+//                 for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
+//                 {
+//                     rnd = ((double)rand()) / ((double)RAND_MAX);
+//                     if ( rnd < PROB_STOP2STOP ) iiP->predictStopped(dT);
+//                     else iiP->predictVlinear(dT);
+//                 }
+//                 break;
+//                 
+//             case MODE_GO:
+//                 for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
+//                 {
+//                     rnd = ((double)rand()) / ((double)RAND_MAX);
+//                     if ( rnd < PROB_GO2GO ) iiP->predictVlinear(dT);
+//                     else iiP->predictStopped(dT);
+//                 }
+//                 break;
+//     
+//             default: 
+//                 break;
+//         }
 }
 
 void CpersonParticleFilter::computeWeights(Cpoint3dObservation & pDet, vector<double> & ww)

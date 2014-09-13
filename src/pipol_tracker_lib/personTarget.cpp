@@ -160,11 +160,23 @@ void CpersonTarget::resetAssociationDecisions()
 
 void CpersonTarget::resizeAssociationDecisions(const unsigned int nLegsDet, const unsigned int nBodyDet, const unsigned int nFaceDet, const unsigned int nBody3dDet)
 {
-        this->resetAssociationDecisions();
-        aDecisions[LEGS].resize(nLegsDet);
-        aDecisions[BODY].resize(nBodyDet);
-        aDecisions[FACE].resize(nFaceDet);
-        aDecisions[BODY3D].resize(nBody3dDet);
+    unsigned int kk;
+    
+    //reset all vectors (for each detector)
+    this->resetAssociationDecisions();
+    
+    //resize each vector and set them to false
+    aDecisions[LEGS].resize(nLegsDet);
+    for (kk=0; kk<nLegsDet; kk++) aDecisions[LEGS].at(kk) = false;
+    
+    aDecisions[BODY].resize(nBodyDet);
+    for (kk=0; kk<nBodyDet; kk++) aDecisions[BODY].at(kk) = false;
+    
+    aDecisions[FACE].resize(nFaceDet);
+    for (kk=0; kk<nFaceDet; kk++) aDecisions[FACE].at(kk) = false;
+    
+    aDecisions[BODY3D].resize(nBody3dDet);
+    for (kk=0; kk<nBody3dDet; kk++) aDecisions[BODY3D].at(kk) = false;
 }
 
 double CpersonTarget::associationProb(Cpoint3d & pDet)

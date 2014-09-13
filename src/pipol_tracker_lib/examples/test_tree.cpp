@@ -9,8 +9,8 @@ int main(int argc, char *argv[])
 {
     //variables
     AssociationTree tree_;
-    unsigned int nd_ = 4; //2 detections
-    unsigned int nt_ = 3; //3 targets
+    unsigned int nd_ = 4; //# detections
+    unsigned int nt_ = 2; //# targets
     std::vector<std::pair<unsigned int, unsigned int> > associations_;
     std::vector<unsigned int> unassociated_;
     
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     
     std::cout << "TEST 2. Reset, Resize & Fill score table  " << std::endl;
     tree_.reset();
-    tree_.resize(nd_-1,nt_-1);
+    tree_.resize(nd_-1,nt_);
     for (unsigned int ii=0; ii<tree_.numDetections(); ii++)
         for (unsigned int jj=0; jj<tree_.numTargets()+1; jj++)
             tree_.setScore(ii,jj,(double)rand()/(double)RAND_MAX);    
@@ -40,8 +40,11 @@ int main(int argc, char *argv[])
 
     std::cout << "TEST 3. Grow the tree" << std::endl;
     tree_.growTree();
+std::cout << __LINE__ << std::endl;
     tree_.computeTree();
+std::cout << __LINE__ << std::endl;    
     tree_.treeDecision(associations_,unassociated_);
+std::cout << __LINE__ << std::endl;    
     
     //display tree
     tree_.printTree();

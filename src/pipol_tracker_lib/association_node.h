@@ -10,7 +10,7 @@
 #include <algorithm> //find()
 
 //constants
-const double PROB_ZERO_ = 1e-60;
+const double PROB_ZERO_ = 1e-3;
 
 /** \brief A node in the association decision tree 
  * 
