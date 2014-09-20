@@ -162,15 +162,24 @@ void CpersonParticleFilter::predictPset(CodometryObservation & odo)
         Vector3f vp1, vp2;
         Matrix3f homT1; //current local frame wrt to past local frame
         Matrix3f homT2; //past local frame wrt to current local frame
+        double dTheta, dTrans; 
         
-        homT1 << cos(odo.getDeltaH()), -sin(odo.getDeltaH()), odo.getDeltaTrans()*cos(odo.getDeltaH()/2.0),
-                   sin(odo.getDeltaH()),  cos(odo.getDeltaH()), odo.getDeltaTrans()*sin(odo.getDeltaH()/2.0),
-                   0, 0, 1;
-        homT2 = homT1.inverse();
+//         homT1 << cos(odo.getDeltaH()), -sin(odo.getDeltaH()), odo.getDeltaTrans()*cos(odo.getDeltaH()/2.0),
+//                    sin(odo.getDeltaH()),  cos(odo.getDeltaH()), odo.getDeltaTrans()*sin(odo.getDeltaH()/2.0),
+//                    0, 0, 1;
+//         homT2 = homT1.inverse();
 
         //updates particle points
         for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
         {
+                //add noise per each particle 
+                dTheta = odo.getDeltaH() + random_normal(0,0.05); // 1 deg aprox
+                dTrans = odo.getDeltaTrans() + random_normal(0,0.001); //1mm
+                homT1 << cos(dTheta), -sin(dTheta), dTrans*cos(dTheta/2.0),
+                        sin(dTheta),  cos(dTheta), dTrans*sin(dTheta/2.0),
+                        0, 0, 1;
+                homT2 = homT1.inverse();
+                
                 //particle position
                 vp1 << iiP->position.getX(), iiP->position.getY(), 1;
                 vp2 = homT2*vp1;
@@ -178,7 +187,7 @@ void CpersonParticleFilter::predictPset(CodometryObservation & odo)
                 iiP->position.setY(vp2(1));
                 
                 //particle velocities
-                vp1 << iiP->velocity.getX(), iiP->velocity.getY(), 0; //Last component to 0 because velocity is a direction vector (without offsets)
+                vp1 << iiP->velocity.getX(), iiP->velocity.getY(), 0; //Last component to 0 because velocity is a direction
                 vp2 = homT2*vp1;
                 iiP->velocity.setX(vp2(0));
                 iiP->velocity.setY(vp2(1));
@@ -192,40 +201,35 @@ void CpersonParticleFilter::predictPset()
         CtimeStamp now;
         std::list<CpersonParticle>::iterator iiP;
         
+        //compute time elapsed since the last call 
         now.setToNow();
         dT = now.get() - tsLastPrior.get();
         tsLastPrior.set(now.get());
-
-        for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
-        {
-            iiP->predictVlinear(dT);
-        }
-
         
         //call prediction model according current motion mode and transition probabilities between STOP & GO
-//         switch(motionMode)
-//         {
-//             case MODE_STOP:
-//                 for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
-//                 {
-//                     rnd = ((double)rand()) / ((double)RAND_MAX);
-//                     if ( rnd < PROB_STOP2STOP ) iiP->predictStopped(dT);
-//                     else iiP->predictVlinear(dT);
-//                 }
-//                 break;
-//                 
-//             case MODE_GO:
-//                 for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
-//                 {
-//                     rnd = ((double)rand()) / ((double)RAND_MAX);
-//                     if ( rnd < PROB_GO2GO ) iiP->predictVlinear(dT);
-//                     else iiP->predictStopped(dT);
-//                 }
-//                 break;
-//     
-//             default: 
-//                 break;
-//         }
+        switch(motionMode)
+        {
+            case MODE_STOP:
+                for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
+                {
+                    rnd = ((double)rand()) / ((double)RAND_MAX);
+                    if ( rnd < PROB_STOP2STOP ) iiP->predictStopped(dT);
+                    else iiP->predictVlinear(dT);
+                }
+                break;
+                
+            case MODE_GO:
+                for (iiP=pSet.begin();iiP!=pSet.end();iiP++)
+                {
+                    rnd = ((double)rand()) / ((double)RAND_MAX);
+                    if ( rnd < PROB_GO2GO ) iiP->predictVlinear(dT);
+                    else iiP->predictStopped(dT);
+                }
+                break;
+    
+            default: 
+                break;
+        }
 }
 
 void CpersonParticleFilter::computeWeights(Cpoint3dObservation & pDet, vector<double> & ww)

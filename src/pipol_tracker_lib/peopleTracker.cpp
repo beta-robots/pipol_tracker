@@ -322,7 +322,7 @@ void CpeopleTracker::updateAssociationTablesTree()
         jjT->resizeAssociationDecisions(laserDetSet.size(), bodyDetSet.size(), faceDetSet.size(), body3dDetSet.size());
 
     //LEG DETECTOR
-std::cout << __LINE__ << ": laserDetSet.size(): " << laserDetSet.size() << "; Nt: " << targetList.size() << std::endl;    
+// std::cout << __LINE__ << ": laserDetSet.size(): " << laserDetSet.size() << "; Nt: " << targetList.size() << std::endl;    
         if( laserDetSet.size() != 0 )
         {
             //resets tree
@@ -342,24 +342,25 @@ std::cout << __LINE__ << ": laserDetSet.size(): " << laserDetSet.size() << "; Nt
                 }
             }
 //tree_.printScoreTable();
-std::cout << __LINE__ << std::endl;                
+// std::cout << __LINE__ << std::endl;                
             //grow & compute tree
             tree_.growTree();
-std::cout << __LINE__ << std::endl;                
+// std::cout << __LINE__ << std::endl;                
             tree_.computeTree();
-std::cout << __LINE__ << std::endl;              
+            tree_.normalizeTree();
+// std::cout << __LINE__ << std::endl;              
 //tree_.printTree();
 
             //Decides best event according to the tree
             tree_.treeDecision(associations, unassociated);
-std::cout << "   LEG PAIRS: ";
-for(ii=0; ii< associations.size(); ii++)
-    std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
-std::cout << std::endl; 
-std::cout << "   LEG UNASSOCIATED DETs: ";
-for(ii=0; ii< unassociated.size(); ii++)
-    std::cout << unassociated.at(ii) << ", ";
-std::cout << std::endl; 
+// std::cout << "   LEG PAIRS: ";
+// for(ii=0; ii< associations.size(); ii++)
+//     std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
+// std::cout << std::endl; 
+// std::cout << "   LEG UNASSOCIATED DETs: ";
+// for(ii=0; ii< unassociated.size(); ii++)
+//     std::cout << unassociated.at(ii) << ", ";
+// std::cout << std::endl; 
 
             //sets association vectors
             for(kk=0; kk<associations.size(); kk++)
@@ -381,14 +382,14 @@ std::cout << std::endl;
                 }
             }
 
-std::cout << __LINE__ << std::endl;                
+// std::cout << __LINE__ << std::endl;                
             //resets association pairs and unassociated vector
             associations.clear();
             unassociated.clear();
         }
         
     //BODY2D DETECTOR
-std::cout << __LINE__ << ": bodyDetSet.size(): " << bodyDetSet.size() << "; Nt: " << targetList.size() << std::endl;    
+// std::cout << __LINE__ << ": bodyDetSet.size(): " << bodyDetSet.size() << "; Nt: " << targetList.size() << std::endl;    
         if( bodyDetSet.size() != 0 )
         {
             //resets tree
@@ -408,24 +409,25 @@ std::cout << __LINE__ << ": bodyDetSet.size(): " << bodyDetSet.size() << "; Nt: 
                 }
             }
 //tree_.printScoreTable();
-std::cout << __LINE__ << std::endl;                
+// std::cout << __LINE__ << std::endl;                
             //grow & compute tree
             tree_.growTree();
-std::cout << __LINE__ << std::endl;                
+// std::cout << __LINE__ << std::endl;                
             tree_.computeTree();
-std::cout << __LINE__ << std::endl;              
+            tree_.normalizeTree();
+// std::cout << __LINE__ << std::endl;              
 //tree_.printTree();
 
             //Decides best event according to the tree
             tree_.treeDecision(associations, unassociated);
-std::cout << "   BODY PAIRS: ";
-for(ii=0; ii< associations.size(); ii++)
-    std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
-std::cout << std::endl; 
-std::cout << "   BODY UNASSOCIATED DETs: ";
-for(ii=0; ii< unassociated.size(); ii++)
-    std::cout << unassociated.at(ii) << ", ";
-std::cout << std::endl; 
+// std::cout << "   BODY PAIRS: ";
+// for(ii=0; ii< associations.size(); ii++)
+//     std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
+// std::cout << std::endl; 
+// std::cout << "   BODY UNASSOCIATED DETs: ";
+// for(ii=0; ii< unassociated.size(); ii++)
+//     std::cout << unassociated.at(ii) << ", ";
+// std::cout << std::endl; 
 
             //sets association vectors
             for(kk=0; kk<associations.size(); kk++)
@@ -433,14 +435,14 @@ std::cout << std::endl;
                 setAssociationDecision(BODY, associations.at(kk).second, associations.at(kk).first);
             }
             
-std::cout << __LINE__ << std::endl;                
+// std::cout << __LINE__ << std::endl;                
             //resets association pairs and unassociated vector
             associations.clear();
             unassociated.clear();
         }
 
     //FACE DETECTOR
-std::cout << __LINE__ << ": faceDetSet.size(): " << faceDetSet.size() << "; Nt: " << targetList.size() << std::endl;    
+// std::cout << __LINE__ << ": faceDetSet.size(): " << faceDetSet.size() << "; Nt: " << targetList.size() << std::endl;    
         if( faceDetSet.size() != 0 )
         {
             //resets tree
@@ -460,24 +462,25 @@ std::cout << __LINE__ << ": faceDetSet.size(): " << faceDetSet.size() << "; Nt: 
                 }
             }
 //tree_.printScoreTable();
-std::cout << __LINE__ << std::endl;                
+// std::cout << __LINE__ << std::endl;                
             //grow & compute tree
             tree_.growTree();
-std::cout << __LINE__ << std::endl;                
+// std::cout << __LINE__ << std::endl;                
             tree_.computeTree();
-std::cout << __LINE__ << std::endl;              
+            tree_.normalizeTree();
+// std::cout << __LINE__ << std::endl;              
 //tree_.printTree();
 
             //Decides best event according to the tree
             tree_.treeDecision(associations, unassociated);
-std::cout << "   FACE PAIRS: ";
-for(ii=0; ii< associations.size(); ii++)
-    std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
-std::cout << std::endl; 
-std::cout << "   FACE UNASSOCIATED DETs: ";
-for(ii=0; ii< unassociated.size(); ii++)
-    std::cout << unassociated.at(ii) << ", ";
-std::cout << std::endl; 
+// std::cout << "   FACE PAIRS: ";
+// for(ii=0; ii< associations.size(); ii++)
+//     std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
+// std::cout << std::endl; 
+// std::cout << "   FACE UNASSOCIATED DETs: ";
+// for(ii=0; ii< unassociated.size(); ii++)
+//     std::cout << unassociated.at(ii) << ", ";
+// std::cout << std::endl; 
 
             //sets association vectors
             for(kk=0; kk<associations.size(); kk++)
@@ -485,14 +488,14 @@ std::cout << std::endl;
                 setAssociationDecision(FACE, associations.at(kk).second, associations.at(kk).first);
             }
             
-std::cout << __LINE__ << std::endl;                
+// std::cout << __LINE__ << std::endl;                
             //resets association pairs and unassociated vector
             associations.clear();
             unassociated.clear();
         }
         
     //BODY3D DETECTOR
-std::cout << __LINE__ << ": body3dDetSet.size(): " << body3dDetSet.size() << "; Nt: " << targetList.size() << std::endl;    
+// std::cout << __LINE__ << ": body3dDetSet.size(): " << body3dDetSet.size() << "; Nt: " << targetList.size() << std::endl;    
         if( body3dDetSet.size() != 0 )
         {
             //resets tree
@@ -512,24 +515,25 @@ std::cout << __LINE__ << ": body3dDetSet.size(): " << body3dDetSet.size() << "; 
                 }
             }
 //tree_.printScoreTable();
-std::cout << __LINE__ << std::endl;                
+// std::cout << __LINE__ << std::endl;                
             //grow & compute tree
             tree_.growTree();
-std::cout << __LINE__ << std::endl;                
+// std::cout << __LINE__ << std::endl;                
             tree_.computeTree();
-std::cout << __LINE__ << std::endl;              
+            tree_.normalizeTree();
+// std::cout << __LINE__ << std::endl;              
 //tree_.printTree();
 
             //Decides best event according to the tree
             tree_.treeDecision(associations, unassociated);
-std::cout << "   BODY3D PAIRS: ";
-for(ii=0; ii< associations.size(); ii++)
-    std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
-std::cout << std::endl; 
-std::cout << "   BODY3D UNASSOCIATED DETs: ";
-for(ii=0; ii< unassociated.size(); ii++)
-    std::cout << unassociated.at(ii) << ", ";
-std::cout << std::endl; 
+// std::cout << "   BODY3D PAIRS: ";
+// for(ii=0; ii< associations.size(); ii++)
+//     std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
+// std::cout << std::endl; 
+// std::cout << "   BODY3D UNASSOCIATED DETs: ";
+// for(ii=0; ii< unassociated.size(); ii++)
+//     std::cout << unassociated.at(ii) << ", ";
+// std::cout << std::endl; 
 
             //sets association vectors
             for(kk=0; kk<associations.size(); kk++)
@@ -537,7 +541,7 @@ std::cout << std::endl;
                 setAssociationDecision(BODY3D, associations.at(kk).second, associations.at(kk).first);
             }
             
-std::cout << __LINE__ << std::endl;                
+// std::cout << __LINE__ << std::endl;                
             //resets association pairs and unassociated vector
             associations.clear();
             unassociated.clear();
@@ -888,8 +892,8 @@ void CpeopleTracker::setAssociationDecision(unsigned int _detector_id, unsigned 
 	{
 		if (jj == _tj) 
             {   
-                std::cout << _detector_id << ": " << _di << "," << _tj << std::endl; 
-                std::cout << "aDecisions[_detector_id].size(): " << jjT->aDecisions[_detector_id].size() << std::endl; 
+//                 std::cout << _detector_id << ": " << _di << "," << _tj << std::endl; 
+//                 std::cout << "aDecisions[_detector_id].size(): " << jjT->aDecisions[_detector_id].size() << std::endl; 
                 jjT->aDecisions[_detector_id].at(_di) = true;
             }
             

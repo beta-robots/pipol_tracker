@@ -91,6 +91,13 @@ class AssociationTree
         */        
         void computeTree();
         
+        /** \brief Normalizes node probabilities
+        * 
+        * Normalizes node probabilities
+        * 
+        */        
+        void normalizeTree();        
+        
         /** \brief Gets tree decision
          * 
          * Decides best hypothesis according tree computation made by computeTree()
@@ -100,13 +107,6 @@ class AssociationTree
          * 
          **/
         void treeDecision(std::vector<std::pair<unsigned int, unsigned int> > & _pairs, std::vector<unsigned int> & _unassoc);
-        
-        /** \brief Gets unassociated detections
-         * 
-         * Gets unassociated detections
-         * 
-         **/
-//         void getUnassociated(std::vector<unsigned int> & _unass);
         
         /** \brief Prints the score table
         * 

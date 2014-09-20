@@ -44,6 +44,11 @@ double AssociationNode::getNodeProb() const
     return node_prob_;
 }
 
+void AssociationNode::setNodeProb(double _np)
+{
+    node_prob_ = _np;
+}
+
 double AssociationNode::getTreeProb() const
 {
     return tree_prob_;
@@ -64,12 +69,12 @@ double AssociationNode::computeNodeProb(const unsigned int _nd, const unsigned i
         //Prob detection _di does not match to other targets than _tj
         for (unsigned int kk=0; kk<_nt; kk++)
         {
-            p_ij *= 1 - _stab.at(_di).at(kk); 
+            p_ij *= ( 1.0 - _stab.at(_di).at(kk) ); 
         }
     }
     else //General case
     {
-        //step 1. Positive event
+        //step 1. Positive matching _di with _tj
         p_ij *= _stab.at(_di).at(_tj); 
         
         //step2. Prob detection _di does not match to other targets than _tj
@@ -83,8 +88,32 @@ double AssociationNode::computeNodeProb(const unsigned int _nd, const unsigned i
         {
             if ( kk!=_di ) p_ij *= 1 - _stab.at(kk).at(_tj); 
         }
+        
+        //step4. Prob detection _di does not remain unassociated
+        double p_un = 1.0;
+        for (unsigned int kk=0; kk<_nt; kk++)
+        {
+            p_un *= ( 1.0 - _stab.at(_di).at(kk) );            
+        }
+        p_ij *= ( 1 - p_un );
     }
     return p_ij;    
+}
+
+void AssociationNode::normalizeNodeProbs()
+{
+    double pSum = 0;
+    std::list<AssociationNode>::iterator it;
+    
+    for(it = node_list_.begin(); it != node_list_.end(); it++)
+        pSum += it->getNodeProb();
+
+    for(it = node_list_.begin(); it != node_list_.end(); it++)
+    {
+        it->setNodeProb(it->getNodeProb()/pSum);
+        if (!isTerminus()) 
+            it->normalizeNodeProbs();
+    }
 }
 
 double AssociationNode::computeTreeProb(const double & _up_prob, std::list<AssociationNode*> & _tn_list)

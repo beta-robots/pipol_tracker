@@ -24,7 +24,7 @@ class AssociationNode
         bool is_root_;///<true if the node is root
         unsigned int det_idx_; ///< detection node index
         unsigned int tar_idx_; ///< target node index  
-        double node_prob_; ///< Node Probability. Probability that detection associates to target.
+        double node_prob_; ///< Node Probability. Normalized->Conditional Probability that detection associates to target. Non-normalizeNodeProbs->Product of likelihoods.
         double tree_prob_; ///< Tree Probability. Joint Probability from the root node up to this (product of node probabilities)
         AssociationNode * up_node_ptr_; ///< Pointer to up node
         std::list<AssociationNode> node_list_; ///< List of nodes below of this in the association tree
@@ -80,6 +80,13 @@ class AssociationNode
          * 
          **/
         double getNodeProb() const;
+        
+        /** \brief Sets node_prob_
+         * 
+         * Sets node_prob_
+         * 
+         **/
+        void setNodeProb(double _np);        
 
         /** \brief Returns tree_prob_
          * 
@@ -106,6 +113,14 @@ class AssociationNode
          * 
          **/
         double computeNodeProb(const unsigned int _nd, const unsigned int _nt, const unsigned int _di, const unsigned int _tj, const std::vector< std::vector<double> > & _stab) const;
+        
+        /** \brief Normalizes node probabilities recursively
+         * 
+         * Normalizes node probabilities recursively.
+         * All node probs of node_list_ should sum 1
+         * 
+         **/
+        void normalizeNodeProbs();        
 
         /** \brief Computes tree probabilities recursively
          * 
@@ -116,7 +131,7 @@ class AssociationNode
          * 
          **/
         double computeTreeProb(const double & _up_prob, std::list<AssociationNode*> & _tn_list);
-        
+                
         /** \brief Grows tree recursively
          * 
          * Grows tree recursively according the association probability table provided

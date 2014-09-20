@@ -65,6 +65,11 @@ void AssociationTree::computeTree()
         root_.computeTreeProb(1., terminus_node_list_);
 }
 
+void AssociationTree::normalizeTree()
+{
+    root_.normalizeNodeProbs(); 
+}
+
 void AssociationTree::treeDecision(std::vector<std::pair<unsigned int, unsigned int> > & _pairs, std::vector<unsigned int> &  _unassoc)
 {
     std::list<AssociationNode*>::iterator it, bestNode;

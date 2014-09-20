@@ -43,6 +43,8 @@ int main(int argc, char *argv[])
 std::cout << __LINE__ << std::endl;
     tree_.computeTree();
 std::cout << __LINE__ << std::endl;    
+    tree_.normalizeTree();
+std::cout << __LINE__ << std::endl;    
     tree_.treeDecision(associations_,unassociated_);
 std::cout << __LINE__ << std::endl;    
     
