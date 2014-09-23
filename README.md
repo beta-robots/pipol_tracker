@@ -6,8 +6,9 @@ Multi target people tracker for mobile robots. It uses multiple detector modalit
 Although the inputs are configurable, currently it uses:
 
 * Laser-based leg detections
-* Vision based face detections
-* Vision based body detections
+* Monocular vision body detections (bounding box, bearing)
+* Monocular vision face detections (3D thanks to eye distance detection)
+* Depth camera 3D body detections
 * Odometry
 
 For further instructions (installation, etc) check the [pipol_tracker wiki] (https://github.com/beta-robots/pipol_tracker/wiki).
