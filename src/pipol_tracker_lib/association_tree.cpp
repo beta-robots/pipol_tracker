@@ -77,6 +77,8 @@ void AssociationTree::treeDecision(std::vector<std::pair<unsigned int, unsigned 
     bool rootReached = false;
     AssociationNode *anPtr;
     
+    double sum = 0;
+    
     //check if terminus_node_list_ is empty
     if ( terminus_node_list_.empty() ) return;
     
@@ -88,8 +90,13 @@ void AssociationTree::treeDecision(std::vector<std::pair<unsigned int, unsigned 
             bestNode = it;
             bestProb = (*it)->getTreeProb();
         }
+        
+        //debugging 
+        sum += (*it)->getTreeProb();
     }
     //std::cout << "treeDecision(): "; (*bestNode)->printNode();
+    std::cout << "sum: " << sum << std::endl;
+    std::cout << "bestProb: " << bestProb << std::endl;
     
     //set pairs
     anPtr = *bestNode; //init pointer
