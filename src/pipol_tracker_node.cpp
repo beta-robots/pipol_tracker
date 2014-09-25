@@ -449,6 +449,8 @@ void CpipolTrackerNode::fillMessages()
                             markerText << jj;
                             break;
                         }
+//                         if ( iiF->aDecisions[jj].at(kk) ) markerText << "+";
+//                         else markerText << "-";
                     }
                 }
                 /*switch( iiF->getMotionMode() ) //add a label according current motion mode
@@ -871,11 +873,18 @@ void CpipolTrackerNode::body3dDetections_callback(const pal_detection_msgs::Pers
         //set time stamp
         newDetection.timeStamp.set(msg->header.stamp.sec, msg->header.stamp.nsec);
         
-        //empiric calibration of depth
-        if ( msg->persons[ii].position3D.point.z < 1. )
-            det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z;
+        //empiric calibration of depth. TODO: something better !!! Ideally at kinect driver level
+        if ( msg->persons[ii].position3D.point.z < 1. ) //depth < 1m
+        {
+            det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.;
+        }
         else  
-            det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*4.1/3.5;
+        {
+            if ( msg->persons[ii].position3D.point.z < 3. ) // depth in [1,3] m
+                det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.15;
+            else // depth > 3 m
+                det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.25;                
+        }
  
         det_base = qcam_base.matrix()*det_cam + tcam_base;
 

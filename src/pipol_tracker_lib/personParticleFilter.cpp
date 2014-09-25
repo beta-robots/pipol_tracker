@@ -183,11 +183,14 @@ void CpersonParticleFilter::predictPset(CodometryObservation & odo)
                 //particle position
                 vp1 << iiP->position.getX(), iiP->position.getY(), 1;
                 vp2 = homT2*vp1;
-                iiP->position.setX(vp2(0));
-                iiP->position.setY(vp2(1));
+                iiP->position.setX(vp2(0)/vp2(2));
+                iiP->position.setY(vp2(1)/vp2(2));
                 
                 //particle velocities
-                vp1 << iiP->velocity.getX(), iiP->velocity.getY(), 0; //Last component to 0 because velocity is a direction
+                vp1 << iiP->velocity.getX(), iiP->velocity.getY(), 0; //Last component 0 because velocity have to be rotated only
+                //homT1(0,2) = 0.; //20Hz->50ms
+                //homT1(1,2) = 0.; //20Hz->50ms
+                //homT2 = homT1.inverse();
                 vp2 = homT2*vp1;
                 iiP->velocity.setX(vp2(0));
                 iiP->velocity.setY(vp2(1));

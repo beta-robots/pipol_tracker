@@ -2,13 +2,13 @@
 #*************** particle filter parameters ************************
 
 #number of particles per target
-num_particles: 300
+num_particles: 500
 
 #when a new filter/target is launched, XY space is sampled along init_delta_xy from the first detection point [m]
-init_delta_xy: 0.2
+init_delta_xy: 0.3
 
 #when a new filter/target is launched, VxVy space is sampled along init_delta_vxy from 0 [m/s]
-init_delta_vxy: 0.5
+init_delta_vxy: 1.5
 
 #resampling standard deviation applied at the end of each filter iteration along XY dimensions [m]
 sigma_resampling_xy: 0.01
@@ -23,7 +23,7 @@ sigma_min_resampling_vxy: 0.1
 person_radius_legs: 0.5
 
 #person radius used in BODY and FACES matching functions. Smaller the radius, more precise should be detections [m]
-person_radius_body: 0.25
+person_radius_body: 0.3
 
 #LEG, BODY and BODY3D matching function parameters. 
 matching_legs_alpha: 0.1
@@ -61,10 +61,10 @@ max_consecutive_uncorrected_iterations: 60
 minimum_iterations_to_be_target: 5
 
 # a LEGGED target requires minimum_iterations_to_be_visually_confirmed iterations with FACE or BODY detections associated, to be considered as VISUALLY_CONFIRMED
-minimum_iterations_to_be_visually_confirmed: 4
+minimum_iterations_to_be_visually_confirmed: 3
 
 # a VISUALLY_CONFIRMED target requires minimum_iterations_to_be_friend more iterations with FACE or BODY detections associated, to be considered as a FRIEND
-minimum_iterations_to_be_friend: 5
+minimum_iterations_to_be_friend: 3
 
 #DEPRECATED! minimum number of pixels for appearance model 
 # minimum_appearance_region_size: 100
@@ -83,3 +83,5 @@ view_body_detections: 1
 
 #Publish visualization markers of a subset of particles. 0->Off, 1->On
 view_particles: 0
+
+#video at: recordmydesktop --no-cursor -x 400 -y 190 --width 950 --height 570
