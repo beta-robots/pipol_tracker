@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Axes1
         - /LaserScan1
         - /Image2
       Splitter Ratio: 0.5
@@ -51,7 +52,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Axes
       Enabled: true
-      Length: 1
+      Length: 0.3
       Name: Axes
       Radius: 0.1
       Reference Frame: base_link

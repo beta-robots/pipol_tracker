@@ -95,8 +95,8 @@ void AssociationTree::treeDecision(std::vector<std::pair<unsigned int, unsigned 
         sum += (*it)->getTreeProb();
     }
     //std::cout << "treeDecision(): "; (*bestNode)->printNode();
-    std::cout << "sum: " << sum << std::endl;
-    std::cout << "bestProb: " << bestProb << std::endl;
+    //std::cout << "sum: " << sum << std::endl;
+    //std::cout << "bestProb: " << bestProb << std::endl;
     
     //set pairs
     anPtr = *bestNode; //init pointer

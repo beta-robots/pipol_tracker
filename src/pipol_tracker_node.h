@@ -117,6 +117,7 @@ class CpipolTrackerNode
         bool verboseMode;
         bool viewBodyDetections;
         bool viewParticles;
+        double odoTrans; 
         //double ratioParticlesDisplayed;
         //unsigned int frameCount, hogDetCount;
         

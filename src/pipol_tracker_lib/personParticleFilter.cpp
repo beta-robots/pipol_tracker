@@ -497,7 +497,7 @@ double CpersonParticleFilter::body3dMatchingFunction(Cpoint3d & p1, Cpoint3d & p
     }
     else
     {
-        score = params.matchingBody3dAlpha*exp( (params.personRadiusBody-dd)*params.matchingBody3dBeta );
+        score = params.matchingBody3dAlpha*exp( (params.personRadiusLegs-dd)*params.matchingBody3dBeta );
     }
     return  score;
 }

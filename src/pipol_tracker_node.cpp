@@ -117,6 +117,7 @@ void CpipolTrackerNode::process()
       if (this->verboseMode) std::cout << std::endl << "*** Prior peopleSet:" << std::endl;
       //this->odometry_mutex_.enter(); 
       tracker.propagateFilters(platformOdometry); //platform motion
+      odoTrans = platformOdometry.getDeltaTrans();//just for visualization
       platformOdometry.resetDeltas();
       //this->odometry_mutex_.exit(); 
       tracker.propagateFilters(); //people motion
@@ -268,13 +269,32 @@ void CpipolTrackerNode::fillMessages()
     std::list<CbodyObservation> & bodyDetSet = tracker.getBodyDetSet();
     std::list<Cpoint3dObservation> & body3dDetSet = tracker.getBody3dDetSet();
     unsigned int markerArraySize;
-    markerArraySize = laserDetSet.size() + bodyDetSet.size() + body3dDetSet.size() + targets.size()*3;
+    markerArraySize = 1 + laserDetSet.size() + bodyDetSet.size() + body3dDetSet.size() + targets.size()*3;
     if ( this->viewParticles ) markerArraySize += targets.size()*30; //will send 30 markers corresponding to 30 particles per target
     MarkerArrayMsg.markers.clear();
     MarkerArrayMsg.markers.resize( markerArraySize );
     ii = 0;
     //if (this->verboseMode) std::cout << "\tlaserDetSet.size(): " << laserDetSet.size() << "\tbodyDetSet.size(): " << bodyDetSet.size() << "\ttargets.size(): " << targets.size() << "\tMarkerArrayMsg.markers.size() " << MarkerArrayMsg.markers.size() << std::endl; 
 
+    //Platform speed
+    this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
+    this->MarkerArrayMsg.markers[ii].header.stamp = ros::Time::now();
+    this->MarkerArrayMsg.markers[ii].id = ii;
+    this->MarkerArrayMsg.markers[ii].type = visualization_msgs::Marker::ARROW;
+    this->MarkerArrayMsg.markers[ii].action = visualization_msgs::Marker::ADD;
+    this->MarkerArrayMsg.markers[ii].pose.position.x = 0;
+    this->MarkerArrayMsg.markers[ii].pose.position.y = 0;
+    this->MarkerArrayMsg.markers[ii].pose.position.z = MARKER_Z;
+    this->MarkerArrayMsg.markers[ii].scale.x = odoTrans*50;
+    this->MarkerArrayMsg.markers[ii].scale.y = MARKER_SIZE/10;
+    this->MarkerArrayMsg.markers[ii].scale.z = MARKER_SIZE/10;
+    this->MarkerArrayMsg.markers[ii].color.a = MARKER_TRANSPARENCY;
+    this->MarkerArrayMsg.markers[ii].color.r = 1;
+    this->MarkerArrayMsg.markers[ii].color.g = 1;
+    this->MarkerArrayMsg.markers[ii].color.b = 1;
+    this->MarkerArrayMsg.markers[ii].lifetime = ros::Duration(MARKER_DURATION*3);
+    ii++;    
+    
     //2a. laser detections
     for (iiL=laserDetSet.begin(); iiL!=laserDetSet.end(); iiL++)
     {
@@ -875,16 +895,15 @@ void CpipolTrackerNode::body3dDetections_callback(const pal_detection_msgs::Pers
         
         //empiric calibration of depth. TODO: something better !!! Ideally at kinect driver level
         if ( msg->persons[ii].position3D.point.z < 1. ) //depth < 1m
-        {
-            det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.;
-        }
-        else  
-        {
-            if ( msg->persons[ii].position3D.point.z < 3. ) // depth in [1,3] m
+                det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.;
+        if ( ( msg->persons[ii].position3D.point.z >= 1. ) && ( msg->persons[ii].position3D.point.z < 2. ) ) // depth in [1,3] m
                 det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.15;
-            else // depth > 3 m
-                det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.25;                
-        }
+        if ( ( msg->persons[ii].position3D.point.z >= 2. ) && ( msg->persons[ii].position3D.point.z < 3. ) ) // depth in [1,3] m
+                det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.25;        
+        if ( ( msg->persons[ii].position3D.point.z >= 3. ) && ( msg->persons[ii].position3D.point.z < 4. ) )//[3,4]
+                det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.4;                        
+        if ( msg->persons[ii].position3D.point.z >= 4. ) //>4m
+                det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.6;                
  
         det_base = qcam_base.matrix()*det_cam + tcam_base;
 
