@@ -2,9 +2,9 @@
 #define point3dCov_H
 
 #include "point3d.h"
-#include <Eigen/Core>
-#include <Eigen/LU>
-#include <Eigen/Geometry>
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/LU>
+#include <eigen3/Eigen/Geometry>
 
 using namespace Eigen;
 using namespace std;

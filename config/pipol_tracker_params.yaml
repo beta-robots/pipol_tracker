@@ -51,23 +51,20 @@ max_detection_distance_accepted: 5
 #detections closer than this distance are ignored [m]
 min_detection_distance_accepted: 0.1
 
-#leg detections with azimut gerater than this are ignored [deg]
+#leg detections with azimut greater/smaller than this/-this are ignored [deg]
 max_detection_azimut_accepted: 90
 
 #If a target, not in occlusion, remains max_consecutive_uncorrected_iterations without having associated any detection, the target is deleted
 max_consecutive_uncorrected_iterations: 40
 
 # a CANDIDATE target requires minimum_iterations_to_be_target to be considered as a LEGGED target
-minimum_iterations_to_be_target: 5
+minimum_iterations_to_be_target: 4
 
-# a LEGGED target requires minimum_iterations_to_be_visually_confirmed iterations with FACE or BODY detections associated, to be considered as VISUALLY_CONFIRMED
+# a LEGGED target requires minimum_iterations_to_be_visually_confirmed iterations with FACE, BODY or BODY3D detections associated, to be considered as VISUALLY_CONFIRMED
 minimum_iterations_to_be_visually_confirmed: 3
 
-# a VISUALLY_CONFIRMED target requires minimum_iterations_to_be_friend more iterations with FACE or BODY detections associated, to be considered as a FRIEND
+# a VISUALLY_CONFIRMED target requires minimum_iterations_to_be_friend more iterations with FACE, BODY or BODY3D detections associated, to be considered as a FRIEND
 minimum_iterations_to_be_friend: 3
-
-#DEPRECATED! minimum number of pixels for appearance model 
-# minimum_appearance_region_size: 100
 
 
 #****************** ROS node options *************************************
@@ -84,4 +81,4 @@ view_body_detections: 1
 #Publish visualization markers of a subset of particles. 0->Off, 1->On
 view_particles: 1
 
-#video at: recordmydesktop --no-cursor -x 400 -y 190 --width 950 --height 570
+# video at: recordmydesktop --no-cursor -x 400 -y 190 --width 950 --height 570 

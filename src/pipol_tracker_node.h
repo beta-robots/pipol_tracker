@@ -11,8 +11,8 @@
 #include "pipol_tracker_lib/peopleTracker.h"
 
 //Eigen (algebra)
-#include "Eigen/Dense"
-#include "Eigen/Geometry"
+#include "eigen3/Eigen/Dense"
+#include "eigen3/Eigen/Geometry"
 
 
 //ROS headers for image I/O
