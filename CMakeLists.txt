@@ -12,7 +12,6 @@ find_package( catkin REQUIRED COMPONENTS
       cv_bridge
       message_generation
       dynamic_reconfigure 
-      pal_vision_msgs
       pal_detection_msgs      
 )
 
@@ -60,7 +59,6 @@ generate_messages(
       DEPENDENCIES 
       std_msgs 
       geometry_msgs
-      pal_vision_msgs
       pal_detection_msgs
 )
 
@@ -79,7 +77,6 @@ catkin_package (
             cv_bridge 
             message_runtime 
             dynamic_reconfigure
-            pal_vision_msgs
             pal_detection_msgs
 )
 

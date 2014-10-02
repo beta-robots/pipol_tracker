@@ -19,8 +19,6 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
-// #include <opencv2/imgproc/imgproc.hpp>
-// #include <opencv2/highgui/highgui.hpp>
 
 //ROS std messages
 #include <std_msgs/Int32.h>
@@ -30,14 +28,10 @@
 #include <visualization_msgs/MarkerArray.h>
 
 //ROS messages belonging to pal_vision/detection_msgs pkg. 
-#include <pal_vision_msgs/LegDetections.h> //leg detections (input)
-#include <pal_vision_msgs/HogDetections.h> //body detections (input)
-#include <pal_vision_msgs/FaceDetections.h> //face detections (input)
 #include <pal_detection_msgs/LegDetections.h> //leg detections (input)
 #include <pal_detection_msgs/Detections2d.h> //body detections (input)
 #include <pal_detection_msgs/FaceDetections.h> //face detections (input)
 #include <pal_detection_msgs/PersonDetections.h> //3d body detections (input)
-
 
 //ROS messages belonging to open-TLD pkg
 // #include <tld_msgs/BoundingBox.h>
@@ -55,9 +49,6 @@ const double MARKER_Z = 0.2;
 const double MARKER_DURATION = 0.1;
 const double MARKER_TEXT_SIZE = 0.3;
 const double MARKER_TRANSPARENCY = 0.9;
-
-//Put 2013 to use rosbags of 2013. Messages were from pal_vision_msgs, quite different than current pal_detection_msgs
-const int YEAR = 2014; 
 
 //node execution mode
 enum executionModes {MULTI_TRACKING=0, SHOOT_TLD, FOLLOW_ME};
@@ -118,8 +109,6 @@ class CpipolTrackerNode
         bool viewBodyDetections;
         bool viewParticles;
         double odoTrans; 
-        //double ratioParticlesDisplayed;
-        //unsigned int frameCount, hogDetCount;
         
         // initialize tf from base_link to camera, and get camera matrix
         //void initCamera();      
@@ -133,9 +122,6 @@ class CpipolTrackerNode
     protected: 
         // subscriber callbacks
         void odometry_callback(const nav_msgs::Odometry::ConstPtr& msg);
-        void legDetections_callback_2013(const pal_vision_msgs::LegDetections::ConstPtr& msg);
-        void bodyDetections_callback_2013(const pal_vision_msgs::HogDetections::ConstPtr& msg);
-        void faceDetections_callback_2013(const pal_vision_msgs::FaceDetections::ConstPtr& msg);
         void legDetections_callback(const pal_detection_msgs::LegDetections::ConstPtr& msg);
         void bodyDetections_callback(const pal_detection_msgs::Detections2d::ConstPtr& msg);
         void faceDetections_callback(const pal_detection_msgs::FaceDetections::ConstPtr& msg);            

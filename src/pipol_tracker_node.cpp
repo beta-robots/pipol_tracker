@@ -2,95 +2,76 @@
 
 CpipolTrackerNode::CpipolTrackerNode() : nh(ros::this_node::getName()) , it(this->nh)
 {
-      int intParam, year;
-           
-      //general prupose variables
-      //tldMessageFilled = false;
-      exeMode = MULTI_TRACKING;
-      std::cout << "TRACKER EXE MODE INIT TO: " << exeMode << std::endl;
-      tracker.setFollowMeTargetId(-1);//indicates no follow me target yet
-	
-      //init user parameters. general running parameters
-      nh.getParam("verbose_mode", intParam); this->verboseMode = (bool)intParam;
-      
-      //init user parameters. filter parameters
-      nh.getParam("num_particles", intParam); this->filterParams.numParticles = (unsigned int)intParam;
-      nh.getParam("init_delta_xy", this->filterParams.initDeltaXY);
-      nh.getParam("init_delta_vxy", this->filterParams.initDeltaVxy);
-      nh.getParam("sigma_resampling_xy", this->filterParams.sigmaResamplingXY);
-      nh.getParam("sigma_ratio_resampling_vxy", this->filterParams.sigmaRatioResamplingVxy);
-      nh.getParam("sigma_min_resampling_vxy", this->filterParams.sigmaMinResamplingVxy);
-      nh.getParam("person_radius_legs", this->filterParams.personRadiusLegs);
-      nh.getParam("person_radius_body", this->filterParams.personRadiusBody);
-      nh.getParam("matching_legs_alpha", this->filterParams.matchingLegsAlpha);
-      nh.getParam("matching_legs_beta", this->filterParams.matchingLegsBeta);
-      nh.getParam("matching_bearing_alpha", this->filterParams.matchingBearingAlpha);
-      nh.getParam("matching_bearing_beta", this->filterParams.matchingBearingBeta);
-      nh.getParam("matching_body3d_alpha", this->filterParams.matchingBody3dAlpha);
-      nh.getParam("matching_body3d_beta", this->filterParams.matchingBody3dBeta);      
+    int intParam;
+        
+    //general prupose variables
+    //tldMessageFilled = false;
+    exeMode = MULTI_TRACKING;
+    std::cout << "TRACKER EXE MODE INIT TO: " << exeMode << std::endl;
+    tracker.setFollowMeTargetId(-1);//indicates no follow me target yet
+    
+    //init user parameters. general running parameters
+    nh.getParam("verbose_mode", intParam); this->verboseMode = (bool)intParam;
+    
+    //init user parameters. filter parameters
+    nh.getParam("num_particles", intParam); this->filterParams.numParticles = (unsigned int)intParam;
+    nh.getParam("init_delta_xy", this->filterParams.initDeltaXY);
+    nh.getParam("init_delta_vxy", this->filterParams.initDeltaVxy);
+    nh.getParam("sigma_resampling_xy", this->filterParams.sigmaResamplingXY);
+    nh.getParam("sigma_ratio_resampling_vxy", this->filterParams.sigmaRatioResamplingVxy);
+    nh.getParam("sigma_min_resampling_vxy", this->filterParams.sigmaMinResamplingVxy);
+    nh.getParam("person_radius_legs", this->filterParams.personRadiusLegs);
+    nh.getParam("person_radius_body", this->filterParams.personRadiusBody);
+    nh.getParam("matching_legs_alpha", this->filterParams.matchingLegsAlpha);
+    nh.getParam("matching_legs_beta", this->filterParams.matchingLegsBeta);
+    nh.getParam("matching_bearing_alpha", this->filterParams.matchingBearingAlpha);
+    nh.getParam("matching_bearing_beta", this->filterParams.matchingBearingBeta);
+    nh.getParam("matching_body3d_alpha", this->filterParams.matchingBody3dAlpha);
+    nh.getParam("matching_body3d_beta", this->filterParams.matchingBody3dBeta);      
 //    nh.getParam("power_rgb_cos", intParam); this->filterParams.powerRGBcos = (unsigned int)intParam;
 
-      //init user parameters. tracker parameters
-      nh.getParam("minimum_distance_between_people", this->trackerParams.minDistanceBetweenPeople);
-      nh.getParam("minimum_association_prob", this->trackerParams.minAssociationProb);
-      nh.getParam("max_detection_distance_accepted", this->trackerParams.maxDetectionDistance);
-      nh.getParam("min_detection_distance_accepted", this->trackerParams.minDetectionDistance);
-      nh.getParam("max_detection_azimut_accepted", this->trackerParams.maxDetectionAzimut);      
-      this->trackerParams.maxDetectionAzimut = this->trackerParams.maxDetectionAzimut*M_PI/180.;
-      nh.getParam("max_consecutive_uncorrected_iterations", intParam); this->trackerParams.maxConsecutiveUncorrected = (unsigned int)intParam;
-      nh.getParam("minimum_iterations_to_be_target", intParam); this->trackerParams.minIterationsToBeTarget = (unsigned int)intParam;
-      nh.getParam("minimum_iterations_to_be_visually_confirmed", intParam); this->trackerParams.iterationsToBeVisuallyConfirmed = (unsigned int)intParam;
-      nh.getParam("minimum_iterations_to_be_friend", intParam); this->trackerParams.iterationsToBeFriend = (unsigned int)intParam;                
-      nh.getParam("minimum_appearance_region_size", intParam); this->trackerParams.minAppearanceRegionSize = (unsigned int)intParam;
-      nh.getParam("tracker_rate", this->rate_);
+    //init user parameters. tracker parameters
+    nh.getParam("minimum_distance_between_people", this->trackerParams.minDistanceBetweenPeople);
+    nh.getParam("minimum_association_prob", this->trackerParams.minAssociationProb);
+    nh.getParam("max_detection_distance_accepted", this->trackerParams.maxDetectionDistance);
+    nh.getParam("min_detection_distance_accepted", this->trackerParams.minDetectionDistance);
+    nh.getParam("max_detection_azimut_accepted", this->trackerParams.maxDetectionAzimut);      
+    this->trackerParams.maxDetectionAzimut = this->trackerParams.maxDetectionAzimut*M_PI/180.;
+    nh.getParam("max_consecutive_uncorrected_iterations", intParam); this->trackerParams.maxConsecutiveUncorrected = (unsigned int)intParam;
+    nh.getParam("minimum_iterations_to_be_target", intParam); this->trackerParams.minIterationsToBeTarget = (unsigned int)intParam;
+    nh.getParam("minimum_iterations_to_be_visually_confirmed", intParam); this->trackerParams.iterationsToBeVisuallyConfirmed = (unsigned int)intParam;
+    nh.getParam("minimum_iterations_to_be_friend", intParam); this->trackerParams.iterationsToBeFriend = (unsigned int)intParam;                
+    nh.getParam("minimum_appearance_region_size", intParam); this->trackerParams.minAppearanceRegionSize = (unsigned int)intParam;
+    nh.getParam("tracker_rate", this->rate_);
 
-      //visualization parameters
-      nh.getParam("view_body_detections", intParam); this->viewBodyDetections = (bool)intParam;
-      nh.getParam("view_particles", intParam); this->viewParticles = (bool)intParam;
-      //nh.getParam("ratio_particles_displayed", this->ratioParticlesDisplayed);
-      
-      //set parameters to tracker
-      this->tracker.setParameters(trackerParams);
-      this->tracker.setFilterParameters(filterParams);
+    //visualization parameters
+    nh.getParam("view_body_detections", intParam); this->viewBodyDetections = (bool)intParam;
+    nh.getParam("view_particles", intParam); this->viewParticles = (bool)intParam;
+    //nh.getParam("ratio_particles_displayed", this->ratioParticlesDisplayed);
+    
+    //set parameters to tracker
+    this->tracker.setParameters(trackerParams);
+    this->tracker.setFilterParameters(filterParams);
 
-      //initializes random generator, for visualization purposes (particle visualization ratio);
-      srand ( time(NULL) );
+    //initializes random generator, for visualization purposes (particle visualization ratio);
+    srand ( time(NULL) );
+    
+    // init publishers
+    this->particleSetPub = nh.advertise<visualization_msgs::MarkerArray>("debug", 100);
+    this->peopleSetPub = nh.advertise<pipol_tracker_pkg::personArray>("peopleSet", 100);
+    this->imagePub = it.advertise("image_out", 1);
+    //this->tldBB_publisher_ = nh.advertise<tld_msgs::Target>("tld_init", 1000, true);
+
+    // init subscribers
+    this->odometrySubs = nh.subscribe("odometry", 100, &CpipolTrackerNode::odometry_callback, this);
+    this->followMeSubs = nh.subscribe("followMe", 100, &CpipolTrackerNode::followMe_callback, this);      
+    this->imageSubs = it.subscribe("image_in", 1, &CpipolTrackerNode::image_callback, this);  
+    this->cameraInfoSubs = nh.subscribe("cameraInfo_in", 100, &CpipolTrackerNode::cameraInfo_callback, this);
       
-      //debug counters
-      //frameCount = 0;
-      //hogDetCount = 0;
-	
-      // init publishers
-	this->particleSetPub = nh.advertise<visualization_msgs::MarkerArray>("debug", 100);
-	this->peopleSetPub = nh.advertise<pipol_tracker_pkg::personArray>("peopleSet", 100);
-	this->imagePub = it.advertise("image_out", 1);
-      //this->tldBB_publisher_ = nh.advertise<tld_msgs::Target>("tld_init", 1000, true);
-  
-      // init subscribers
-      this->odometrySubs = nh.subscribe("odometry", 100, &CpipolTrackerNode::odometry_callback, this);
-      this->followMeSubs = nh.subscribe("followMe", 100, &CpipolTrackerNode::followMe_callback, this);      
-      this->imageSubs = it.subscribe("image_in", 1, &CpipolTrackerNode::image_callback, this);  
-      this->cameraInfoSubs = nh.subscribe("cameraInfo_in", 100, &CpipolTrackerNode::cameraInfo_callback, this);
-      
-      //init subscribers (year dependent)
-      nh.getParam("year", year);
-      switch ( year ) //according year , some messages changed. This assure the execution of 2013 rosbags. Default is 2014. 
-      {
-            case 2013:
-                  this->legDetectionsSubs = nh.subscribe("legDetections", 100, &CpipolTrackerNode::legDetections_callback_2013, this);
-                  this->bodyDetectionsSubs = nh.subscribe("bodyDetections", 100, &CpipolTrackerNode::bodyDetections_callback_2013, this);
-                  this->faceDetectionsSubs = nh.subscribe("faceDetections", 100, &CpipolTrackerNode::faceDetections_callback_2013, this);
-                  //this->tldDetectionsSubs = nh.subscribe("tldDetections", 100, &pipolTrackerNode::tldDetections_callback, this);           
-                  break;
-            case 2014:
-                  this->legDetectionsSubs = nh.subscribe("legDetections", 100, &CpipolTrackerNode::legDetections_callback, this);
-                  this->bodyDetectionsSubs = nh.subscribe("bodyDetections", 100, &CpipolTrackerNode::bodyDetections_callback, this);
-                  this->faceDetectionsSubs = nh.subscribe("faceDetections", 100, &CpipolTrackerNode::faceDetections_callback, this);
-                  this->body3dDetectionsSubs = nh.subscribe("body3dDetections", 100, &CpipolTrackerNode::body3dDetections_callback, this);
-                  break;
-            default:
-                  break;
-      }
+    this->legDetectionsSubs = nh.subscribe("legDetections", 100, &CpipolTrackerNode::legDetections_callback, this);
+    this->bodyDetectionsSubs = nh.subscribe("bodyDetections", 100, &CpipolTrackerNode::bodyDetections_callback, this);
+    this->faceDetectionsSubs = nh.subscribe("faceDetections", 100, &CpipolTrackerNode::faceDetections_callback, this);
+    this->body3dDetectionsSubs = nh.subscribe("body3dDetections", 100, &CpipolTrackerNode::body3dDetections_callback, this);
 }
 
 CpipolTrackerNode::~CpipolTrackerNode()
@@ -102,24 +83,14 @@ void CpipolTrackerNode::process()
 {	
       if (this->verboseMode) std::cout << std::endl << "************* NEW ITERATION **************" << std::endl;
 
-      //LOCK data reception mutexes
-//       this->legDetections_mutex_.enter(); 
-//       this->bodyDetections_mutex_.enter(); 
-//       this->faceDetections_mutex_.enter(); 
-//       this->tldDetections_mutex_.enter(); 
-//       this->followMe_mutex_.enter(); 
-//       this->image_mutex_.enter();
-
       //PRINT DETECTIONS AVAILABLE AT THIS ITERATION
       if (this->verboseMode) tracker.printDetectionSets();
       
       //FILTER PREDICTION
       if (this->verboseMode) std::cout << std::endl << "*** Prior peopleSet:" << std::endl;
-      //this->odometry_mutex_.enter(); 
       tracker.propagateFilters(platformOdometry); //platform motion
       odoTrans = platformOdometry.getDeltaTrans();//just for visualization
       platformOdometry.resetDeltas();
-      //this->odometry_mutex_.exit(); 
       tracker.propagateFilters(); //people motion
       
       //OCCLUSIONS
@@ -130,12 +101,10 @@ void CpipolTrackerNode::process()
       tracker.updateTargetStatus();
       if (this->verboseMode) tracker.printPeopleSet();
       
-// std::cout << "NODE: " << __LINE__ << std::endl;                            
       //DATA ASSOCIATION
-      //if (this->verboseMode) std::cout << std::endl << "*** Target/Detection association" << std::endl;
+      if (this->verboseMode) std::cout << std::endl << "*** Target/Detection association" << std::endl;
       //tracker.updateAssociationTables();
       tracker.updateAssociationTablesTree();
-// std::cout << "NODE: " << __LINE__ << std::endl;                            
 
       //MARK BOUNDING BOXES OF VISUAL DETECTIONS (& LEARN CURRENT DETECTED APPEARANCES -> TO DO !!)
       if ( cvImgPtrSubs!=NULL )
@@ -156,28 +125,23 @@ void CpipolTrackerNode::process()
       //CORRECTION
       if (this->verboseMode) std::cout << std::endl << "*** Posterior peopleSet:" << std::endl;
       tracker.correctFilters();
-// std::cout << "NODE: " << __LINE__ << std::endl;                                  
             
       //UPDATE FILTER ESTIMATES AND ADD THEM TO EACH TARGET TRACK
       tracker.updateFilterEstimates();
       tracker.addEstimatesToTracks();
       if (this->verboseMode) tracker.printPeopleSet();
-// std::cout << "NODE: " << __LINE__ << std::endl;                                  
                   
       //LAUNCH NEW FILTERS IF NEW DETECTIONS ARE NOT ASSOCIATED
       if (this->verboseMode) std::cout << std::endl << "*** Create Filters" << std::endl;
       tracker.createFilters();
-// std::cout << "NODE: " << __LINE__ << std::endl;                                  
 
       //REMOVE UNSUPPORTED TARGETS
       if (this->verboseMode) std::cout << std::endl << "*** Delete Filters" << std::endl;
       tracker.deleteFilters();
-// std::cout << "NODE: " << __LINE__ << std::endl;                                  
             
       //RESAMPLING PARTICLE SETS 
       if (this->verboseMode) std::cout << std::endl << "*** Resampling" << std::endl;
       tracker.resampleFilters();
-// std::cout << "NODE: " << __LINE__ << std::endl;                                  
       
       //Check if TLD tracker can be initialized, if so, initTLD
 //       if ( (exeMode == MULTI_TRACKING) && (tracker.getFollowMeTargetId()>0) )
@@ -198,14 +162,7 @@ void CpipolTrackerNode::process()
       tracker.resetDetectionSets(BODY3D);
       //tracker.resetDetectionSets(TLD);
 
-      //UNLOCK data reception mutexes (except image mutex which will be unlocked below)
-//       this->legDetections_mutex_.exit(); 
-//       this->bodyDetections_mutex_.exit(); 
-//       this->faceDetections_mutex_.exit();
-//       this->tldDetections_mutex_.exit();
-//       this->followMe_mutex_.exit(); 
-
-      // publish messages
+      // PUBLISH MESSAGES
       this->particleSetPub.publish(this->MarkerArrayMsg);
       this->peopleSetPub.publish(this->personArrayMsg);
       if ( &cvImgPub != NULL ) imagePub.publish(cvImgPub.toImageMsg());
@@ -217,8 +174,6 @@ void CpipolTrackerNode::process()
 //             tldBB_publisher_.publish(tldBB_msg_);//this message is published once, just to start-up tld tracker
 //       }
 
-      //unlock image mutex
-      //this->image_mutex_.exit();        
 }
 
 void CpipolTrackerNode::fillMessages()
@@ -270,11 +225,10 @@ void CpipolTrackerNode::fillMessages()
     std::list<Cpoint3dObservation> & body3dDetSet = tracker.getBody3dDetSet();
     unsigned int markerArraySize;
     markerArraySize = 1 + laserDetSet.size() + bodyDetSet.size() + body3dDetSet.size() + targets.size()*3;
-    if ( this->viewParticles ) markerArraySize += targets.size()*30; //will send 30 markers corresponding to 30 particles per target
+    if ( this->viewParticles ) markerArraySize += targets.size()*30; //30 markers corresponding to 30 particles per target
     MarkerArrayMsg.markers.clear();
     MarkerArrayMsg.markers.resize( markerArraySize );
     ii = 0;
-    //if (this->verboseMode) std::cout << "\tlaserDetSet.size(): " << laserDetSet.size() << "\tbodyDetSet.size(): " << bodyDetSet.size() << "\ttargets.size(): " << targets.size() << "\tMarkerArrayMsg.markers.size() " << MarkerArrayMsg.markers.size() << std::endl; 
 
     //Platform speed
     this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
@@ -473,12 +427,6 @@ void CpipolTrackerNode::fillMessages()
 //                         else markerText << "-";
                     }
                 }
-                /*switch( iiF->getMotionMode() ) //add a label according current motion mode
-                {
-                    case MODE_STOP: markerText << ", STOP"; break;
-                    case MODE_GO: markerText << ", GO"; break;    
-                    default: break;
-                } */           
                 this->MarkerArrayMsg.markers[ii].text = markerText.str();
                 ii++; //increment marker index due to marker text
             }
@@ -489,7 +437,7 @@ void CpipolTrackerNode::fillMessages()
                 std::list<CpersonParticle> & pSet = iiF->getParticleSet();
                 for (iiP=pSet.begin(),jj=0;iiP!=pSet.end();iiP++,jj++)
                 {
-                    //just publish markers corresponding to start, center and end of the set
+                    //just publish markers corresponding to 30 particles at the start, the middle and the end of the set
                     if ( (jj<10) || (((pSet.size()/2-5)<jj)&&(jj<=(pSet.size()/2 + 5))) || (((pSet.size()-10)<=jj)&&(jj<(pSet.size()))) )
                     {
                         this->MarkerArrayMsg.markers[ii].header.frame_id = "/base_link";
@@ -603,9 +551,6 @@ void CpipolTrackerNode::odometry_callback(const nav_msgs::Odometry::ConstPtr& ms
       double vx,vy,vz,vTrans;
       double tLast, dT;
 
-      //use appropiate mutex to shared variables if necessary 
-      //this->odometry_mutex_.enter(); 
-
       //if (this->verboseMode) std::cout << msg->data << std::endl; 
       tLast = platformOdometry.timeStamp.get();
       platformOdometry.timeStamp.setToNow();
@@ -618,96 +563,6 @@ void CpipolTrackerNode::odometry_callback(const nav_msgs::Odometry::ConstPtr& ms
       platformOdometry.accumDeltaTrans(dT*vTrans);
       platformOdometry.accumDeltaH(dT*msg->twist.twist.angular.z);
       
-      //unlock previously blocked shared variables 
-      //this->alg_.unlock(); 
-      //this->odometry_mutex_.exit(); 
-}
-
-void CpipolTrackerNode::legDetections_callback_2013(const pal_vision_msgs::LegDetections::ConstPtr& msg) 
-{ 
-      Cpoint3dObservation newDetection;
-        
-      //sets current (received) detections
-      for (unsigned int ii=0; ii<msg->position3D.size(); ii++)
-      {
-            newDetection.timeStamp.set(msg->header.stamp.sec, msg->header.stamp.nsec);
-            newDetection.point.setXYZ(msg->position3D[ii].x, msg->position3D[ii].y, 0.0);
-            newDetection.point.setXYcov(0.2,0.2,0);
-            tracker.addDetection(newDetection);
-      }
-}
-
-void CpipolTrackerNode::bodyDetections_callback_2013(const pal_vision_msgs::HogDetections::ConstPtr& msg) 
-{ 
-      unsigned int ii, jj;
-      CbodyObservation newDetection;
-      std::list<CbodyObservation>::iterator iiB;
-      
-      //sets current (received) detections
-      for (ii=0; ii<msg->persons.size(); ii++)
-      {
-		//time stamp
-		newDetection.timeStamp.set(msg->header.stamp.sec, msg->header.stamp.nsec);
-		
-		//bounding box
-		newDetection.bbX = msg->persons[ii].imageBoundingBox.x;
-		newDetection.bbY = msg->persons[ii].imageBoundingBox.y;
-		newDetection.bbW = msg->persons[ii].imageBoundingBox.width;
-		newDetection.bbH = msg->persons[ii].imageBoundingBox.height;
-		
-		//direction
-		newDetection.direction.setXYZ(msg->persons[ii].direction.x, msg->persons[ii].direction.y, msg->persons[ii].direction.z);
-		
-		//rgb Eigen
-		newDetection.rgbEigen.setXYZ(msg->persons[ii].principalEigenVectorRGB.r, msg->persons[ii].principalEigenVectorRGB.g, msg->persons[ii].principalEigenVectorRGB.b);
-		
-		//rgb centers
-		newDetection.rgbCenters.resize(msg->persons[ii].rgbClusterCenters.size());
-		for(jj=0; jj<newDetection.rgbCenters.size(); jj++)
-		{
-			newDetection.rgbCenters.at(jj).setXYZ(msg->persons[ii].rgbClusterCenters[jj].r, msg->persons[ii].rgbClusterCenters[jj].g, msg->persons[ii].rgbClusterCenters[jj].b);
-		}	
-		
-		//hog descriptor
-		newDetection.hog.resize(msg->persons[ii].hog.size());
-		for(jj=0; jj<newDetection.hog.size(); jj++)
-		{
-			newDetection.hog[jj] = msg->persons[ii].hog[jj];
-			//hogFile << msg->persons[ii].hog[jj] << " ";
-		}
-		//hogFile << std::endl;
-		
-		//rgbDescriptors
-		if (this->verboseMode) std::cout << "rgbDescriptor1.size(): " << msg->persons[ii].rgbDescriptor1.size() << std::endl;
-				
-		//add detection to tracker list
-		tracker.addDetection(newDetection);
-	}
-}
-
-void CpipolTrackerNode::faceDetections_callback_2013(const pal_vision_msgs::FaceDetections::ConstPtr& msg) 
-{ 
-      unsigned int ii;
-      CfaceObservation newDetection;
-
-      //sets current (received) detections
-      for (ii=0; ii<msg->faces.size(); ii++)
-      {
-            //set time stamp
-            newDetection.timeStamp.set(msg->header.stamp.sec, msg->header.stamp.nsec);
-            
-            //get message data
-            newDetection.faceLoc.setX(msg->faces[ii].position3D.x);
-            newDetection.faceLoc.setY(msg->faces[ii].position3D.y);
-            newDetection.faceLoc.setZ(msg->faces[ii].position3D.z);
-            newDetection.bbX = msg->faces[ii].imageBoundingBox.x;
-            newDetection.bbY = msg->faces[ii].imageBoundingBox.y;
-            newDetection.bbW = msg->faces[ii].imageBoundingBox.width;
-            newDetection.bbH = msg->faces[ii].imageBoundingBox.height;
-            
-            //add detection to tracker list
-            tracker.addDetection(newDetection);
-      }
 }
 
 void CpipolTrackerNode::legDetections_callback(const pal_detection_msgs::LegDetections::ConstPtr& msg) 
@@ -910,7 +765,6 @@ void CpipolTrackerNode::body3dDetections_callback(const pal_detection_msgs::Pers
         //add detection to tracker list
         tracker.addDetectionBody3d(newDetection);
     }
-
 }
 
 void CpipolTrackerNode::followMe_callback(const std_msgs::Int32::ConstPtr& msg) 
@@ -934,7 +788,6 @@ void CpipolTrackerNode::image_callback(const sensor_msgs::ImageConstPtr& msg)
 
 void CpipolTrackerNode::cameraInfo_callback(const sensor_msgs::CameraInfo & msg)
 {
-      
       camK << msg.K[0],msg.K[1],msg.K[2],msg.K[3],msg.K[4],msg.K[5],msg.K[6],msg.K[7],msg.K[8];
       std::cout << "Camera Info Message Received. Camera calibration data loaded." << std::endl;
       this->cameraInfoSubs.shutdown();

@@ -73,7 +73,7 @@ minimum_iterations_to_be_friend: 3
 verbose_mode: 0
 
 #year: 2013 or 2014 (messages changed. 2013 only useful for recorded rosbags)
-year: 2014
+# year: 2014
 
 #Publish visualization markers corresponding to body detections , 0->Off, 1->On
 view_body_detections: 1
