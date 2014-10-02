@@ -6,14 +6,6 @@
 		type="play"
 		name="rosbag"
 		args="-l --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20140925_twoPeople.bag"/>	
-<!--        20140422_robotMoving.bag -->
-<!--        20140422_robotStopped.bag -->
-<!--        20140604_robotMoving.bag -->
-<!--        20140604_robotStopped.bag -->
-<!--        20140607_robotMoving.bag -->
-<!--        20140607_robotStopped.bag -->
-<!--        20140629_robotMoving.bag -->
-<!--        20140629_robotMoving_withGoals.bag -->
 <!--        20140703_robotStopped.bag -->
 <!--        20140703_robotMoving.bag -->
 <!--        20140925_FollowMe.bag -->
@@ -58,14 +50,5 @@
 		<param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
 	</node>
 
-      <!-- 	Visualization of image bounding boxes -->
-<!--	<node	name="imageBB_view_out"
-		pkg="image_view" 
-		type="image_view" >
-		<param name="window_name" value= "ON-BOARD CAMERA - BOUNDING BOXES" type="str" />
-		<remap from="/image"
-			to="/$(env ROBOT)/pipol_tracker_node/image_out"/>
-	</node>-->
-	
 </launch>
 
