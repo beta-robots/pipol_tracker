@@ -862,6 +862,7 @@ void CpipolTrackerNode::faceDetections_callback(const pal_detection_msgs::FaceDe
 void CpipolTrackerNode::body3dDetections_callback(const pal_detection_msgs::PersonDetections::ConstPtr& msg)
 {
     unsigned int ii;
+    double cal_coeff;
     Cpoint3dObservation newDetection;
     std::string frame_id;      
     Eigen::Vector3d tcam_base; //translation of camera device wrt base
@@ -893,18 +894,14 @@ void CpipolTrackerNode::body3dDetections_callback(const pal_detection_msgs::Pers
         //set time stamp
         newDetection.timeStamp.set(msg->header.stamp.sec, msg->header.stamp.nsec);
         
-        //empiric calibration of depth. TODO: something better !!! Ideally at kinect driver level
-        if ( msg->persons[ii].position3D.point.z < 1. ) //depth < 1m
-                det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.;
-        if ( ( msg->persons[ii].position3D.point.z >= 1. ) && ( msg->persons[ii].position3D.point.z < 2. ) ) // depth in [1,3] m
-                det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.15;
-        if ( ( msg->persons[ii].position3D.point.z >= 2. ) && ( msg->persons[ii].position3D.point.z < 3. ) ) // depth in [1,3] m
-                det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.25;        
-        if ( ( msg->persons[ii].position3D.point.z >= 3. ) && ( msg->persons[ii].position3D.point.z < 4. ) )//[3,4]
-                det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.4;                        
-        if ( msg->persons[ii].position3D.point.z >= 4. ) //>4m
-                det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, msg->persons[ii].position3D.point.z*1.6;                
- 
+        //DEPTH CALIBRATION: empiric calibration of depth. (0,1):1, (1,2):1.15, (2,3):1.25, (3,4):1.4, (4+):1.6
+        //calibration coefficient modelled as C = (1/30)*depth^2 + 1;
+        if ( msg->persons[ii].position3D.point.z < 4. ) 
+            cal_coeff = (1/30.)*msg->persons[ii].position3D.point.z*msg->persons[ii].position3D.point.z + 1;
+        else
+            cal_coeff = 1.53;
+        
+        det_cam << msg->persons[ii].position3D.point.x, msg->persons[ii].position3D.point.y, cal_coeff*msg->persons[ii].position3D.point.z;                
         det_base = qcam_base.matrix()*det_cam + tcam_base;
 
         //Set detection

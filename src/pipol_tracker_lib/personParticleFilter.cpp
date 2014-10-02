@@ -316,6 +316,7 @@ void CpersonParticleFilter::resamplePset()
     std::list<CpersonParticle>::iterator iiP, jjP;
     double pX, pY, pVx, pVy; //the sample values to generate a new particle
     CpersonParticle *newP; //to generate new particles
+    double v_mod;
     
     //normalize pSet (It could be not normalized due to particle deletion)
     this->normalizePset(); 
@@ -339,8 +340,13 @@ void CpersonParticleFilter::resamplePset()
         }
         pX = iiP->position.getX() + random_normal(0,params.sigmaResamplingXY); //centered at particle ii
         pY = iiP->position.getY() + random_normal(0,params.sigmaResamplingXY); //centered at particle ii
-        pVx = iiP->velocity.getX() + random_normal(0,params.sigmaRatioResamplingVxy*iiP->velocity.getX()+params.sigmaMinResamplingVxy);
-        pVy = iiP->velocity.getY() + random_normal(0,params.sigmaRatioResamplingVxy*iiP->velocity.getY()+params.sigmaMinResamplingVxy);                
+
+//         pVx = iiP->velocity.getX() + random_normal(0,params.sigmaRatioResamplingVxy*iiP->velocity.getX()+params.sigmaMinResamplingVxy);
+//         pVy = iiP->velocity.getY() + random_normal(0,params.sigmaRatioResamplingVxy*iiP->velocity.norm()+params.sigmaMinResamplingVxy);                
+        
+        pVx = iiP->velocity.getX() + random_normal(0,params.sigmaRatioResamplingVxy*iiP->velocity.norm()+params.sigmaMinResamplingVxy);
+        pVy = iiP->velocity.getY() + random_normal(0,params.sigmaRatioResamplingVxy*iiP->velocity.norm()+params.sigmaMinResamplingVxy);                
+
         newP = new CpersonParticle(pX,pY,pVx,pVy,1.0/(double)params.numParticles);
         pSet.push_back(*newP);
         rnd += 1.0/(double)params.numParticles;
