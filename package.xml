@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>pipol_tracker_pkg</name>
+  <name>pipol_tracker</name>
   <version>0.0.0</version>
   <description>
         This package implements a multi-detector, multi-target people tracker.

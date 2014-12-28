@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(pipol_tracker_pkg)
+project(pipol_tracker)
 
 ## Find catkin macros and libraries
 find_package( catkin REQUIRED COMPONENTS 
@@ -17,7 +17,7 @@ find_package( catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 find_package(OpenCV REQUIRED)
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 #SRCS files. Pipol tracker library
 SET(SRCS_PT_LIB 

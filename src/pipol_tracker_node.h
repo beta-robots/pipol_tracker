@@ -38,10 +38,10 @@
 // #include <tld_msgs/Target.h>
 
 //ROS messages belonging to this pkg
-#include <pipol_tracker_pkg/personArray.h> //target list (output)
+#include <pipol_tracker/personArray.h> //target list (output)
 
 //ROS dynamic configure
-#include <pipol_tracker_pkg/pipol_tracker_configConfig.h>
+#include <pipol_tracker/pipol_tracker_configConfig.h>
 
 //visualization constants
 const double MARKER_SIZE = 0.5;
@@ -86,7 +86,7 @@ class CpipolTrackerNode
         
         // output messages
         visualization_msgs::MarkerArray MarkerArrayMsg;
-        pipol_tracker_pkg::personArray personArrayMsg;
+        pipol_tracker::personArray personArrayMsg;
         cv_bridge::CvImage cvImgPub;
         // tld_msgs::Target tldBoxMsg;
         

@@ -58,7 +58,7 @@ CpipolTrackerNode::CpipolTrackerNode() : nh(ros::this_node::getName()) , it(this
     
     // init publishers
     this->particleSetPub = nh.advertise<visualization_msgs::MarkerArray>("debug", 100);
-    this->peopleSetPub = nh.advertise<pipol_tracker_pkg::personArray>("peopleSet", 100);
+    this->peopleSetPub = nh.advertise<pipol_tracker::personArray>("peopleSet", 100);
     this->imagePub = it.advertise("image_out", 1);
     //this->tldBB_publisher_ = nh.advertise<tld_msgs::Target>("tld_init", 1000, true);
 
