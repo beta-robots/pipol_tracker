@@ -14,7 +14,6 @@
 #include "eigen3/Eigen/Dense"
 #include "eigen3/Eigen/Geometry"
 
-
 //ROS headers for image I/O
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>

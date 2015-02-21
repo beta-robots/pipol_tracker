@@ -12,6 +12,7 @@ find_package( catkin REQUIRED COMPONENTS
       cv_bridge
       message_generation
       dynamic_reconfigure 
+      rosbag
       pal_detection_msgs      
 )
 
@@ -77,16 +78,21 @@ catkin_package (
             cv_bridge 
             message_runtime 
             dynamic_reconfigure
+            rosbag
             pal_detection_msgs
 )
 
 ## Specify additional locations of header files
 include_directories(src/pipol_tracker_lib/ ${OpenCV_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
-## Declare a cpp executable
+## Declare a cpp executable for pipol_tracker_node
 add_executable(pipol_tracker_node ${SRCS_ROS_NODE} ${SRCS_PT_LIB})
 add_dependencies(pipol_tracker_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(pipol_tracker_node ${OpenCV_LIBS} ${catkin_LIBRARIES})
+
+## Declare a cpp executable for gt_annotation_node
+add_executable(gt_annotation_node src/gt_annotation_main.cpp)
+target_link_libraries(gt_annotation_node ${catkin_LIBRARIES})
 
 install(TARGETS pipol_tracker_node
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

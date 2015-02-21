@@ -16,7 +16,7 @@
 
 	<!-- 	Launch people_tracking_rai node -->
 	<group ns="$(env ROBOT)">
-		<node	pkg="pipol_tracker_pkg"
+		<node	pkg="pipol_tracker"
 			type="pipol_tracker_node"
 			name="pipol_tracker_node"
 			args=""
@@ -37,7 +37,7 @@
                         to="/head_mount_xtion/rgb/camera_info" />                    
                   <remap from="/$(env ROBOT)/pipol_tracker_node/followMe"
                         to="/followMe/targetId" />                     				
-			<rosparam command="load" file="$(find pipol_tracker_pkg)/config/pipol_tracker_params.yaml"/>
+			<rosparam command="load" file="$(find pipol_tracker)/config/pipol_tracker_params.yaml"/>
 			<param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
 		</node>
 	</group>
@@ -46,7 +46,7 @@
 	<node 	name="rviz" 
 		pkg="rviz" 
 		type="rviz"
-		args="-d $(find pipol_tracker_pkg)/rviz/pipol_tracker_viz_2014.rviz">
+		args="-d $(find pipol_tracker)/rviz/pipol_tracker_viz_2014.rviz">
 		<param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
 	</node>
 
