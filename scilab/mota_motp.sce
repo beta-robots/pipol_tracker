@@ -25,7 +25,6 @@ while (end_flag == 0) do
         disp(gt);
     end
     
-
     //TRACKER OPUTPUT PARSING
     
     //ESTABLISH BEST MAPPING

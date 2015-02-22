@@ -4,13 +4,22 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <sstream>
 
 //ros dependencies
 #include "ros/ros.h"
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
-//#include <rosbag/player.h>
 #include <rosbag/bag_player.h>
+//#include <rosbag/player.h>
+
+char get_user_command()
+{
+    char uc;
+    std::cout << "e,i,t ?: ";
+    std::cin >> uc;    
+    return uc;
+}
 
 //node main
 int main(int argc, char **argv)
@@ -19,6 +28,7 @@ int main(int argc, char **argv)
     char user_command = 0x0;
     int user_int;
     double user_double1, user_double2;
+    std::ostringstream user_ss;
     
     //welcome
     std::cout << "=======================================================" << std::endl;
@@ -45,46 +55,58 @@ int main(int argc, char **argv)
     
     //loop
     std::cout << "Starting bag play at " << ts_i << std::endl;
+    player.set_start(ts_i);
+    ts_i.sec = ts_i.sec + 1;
+    player.set_end(ts_i);
+    player.start_play();    
     while ( (ts_i.sec + 1  < ts_e.sec ) && (user_command != 'e') )
     {
-        player.set_start(ts_i);
-        ts_i.sec = ts_i.sec + 1;
-        player.set_end(ts_i);
-        player.start_play();
         std::cout << std::endl << "New iteration at " << ts_i << std::endl;
-        gt_file << ts_i << " ";
-        std::cout << "e,i,t ?: ";
-        std::cin >> user_command;
-        while(user_command == 't') 
+        user_ss.str("");//clean the content
+        user_command = get_user_command();
+        switch(user_command)
         {
-            switch(user_command)
-            {
-                case 'e': 
-                    break;
+            case 'e': 
+                break;
 
-                case 'i':
-                    break;
-                                        
-                case 't':
+            case 'i': //check & save current and step forward
+                std::cout << "Check user input: 1-> ok, *->erase: ";
+                std::cin >> user_int;
+                if (user_int == 1)
+                {
+                    gt_file << ts_i << " " << user_ss.str(); //save user_ss to file with time stamp
+                    player.set_start(ts_i);
+                    ts_i.sec = ts_i.sec + 1;
+                    player.set_end(ts_i);
+                    player.start_play();
+                }
+//                 else
+//                 {
+//                     user_ss.str("");//clean the content
+//                     user_ss << ts_i << " ";
+//                     user_command = get_user_command();                
+//                 }
+                break;
+                                    
+            case 't':
+                while(user_command == 't') 
+                {
                     std::cout << "target id: ";
                     std::cin >> user_int;
                     std::cout << "x: ";
                     std::cin >> user_double1;
                     std::cout << "y: ";
                     std::cin >> user_double2;
-                    gt_file << user_int << " " << user_double1 << " " << user_double2 << " ";                    
-                    std::cout << "e,i,t ?: ";
-                    std::cin >> user_command;
-                    break; 
-                    
-                default: 
-                    std::cout << "e,i,t ?: ";
-                    std::cin >> user_command;
-                    break; 
-            }
+                    user_ss << user_int << " " << user_double1 << " " << user_double2 << " ";                    
+                    user_command = get_user_command();
+                }
+                break; 
+                
+            default: 
+                user_command = get_user_command();
+                break; 
         }
         gt_file << std::endl; //next line to text file
-            
     }
 
     //close the bag and the file
