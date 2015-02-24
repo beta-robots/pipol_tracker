@@ -26,6 +26,7 @@ int main(int argc, char **argv)
 {
     //user inputs
     char user_command = 0x0;
+    char user_check = 0x0;
     int user_int;
     double user_double1, user_double2;
     std::ostringstream user_ss;
@@ -61,52 +62,36 @@ int main(int argc, char **argv)
     player.start_play();    
     while ( (ts_i.sec + 1  < ts_e.sec ) && (user_command != 'e') )
     {
-        std::cout << std::endl << "New iteration at " << ts_i << std::endl;
         user_ss.str("");//clean the content
+        player.set_start(ts_i);
+        ts_i.sec = ts_i.sec + 10;
+        player.set_end(ts_i);
+        player.start_play();        
+        std::cout << std::endl << "Annotate Ground Truth. Bag Play Stopped at " << ts_i << std::endl;
         user_command = get_user_command();
-        switch(user_command)
+        
+        while(user_command == 't') 
         {
-            case 'e': 
-                break;
-
-            case 'i': //check & save current and step forward
-                std::cout << "Check user input: 1-> ok, *->erase: ";
-                std::cin >> user_int;
-                if (user_int == 1)
-                {
-                    gt_file << ts_i << " " << user_ss.str(); //save user_ss to file with time stamp
-                    player.set_start(ts_i);
-                    ts_i.sec = ts_i.sec + 1;
-                    player.set_end(ts_i);
-                    player.start_play();
-                }
-//                 else
-//                 {
-//                     user_ss.str("");//clean the content
-//                     user_ss << ts_i << " ";
-//                     user_command = get_user_command();                
-//                 }
-                break;
-                                    
-            case 't':
-                while(user_command == 't') 
-                {
-                    std::cout << "target id: ";
-                    std::cin >> user_int;
-                    std::cout << "x: ";
-                    std::cin >> user_double1;
-                    std::cout << "y: ";
-                    std::cin >> user_double2;
-                    user_ss << user_int << " " << user_double1 << " " << user_double2 << " ";                    
-                    user_command = get_user_command();
-                }
-                break; 
-                
-            default: 
-                user_command = get_user_command();
-                break; 
+            std::cout << "target id: ";
+            std::cin >> user_int;
+            std::cout << "x: ";
+            std::cin >> user_double1;
+            std::cout << "y: ";
+            std::cin >> user_double2;
+            user_ss << user_int << " " << user_double1 << " " << user_double2 << " ";                    
+            user_command = get_user_command();
         }
-        gt_file << std::endl; //next line to text file
+
+        if ( user_command == 'i' )
+        {
+            std::cout << "Check user input: y->OK, n->erase annotation: " << std::endl;
+            std::cout << ">>> " << ts_i << " " << user_ss.str() << std::endl;
+            std::cin >> user_check;
+            if ( user_check == 'y' ) //save user_ss to file with time stamp and end line
+               gt_file << ts_i << " " << user_ss.str() << std::endl; 
+            else //force repeat last step
+               ts_i.sec = ts_i.sec - 1;
+        }
     }
 
     //close the bag and the file

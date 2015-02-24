@@ -1,0 +1,35 @@
+
+<!-- Launches rosbag play, with ground truth annotation infrastructure-->
+
+<launch>
+    <!-- Rosbag: Leg, Body and face detections + Camera images.-->
+    <node   
+        pkg="rosbag"
+        type="play"
+        name="rosbag"
+        args="--pause --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20140925_twoPeople.bag"/>   
+<!--        20140703_robotStopped.bag -->
+<!--        20140703_robotMoving.bag -->
+<!--        20140925_FollowMe.bag -->
+<!--        20140925_robotMoving.bag -->
+<!--        20140925_robotStopped.bag -->
+<!--        20140925_twoPeople.bag -->
+<!--        20140926_rh2Sam_and_jordi01.bag -->
+<!-- rviz configurated to debug people tracking -->
+
+    <node   
+        name="gt_annotation_imarkers" 
+        pkg="pipol_tracker" 
+        type="gt_annotation_imarkers">
+    </node>
+
+    <node   
+        name="rviz" 
+        pkg="rviz" 
+        type="rviz"
+        args="-d $(find pipol_tracker)/rviz/gt_annotation.rviz">
+        <param name="~tf_prefix" value="/$(env ROBOT)" type="str"/>
+    </node>
+
+</launch>
+

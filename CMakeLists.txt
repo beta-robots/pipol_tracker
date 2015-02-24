@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(pipol_tracker)
 
+#set C++11 support
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
 ## Find catkin macros and libraries
 find_package( catkin REQUIRED COMPONENTS 
       roscpp
@@ -13,6 +16,7 @@ find_package( catkin REQUIRED COMPONENTS
       message_generation
       dynamic_reconfigure 
       rosbag
+      interactive_markers
       pal_detection_msgs      
 )
 
@@ -79,6 +83,7 @@ catkin_package (
             message_runtime 
             dynamic_reconfigure
             rosbag
+            interactive_markers
             pal_detection_msgs
 )
 
@@ -93,6 +98,10 @@ target_link_libraries(pipol_tracker_node ${OpenCV_LIBS} ${catkin_LIBRARIES})
 ## Declare a cpp executable for gt_annotation_node
 add_executable(gt_annotation_node src/gt_annotation_main.cpp)
 target_link_libraries(gt_annotation_node ${catkin_LIBRARIES})
+
+## Declare a cpp executable for gt_annotation_node
+add_executable(gt_annotation_imarkers src/gt_annotation_imarkers.cpp)
+target_link_libraries(gt_annotation_imarkers ${catkin_LIBRARIES})
 
 install(TARGETS pipol_tracker_node
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

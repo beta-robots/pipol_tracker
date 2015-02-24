@@ -2,7 +2,8 @@
 
 <launch>
 	<!-- Rosbag: Leg, Body and face detections + Camera images.-->
-	<node	pkg="rosbag"
+	<node	
+        pkg="rosbag"
 		type="play"
 		name="rosbag"
 		args="-l --clock /home/andreu/dataSets/peopleTracking/pal_detectors/20140925_twoPeople.bag"/>	
