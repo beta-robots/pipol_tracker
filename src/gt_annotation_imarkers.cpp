@@ -13,7 +13,7 @@
 //ROS dependencies
 #include <ros/ros.h>
 #include <interactive_markers/interactive_marker_server.h>
-
+#include <rosgraph_msgs/Clock.h>
 
 //class PeopleMarker
 class PeopleMarker
@@ -35,17 +35,17 @@ class PeopleMarker
             //imarker init
             imarker_.header.frame_id = "/base_link";
             imarker_.name = "target_" + std::to_string(id_);
-            imarker_.description = "Ground truth position for target " + std::to_string(id_);
+            imarker_.description = "Target " + std::to_string(id_);
             
             //marker init
             box_marker_.type = visualization_msgs::Marker::CUBE;
-            box_marker_.scale.x = 0.1;
-            box_marker_.scale.y = 0.1;
-            box_marker_.scale.z = 0.1;
+            box_marker_.scale.x = 0.2;
+            box_marker_.scale.y = 0.2;
+            box_marker_.scale.z = 0.2;
             box_marker_.color.r = 1.0;
             box_marker_.color.g = 0.0;
             box_marker_.color.b = 0.0;
-            box_marker_.color.a = 0.4;
+            box_marker_.color.a = 0.6;
             
             //box control init
             box_control_.always_visible = true;
@@ -89,6 +89,9 @@ class PeopleMarker
 class GTannotation
 {
     protected: 
+        //ros node handle
+        ros::NodeHandle nh_;        
+        
         //lists
         static std::list<PeopleMarker> imarkers_last_;
         std::list<PeopleMarker> imarkers_all_;
@@ -96,31 +99,44 @@ class GTannotation
         //interactive markers server
         interactive_markers::InteractiveMarkerServer server_;
         
-        //interactive buttons
+        //interactive button to create a new target
         visualization_msgs::InteractiveMarker newT_button_;
         visualization_msgs::Marker newT_marker_;
         visualization_msgs::InteractiveMarkerControl newT_control_;
+        
+        //interactive button to annotate current iteration
+        visualization_msgs::InteractiveMarker annotate_button_;
+        visualization_msgs::Marker annotate_marker_;
+        visualization_msgs::InteractiveMarkerControl annotate_control_;
+
+        //clock subscriber
+        ros::Subscriber clock_subscriber_;
+        
+        //current time stamp
+        ros::Time current_ts_;
         
         //file where ground truth is saved
         std::ofstream gt_file;
 
     public:
         GTannotation() : 
+            nh_(ros::this_node::getName()),
             server_("people_marker"),
             gt_file("/home/andreu/Desktop/gt.txt")
         {
-            //imarker init
+            //newT imarker init
             newT_button_.header.frame_id = "/base_link";
             newT_button_.name = "new_target_button";
-            newT_button_.description = "Button to create a new target";            
-            newT_button_.pose.position.x = 5;
-            newT_button_.pose.position.y = 2;
+            newT_button_.description = "Press to create a new target";            
+            newT_button_.scale = 2;
+            newT_button_.pose.position.x = 3.2;
+            newT_button_.pose.position.y = 0.3;
             
-            //marker init
+            //newT marker init
             newT_marker_.header.frame_id = "/base_link";
             newT_marker_.type = visualization_msgs::Marker::SPHERE;            
-            newT_marker_.pose.position.x = 5;
-            newT_marker_.pose.position.y = 2;
+            newT_marker_.pose.position.x = 6;
+            newT_marker_.pose.position.y = 3;
             newT_marker_.scale.x = 0.6;
             newT_marker_.scale.y = 0.6;
             newT_marker_.scale.z = 0.6;
@@ -129,18 +145,52 @@ class GTannotation
             newT_marker_.color.b = 0.0;
             newT_marker_.color.a = 1.0;
             
-            //control init
+            //newT control init
             newT_control_.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
             newT_control_.name = "button_control";
             newT_control_.always_visible = true;
             newT_control_.markers.push_back( newT_marker_ );
             
-            // add the newT control to the interactive marker
+            // add the newT control to the newT interactive marker
             newT_button_.controls.push_back( newT_control_ );
             
+            //annotate imarker init
+            annotate_button_.header.frame_id = "/base_link";
+            annotate_button_.name = "annotate_button";
+            annotate_button_.description = "Press to annotate iteration";            
+            annotate_button_.scale = 2;
+            annotate_button_.pose.position.x = 2.4;
+            annotate_button_.pose.position.y = 0.65;
+            
+            //newT marker init
+            annotate_marker_.header.frame_id = "/base_link";
+            annotate_marker_.type = visualization_msgs::Marker::SPHERE;            
+            annotate_marker_.pose.position.x = 5.2;
+            annotate_marker_.pose.position.y = 3;
+            annotate_marker_.scale.x = 0.6;
+            annotate_marker_.scale.y = 0.6;
+            annotate_marker_.scale.z = 0.6;
+            annotate_marker_.color.r = 1.0;
+            annotate_marker_.color.g = 0.0;
+            annotate_marker_.color.b = 0.0;
+            annotate_marker_.color.a = 1.0;
+            
+            //newT control init
+            annotate_control_.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
+            annotate_control_.name = "button_control";
+            annotate_control_.always_visible = true;
+            annotate_control_.markers.push_back( annotate_marker_ );
+            
+            // add the newT control to the newT interactive marker
+            annotate_button_.controls.push_back( annotate_control_ );
+                        
             // set to server and commit
             server_.insert(newT_button_, &GTannotation::newTargetButton);
-            server_.applyChanges();
+            server_.insert(annotate_button_, &GTannotation::annotateButton);
+            server_.applyChanges();          
+            
+            //set clock subscriber 
+            clock_subscriber_ = nh_.subscribe("/clock", 1, &GTannotation::clockCallback, this);
         };
         
         virtual ~GTannotation()
@@ -168,22 +218,28 @@ class GTannotation
         
         static void newTargetButton( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
         {
-            //cout message
-            std::cout << "Button pressed!" << std::endl;
-            
-            // create and push_back a new target marker
-            imarkers_last_.push_back( PeopleMarker() );            
+            if ( feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::BUTTON_CLICK )
+                imarkers_last_.push_back( PeopleMarker() ); // create and push_back a new target marker
         };
         
-        void annotateButton( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
+        static void annotateButton( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
         {
-            //TODO
+            if ( feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::BUTTON_CLICK )
+            {
+                ROS_INFO_STREAM( "Button pressed!" );
+            }
+        };
+        
+        void clockCallback(const rosgraph_msgs::Clock::ConstPtr& msg)
+        {
+            current_ts_ = msg->clock;
+            //std::cout << "Time: " << msg->clock << std::endl;
         };
 
 };
 
 //static members init
-unsigned int PeopleMarker::id_count_ = 1;
+unsigned int PeopleMarker::id_count_ = 0;
 std::list<PeopleMarker> GTannotation::imarkers_last_;
 
 int main(int argc, char** argv)

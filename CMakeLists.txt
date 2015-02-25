@@ -11,6 +11,7 @@ find_package( catkin REQUIRED COMPONENTS
       std_msgs
       geometry_msgs
       nav_msgs
+      rosgraph_msgs
       image_transport
       cv_bridge
       message_generation
@@ -78,6 +79,7 @@ catkin_package (
             std_msgs 
             geometry_msgs
             nav_msgs
+            rosgraph_msgs
             image_transport 
             cv_bridge 
             message_runtime 
