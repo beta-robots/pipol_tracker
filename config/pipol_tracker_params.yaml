@@ -17,10 +17,10 @@ sigma_resampling_xy: 0.01
 sigma_ratio_resampling_vxy: 0.1
 
 #minimum value for standard deviation applied at resampling step along VxVy dimensions [m/s]
-sigma_min_resampling_vxy: 0.2
+sigma_min_resampling_vxy: 0.1
 
 #person radius used in LEG matching functions. Smaller the radius, more precise should be detections [m]
-person_radius_legs: 0.5
+person_radius_legs: 0.4
 
 #person radius used in BODY and FACES matching functions. Smaller the radius, more precise should be detections [m]
 person_radius_body: 0.3
@@ -72,10 +72,15 @@ minimum_iterations_to_be_friend: 3
 #verbose mode. 0->Off, 1->On
 verbose_mode: 0
 
+#Log to file: 0->no, 1->yes
+log_to_file: 1
+
 #Publish visualization markers corresponding to body detections , 0->Off, 1->On
 view_body_detections: 1
 
 #Publish visualization markers of a subset of particles. 0->Off, 1->On
 view_particles: 1
+
+
 
 # video at: recordmydesktop --no-cursor -x 400 -y 190 --width 950 --height 570 

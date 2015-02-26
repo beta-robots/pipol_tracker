@@ -105,9 +105,11 @@ class CpipolTrackerNode
         
         //debugging
         bool verboseMode;
+        bool log2file;
         bool viewBodyDetections;
         bool viewParticles;
         double odoTrans; 
+        std::ofstream logFile; 
         
         // initialize tf from base_link to camera, and get camera matrix
         //void initCamera();      

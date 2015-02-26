@@ -12,6 +12,8 @@ CpipolTrackerNode::CpipolTrackerNode() : nh(ros::this_node::getName()) , it(this
     
     //init user parameters. general running parameters
     nh.getParam("verbose_mode", intParam); this->verboseMode = (bool)intParam;
+    nh.getParam("log_to_file", intParam); this->log2file = (bool)intParam;
+    if ( log2file ) logFile.open("/home/andreu/Desktop/pt_out.txt"); // TODO: set file name as a cfg parameter 
     
     //init user parameters. filter parameters
     nh.getParam("num_particles", intParam); this->filterParams.numParticles = (unsigned int)intParam;
@@ -76,74 +78,75 @@ CpipolTrackerNode::CpipolTrackerNode() : nh(ros::this_node::getName()) , it(this
 
 CpipolTrackerNode::~CpipolTrackerNode()
 {
-      // free allocated memory resources, if any
+    //close file and free allocated memory resources, if any
+    if ( log2file ) logFile.close();
 }
 
 void CpipolTrackerNode::process()
 {	
-      if (this->verboseMode) std::cout << std::endl << "************* NEW ITERATION **************" << std::endl;
+    if (this->verboseMode) std::cout << std::endl << "************* NEW ITERATION **************" << std::endl;
 
-      //PRINT DETECTIONS AVAILABLE AT THIS ITERATION
-      if (this->verboseMode) tracker.printDetectionSets();
-      
-      //FILTER PREDICTION
-      if (this->verboseMode) std::cout << std::endl << "*** Prior peopleSet:" << std::endl;
-      tracker.propagateFilters(platformOdometry); //platform motion
-      odoTrans = platformOdometry.getDeltaTrans();//just for visualization
-      platformOdometry.resetDeltas();
-      tracker.propagateFilters(); //people motion
-      
-      //OCCLUSIONS
-      tracker.computeOcclusions();
-      
-      //UPDATE STATUS & ESTIMATES
-      tracker.updateFilterEstimates();
-      tracker.updateTargetStatus();
-      if (this->verboseMode) tracker.printPeopleSet();
-      
-      //DATA ASSOCIATION
-      if (this->verboseMode) std::cout << std::endl << "*** Target/Detection association" << std::endl;
-      //tracker.updateAssociationTables();
-      tracker.updateAssociationTablesTree();
+    //PRINT DETECTIONS AVAILABLE AT THIS ITERATION
+    if (this->verboseMode) tracker.printDetectionSets();
+    
+    //FILTER PREDICTION
+    if (this->verboseMode) std::cout << std::endl << "*** Prior peopleSet:" << std::endl;
+    tracker.propagateFilters(platformOdometry); //platform motion
+    odoTrans = platformOdometry.getDeltaTrans();//just for visualization
+    platformOdometry.resetDeltas();
+    tracker.propagateFilters(); //people motion
+    
+    //OCCLUSIONS
+    tracker.computeOcclusions();
+    
+    //UPDATE STATUS & ESTIMATES
+    tracker.updateFilterEstimates();
+    tracker.updateTargetStatus();
+    if (this->verboseMode) tracker.printPeopleSet();
+    
+    //DATA ASSOCIATION
+    if (this->verboseMode) std::cout << std::endl << "*** Target/Detection association" << std::endl;
+    //tracker.updateAssociationTables();
+    tracker.updateAssociationTablesTree();
 
-      //MARK BOUNDING BOXES OF VISUAL DETECTIONS (& LEARN CURRENT DETECTED APPEARANCES -> TO DO !!)
-      if ( cvImgPtrSubs!=NULL )
-      {
-            //Set image to the tracker
-            tracker.setCurrentImage(cvImgPtrSubs->image);
-            
-            //mark box bodies on image
-            tracker.markBodies();            
-            
-            //mark box faces on image
-            tracker.markFaces();
-            
-            //get marked image from the tracker
-            tracker.getCurrentImage(cvImgPub.image);
-      }                                
-                        
-      //CORRECTION
-      if (this->verboseMode) std::cout << std::endl << "*** Posterior peopleSet:" << std::endl;
-      tracker.correctFilters();
-            
-      //UPDATE FILTER ESTIMATES AND ADD THEM TO EACH TARGET TRACK
-      tracker.updateFilterEstimates();
-      tracker.addEstimatesToTracks();
-      if (this->verboseMode) tracker.printPeopleSet();
-                  
-      //LAUNCH NEW FILTERS IF NEW DETECTIONS ARE NOT ASSOCIATED
-      if (this->verboseMode) std::cout << std::endl << "*** Create Filters" << std::endl;
-      tracker.createFilters();
+    //MARK BOUNDING BOXES OF VISUAL DETECTIONS (& LEARN CURRENT DETECTED APPEARANCES -> TO DO !!)
+    if ( cvImgPtrSubs!=NULL )
+    {
+        //Set image to the tracker
+        tracker.setCurrentImage(cvImgPtrSubs->image);
+        
+        //mark box bodies on image
+        tracker.markBodies();            
+        
+        //mark box faces on image
+        tracker.markFaces();
+        
+        //get marked image from the tracker
+        tracker.getCurrentImage(cvImgPub.image);
+    }                                
+                    
+    //CORRECTION
+    if (this->verboseMode) std::cout << std::endl << "*** Posterior peopleSet:" << std::endl;
+    tracker.correctFilters();
+        
+    //UPDATE FILTER ESTIMATES AND ADD THEM TO EACH TARGET TRACK
+    tracker.updateFilterEstimates();
+    tracker.addEstimatesToTracks();
+    if (this->verboseMode) tracker.printPeopleSet();
+                
+    //LAUNCH NEW FILTERS IF NEW DETECTIONS ARE NOT ASSOCIATED
+    if (this->verboseMode) std::cout << std::endl << "*** Create Filters" << std::endl;
+    tracker.createFilters();
 
-      //REMOVE UNSUPPORTED TARGETS
-      if (this->verboseMode) std::cout << std::endl << "*** Delete Filters" << std::endl;
-      tracker.deleteFilters();
-            
-      //RESAMPLING PARTICLE SETS 
-      if (this->verboseMode) std::cout << std::endl << "*** Resampling" << std::endl;
-      tracker.resampleFilters();
-      
-      //Check if TLD tracker can be initialized, if so, initTLD
+    //REMOVE UNSUPPORTED TARGETS
+    if (this->verboseMode) std::cout << std::endl << "*** Delete Filters" << std::endl;
+    tracker.deleteFilters();
+        
+    //RESAMPLING PARTICLE SETS 
+    if (this->verboseMode) std::cout << std::endl << "*** Resampling" << std::endl;
+    tracker.resampleFilters();
+    
+    //Check if TLD tracker can be initialized, if so, initTLD
 //       if ( (exeMode == MULTI_TRACKING) && (tracker.getFollowMeTargetId()>0) )
 //       {
 //             exeMode = SHOOT_TLD;
@@ -151,21 +154,35 @@ void CpipolTrackerNode::process()
 //             tracker.initTLD();
 //       }
 
-      // fill msg structures
-      if (this->verboseMode) std::cout << std::endl << "*** Filling Output Messages" << std::endl;
-      this->fillMessages();
+    // fill msg structures
+    if (this->verboseMode) std::cout << std::endl << "*** Filling Output Messages" << std::endl;
+    this->fillMessages();
 
-      //RESET DETECTION SETS
-      tracker.resetDetectionSets(LEGS);
-      tracker.resetDetectionSets(BODY);
-      tracker.resetDetectionSets(FACE);
-      tracker.resetDetectionSets(BODY3D);
-      //tracker.resetDetectionSets(TLD);
+    //RESET DETECTION SETS
+    tracker.resetDetectionSets(LEGS);
+    tracker.resetDetectionSets(BODY);
+    tracker.resetDetectionSets(FACE);
+    tracker.resetDetectionSets(BODY3D);
+    //tracker.resetDetectionSets(TLD);
 
-      // PUBLISH MESSAGES
-      this->particleSetPub.publish(this->MarkerArrayMsg);
-      this->peopleSetPub.publish(this->personArrayMsg);
-      if ( &cvImgPub != NULL ) imagePub.publish(cvImgPub.toImageMsg());
+    //LOG TO FILE
+    if ( log2file )
+    {
+        logFile << personArrayMsg.header.stamp << " ";
+        for ( unsigned int ii = 0; ii < personArrayMsg.peopleSet.size(); ii++ )
+        {
+            logFile << personArrayMsg.peopleSet[ii].targetId << " "
+                    << personArrayMsg.peopleSet[ii].targetStatus << " "
+                    << personArrayMsg.peopleSet[ii].x << " "
+                    << personArrayMsg.peopleSet[ii].y << " ";
+        }
+        logFile << std::endl;
+    }
+        
+    // PUBLISH MESSAGES
+    this->particleSetPub.publish(this->MarkerArrayMsg);
+    this->peopleSetPub.publish(this->personArrayMsg);
+    if ( &cvImgPub != NULL ) imagePub.publish(cvImgPub.toImageMsg());
 //       if ( tldMessageFilled )
 //       {
 //             tldMessageFilled = false;
