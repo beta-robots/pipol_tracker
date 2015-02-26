@@ -34,10 +34,11 @@ class PeopleMarker
         {
             //imarker init
             imarker_.header.frame_id = "/base_link";
-            imarker_.name = "target_" + std::to_string(id_);
-            imarker_.description = "Target " + std::to_string(id_);
+            imarker_.name = "T" + std::to_string(id_);
+            imarker_.description = "T" + std::to_string(id_);
             
             //marker init
+            //box_marker_.header.frame_id = "/base_link";
             box_marker_.type = visualization_msgs::Marker::CUBE;
             box_marker_.scale.x = 0.2;
             box_marker_.scale.y = 0.2;
@@ -83,7 +84,48 @@ class PeopleMarker
         {
             return imarker_;
         }
-            
+        
+        unsigned int getId()
+        {
+            return id_;
+        }
+        
+        double getRangeSq()
+        {
+            return getX()*getX() + getY()*getY();
+        }
+        
+        double getX()
+        {
+            return imarker_.controls[0].markers[0].pose.position.x;
+        }
+
+        double getY()
+        {
+            return imarker_.controls[0].markers[0].pose.position.x;
+        }
+        
+};
+
+struct TargetPosition
+{
+    unsigned int id_;
+    double x_;
+    double y_;
+    
+    TargetPosition( unsigned int _id, double _x, double _y ) :
+        id_(_id),
+        x_(_x),
+        y_(_y)
+    {
+        //
+    }
+
+    
+    double getRangeSq()
+    {
+        return x_*x_+y_*y_;
+    }
 };
 
 class GTannotation
@@ -92,9 +134,24 @@ class GTannotation
         //ros node handle
         ros::NodeHandle nh_;        
         
+        //file where ground truth is saved
+        std::ofstream gt_file_;        
+
+        //clock subscriber
+        ros::Subscriber clock_subscriber_;
+        
+        //current time stamp
+        ros::Time current_ts_;
+                
         //lists
         static std::list<PeopleMarker> imarkers_last_;
         std::list<PeopleMarker> imarkers_all_;
+        
+        //list of target target positions
+        static std::list<TargetPosition> target_positions_;
+        
+        //flag to indicate annotate button pressed
+        static bool annotate_flag_; 
         
         //interactive markers server
         interactive_markers::InteractiveMarkerServer server_;
@@ -109,20 +166,11 @@ class GTannotation
         visualization_msgs::Marker annotate_marker_;
         visualization_msgs::InteractiveMarkerControl annotate_control_;
 
-        //clock subscriber
-        ros::Subscriber clock_subscriber_;
-        
-        //current time stamp
-        ros::Time current_ts_;
-        
-        //file where ground truth is saved
-        std::ofstream gt_file;
-
     public:
         GTannotation() : 
             nh_(ros::this_node::getName()),
             server_("people_marker"),
-            gt_file("/home/andreu/Desktop/gt.txt")
+            gt_file_("/home/andreu/Desktop/gt.txt")
         {
             //newT imarker init
             newT_button_.header.frame_id = "/base_link";
@@ -189,31 +237,52 @@ class GTannotation
             server_.insert(annotate_button_, &GTannotation::annotateButton);
             server_.applyChanges();          
             
-            //set clock subscriber 
+            //set clock subscriber. Just queue the last message
             clock_subscriber_ = nh_.subscribe("/clock", 1, &GTannotation::clockCallback, this);
         };
         
         virtual ~GTannotation()
         {
-            //
+            //close ground truth file
+            gt_file_.close(); 
         };
 
         void update()
         {
-            std::list<PeopleMarker>::iterator it;
+            std::list<PeopleMarker>::iterator m_it;
+            std::list<TargetPosition>::iterator t_it;
             
-            //manage new created targets
-            for( it = imarkers_last_.begin(); it != imarkers_last_.end(); it ++ )
+            //if new created targets, add them to the global list
+            if ( imarkers_last_.size() != 0 )
             {
-                // set to server and commit
-                server_.insert( it->getImarker() );
+                for( m_it = imarkers_last_.begin(); m_it != imarkers_last_.end(); m_it ++ )
+                {
+                    // set to server and commit
+                    server_.insert( m_it->getImarker(), &GTannotation::targetPositionUpdate );
+                }
+                
+                //append last created markers to the global list
+                imarkers_all_.splice(imarkers_all_.end(), imarkers_last_); 
+                
+                //commit changes to server
+                server_.applyChanges();
             }
             
-            //append last created markers to the global list
-            imarkers_all_.splice(imarkers_all_.end(), imarkers_last_); 
-            
-            //commit changes to server
-            server_.applyChanges();
+            //if annotate button has been pressed, do annotate
+            if ( annotate_flag_ )
+            {
+                annotate_flag_ = false;
+                gt_file_ << current_ts_ << " ";
+                for( t_it = target_positions_.begin(); t_it != target_positions_.end(); t_it ++ )
+                {
+                    //check if nearest than 5m
+                    if ( t_it->getRangeSq() < 25 )
+                    {
+                        gt_file_ << t_it->id_ << " " << t_it->x_ << " " << t_it->y_ << " ";
+                    }
+                }
+                gt_file_ << std::endl;
+            }
         }
         
         static void newTargetButton( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
@@ -225,10 +294,37 @@ class GTannotation
         static void annotateButton( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
         {
             if ( feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::BUTTON_CLICK )
-            {
-                ROS_INFO_STREAM( "Button pressed!" );
-            }
+                annotate_flag_ = true;
         };
+        
+        static void targetPositionUpdate( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
+        {
+            std::string im_name;
+            unsigned int im_id;
+            std::list<TargetPosition>::iterator t_it;
+            bool t_found = false;
+            
+            //get the target id
+            im_name = feedback->marker_name;
+            im_id = std::stoul( im_name.substr(1,im_name.size()-1) ); //removes initial "T" and gets the unsigned integer
+            
+            //update position in the target_positions_ list
+            for( t_it = target_positions_.begin(); t_it != target_positions_.end(); t_it ++ )
+            {
+                if ( im_id == t_it->id_ ) //already in the list
+                {
+                    t_it->x_ = feedback->pose.position.x;
+                    t_it->y_ = feedback->pose.position.y;
+                    t_found = true;
+                    break;
+                }
+            }
+            
+            if ( !t_found )
+            {
+                target_positions_.push_back( TargetPosition(im_id, feedback->pose.position.x, feedback->pose.position.y) );
+            }
+        }
         
         void clockCallback(const rosgraph_msgs::Clock::ConstPtr& msg)
         {
@@ -238,9 +334,11 @@ class GTannotation
 
 };
 
-//static members init
+//static members init. (Because imarkers feedback callbacks should be static)
 unsigned int PeopleMarker::id_count_ = 0;
+bool GTannotation::annotate_flag_ = false;
 std::list<PeopleMarker> GTannotation::imarkers_last_;
+std::list<TargetPosition> GTannotation::target_positions_;
 
 int main(int argc, char** argv)
 {
