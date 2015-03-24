@@ -18,10 +18,10 @@ function [mapping] = munkres(CC)
     if nr == nc then
         Csq = CC;
     else
-        if nr > nc then //more rows than cols
+        if nr > nc then //more rows than cols, so add cols
             Csq = [CC ones(nr,nr-nc)*max(CC)];
         end
-        if nc > nr then //more cols than rows
+        if nc > nr then //more cols than rows, so add rows
             Csq = [CC; ones(nc-nr,nc)*max(CC)];
         end        
     end
@@ -31,7 +31,7 @@ function [mapping] = munkres(CC)
     //step 2. For each row in the matrix, substract the smallest of the row to all row values
     Cz = zeros(nn,nn);
     for ii=1:nn
-        Cz(ii,:) = Csq(ii,:)-min(CC(ii,:));
+        Cz(ii,:) = Csq(ii,:)-min(Csq(ii,:));
     end
     //disp(Cz);
     
@@ -45,7 +45,7 @@ function [mapping] = munkres(CC)
                 nzc = nzc +1; 
             end
         end
-        if (nzc == nr) then // column jj didn't have any 0
+        if (nzc == nn) then // column jj didn't have any 0
             Cz(:,jj) = Cz(:,jj)-min(Cz(:,jj));
         end
     end
@@ -88,20 +88,42 @@ function [mapping] = munkres(CC)
     
     //STEP 5 . Choose assignements
     //run over Cz rows.
-    mapping = [];
-    ii=1;
-    while size(mapping,1) ~= nn do
-        jj = find(~Cz(ii,:));
-        nz =  size(jj,2);
-        if nz == 1 then
-            mapping = [mapping; [ii jj]];
-            Cz(ii,:) = ones(1,nn); //mask row
-            Cz(:,jj) = ones(nn,1); //mask column
+    mapping_raw = [];
+
+    while size(mapping_raw,1) < nn do    
+        
+        //compute degree of each zero 
+        DM = degreeMatrix(Cz);
+        //disp(Cz); disp(DM);
+        
+        //substract the minimum value and find zeros
+        DM = DM - min(DM);
+        zidx = find(~DM);
+        nz =  size(zidx,2);
+        //disp(zidx);
+    
+        //zeros means assignments to be set to mapping result. Matrix are indexed columnwise
+        for (kk=1:nz)
+            ii = modulo(zidx(kk)-1,nn)+1; 
+            jj = (zidx(kk)-ii)/nn + 1;
+            if Cz(ii,jj) ~= -1 then
+                mapping_raw = [mapping_raw; [ii jj]];//keep the mapping
+                Cz(:,jj) = -1; //mask column
+                Cz(ii,:) = -1; //mask row
+            end
         end
-        pause
-        ii = modulo(ii,nn)+1;
     end
     
+    //STEP 6. Remove mappings out of size
+    mapping= []; 
+    for kk=1:size(mapping_raw,1)
+        if mapping_raw(kk,1) <= nr then
+            if mapping_raw(kk,2) <= nc then
+                mapping = [mapping; mapping_raw(kk,:)];
+            end
+        end
+    end
+
 endfunction
 
 
@@ -201,6 +223,8 @@ function [DD] = degreeMatrix(AA)
                 dr_ii = size(find(~AA(ii,:)),2);    
                 dc_jj = size(find(~AA(:,jj)),2);
                 DD(ii,jj) = dr_ii + dc_jj -1; //-1 beacuse a_ij zero is counted twice
+            else
+                DD(ii,jj) = nr + nc; //set to max possible value +1
             end
         end
     end

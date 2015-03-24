@@ -1,11 +1,16 @@
 // clear all 
 xdel(winsid());
 clear;
-//mclose('all');
+
+//includes
+exec('/home/andreu/dev/ros_ws/src/pipol_tracker/scilab/munkres.sci');
 
 //opens file
 fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140925_twoPeople.txt','r');
 fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140925_twoPeople_1_tree_all.txt','r');
+
+//plot y/n
+plot_flag = 1;
 
 
 //GROUND TRUTH PARSING
@@ -77,8 +82,7 @@ for jj=1:size(tracks)
     gt_intp($+1) = gt_intp_row;
 end
 
-//plot ground truth and results
-plot_flag = 0;
+//set up plot
 if plot_flag then
     fig1 = figure(0);
     fig1.background = 8;
@@ -93,62 +97,44 @@ if plot_flag then
     ah.auto_clear = "off";
     ah.auto_scale = "off";
     ah.data_bounds = [-3 0; 3 5];
-    gt_colors = ["r+";"g+";"b+";"k+";"y+"];
-    tracks_colors = ["r.";"g.";"b.";"k.";"y."];
-    for jj=1:size(tracks)
-        Nt_gt = (size(gt_intp(jj),2)-1) / 3; //number of targets 
-        if Nt_gt > 0 then
-            for kk=1:Nt_gt
-                plot(-gt_intp(jj)(kk*3+1),gt_intp(jj)(kk*3),gt_colors(pmodulo(gt_intp(jj)(kk*3-1)-1,5)+1));
-            end
-        end
-        Nt_tracks = (size(tracks(jj),2)-1) / 4; //number of track targets
-        if Nt_tracks > 0 then
-            for kk=1:Nt_tracks
-                if tracks(jj)(kk*4-1) > 15 then //check status value: Visually confirmed or higher
-                    plot(-tracks(jj)(kk*4+1),tracks(jj)(kk*4),tracks_colors(pmodulo(tracks(jj)(kk*4-2)-1,5)+1));   
-                end
-            end    
-        end
-    end
+    plot_colors = ["r";"g";"b";"k";"y"];
 end
 
 //MAIN LOOP TO COMPUTE MOT METRICS
-for ii=1:size(tracks) //ii tracker iteration index (coincide with gorund truth interpolation index)
+for tt=1:size(tracks) //tt tracker iteration index (coincide with gorund truth interpolation index)
     
     //1. Filter out tracks with status lower than 15
-    Nt_tracks = (size(tracks(ii),2)-1) / 4; //number of track targets (all)
-    tk_sel = tracks(ii)(1); //track selection with status > 15. Init with timestamp
+    Nt_tracks = (size(tracks(tt),2)-1) / 4; //number of track targets (all)
+    tk_sel = tracks(tt)(1); //track selection with status > 15. Init with timestamp
     for kk= 1:Nt_tracks
-        if tracks(ii)(kk*4-1) >= 15 then
-            tk_sel = [tk_sel tracks(ii)(kk*4-2:kk*4+1)]
+        if tracks(tt)(kk*4-1) >= 15 then
+            tk_sel = [tk_sel tracks(tt)(kk*4-2:kk*4+1)]
         end
     end
     
-    //2. Build D2 matrix. Euclidean sq distance between all track-gt pairs 
-    Nt_gt = (size(gt_intp(ii),2)-1) / 3; //number of gt targets 
+    //2. Build D2 matrix. Sq Euclidean distance between all track-gt pairs 
+    Nt_gt = (size(gt_intp(tt),2)-1) / 3; //number of gt targets 
     Nt_tracks = (size(tk_sel,2)-1) / 4; //number of track targets (selected according status)
     D2 = zeros(Nt_gt, Nt_tracks);
-    for jj=1:Nt_gt //jj row/gt index
-        gt_pos = [gt_intp(ii)(jj*3); gt_intp(ii)(jj*3+1)]; //gt jj position
-        for kk= 1:Nt_tracks //kk column/track index
-            tk_pos = [tk_sel(kk*4); tk_sel(kk*4+1)]; //track kk position
-            d2 = (tk_pos(1)-gt_pos(1))^2 + (tk_pos(2)-gt_pos(2))^2; //sq euclidean distance
-            D2(jj,kk) = d2;
+    for ii=1:Nt_gt //ii row/gt index
+        gt_pos = [gt_intp(tt)(ii*3); gt_intp(tt)(ii*3+1)]; //gt ii position
+        for jj= 1:Nt_tracks //jj column/track index
+            tk_pos = [tk_sel(jj*4); tk_sel(jj*4+1)]; //track jj position
+            D2(ii,jj) = (tk_pos(1)-gt_pos(1))^2 + (tk_pos(2)-gt_pos(2))^2; //sq euclidean distance
         end
     end
     
     //2. Check if any gt is further than d2_th to all tracks
-    d2_th = 0.5*0.5; //5m threshold
+    d2_th = 0.5*0.5; //0.5m threshold
     D2_chkd_rows = [];
     unassociated_gt = [];
     associated_gt = [];
-    for jj=1:Nt_gt
-        if ( min( D2(jj,:) ) > d2_th ) then
-            unassociated_gt = [unassociated_gt gt_intp(ii)(jj*3-1)]; //save gt id as unassociated
+    for ii=1:Nt_gt
+        if ( min( D2(ii,:) ) > d2_th ) then
+            unassociated_gt = [unassociated_gt gt_intp(tt)(ii*3-1)]; //save gt id as unassociated
         else
-            D2_chkd_rows = [D2_chkd_rows; D2(jj,:)];
-            associated_gt = [associated_gt gt_intp(ii)(jj*3-1)]; //save gt id as associated
+            D2_chkd_rows = [D2_chkd_rows; D2(ii,:)];
+            associated_gt = [associated_gt gt_intp(tt)(ii*3-1)]; //save gt id as associated
         end
     end
     fn_count = size(unassociated_gt,2); //false negative counter: cases where a gt target is not tracked
@@ -160,44 +146,67 @@ for ii=1:size(tracks) //ii tracker iteration index (coincide with gorund truth i
     if ( size(associated_gt) == 0 ) then
         fp_count = Nt_tracks; //in case of any potential gt association, all tracks are counted as false positive
     else
-        for kk=1:Nt_tracks 
-            if ( min( D2_chkd_rows(:,kk) ) > d2_th ) then
-                unassociated_tk = [unassociated_tk tk_sel(kk*4-2)]; //save track id as unassociated
+        for jj=1:Nt_tracks 
+            if ( min( D2_chkd_rows(:,jj) ) > d2_th ) then
+                unassociated_tk = [unassociated_tk tk_sel(jj*4-2)]; //save track id as unassociated
             else
-                D2_chkd = [D2_chkd D2_chkd_rows(:,kk)];
-                associated_tk = [associated_tk tk_sel(kk*4-2)]; //save track id as associated
+                D2_chkd = [D2_chkd D2_chkd_rows(:,jj)];
+                associated_tk = [associated_tk tk_sel(jj*4-2)]; //save track id as associated
             end
         end        
         fp_count = size(unassociated_tk,2); //false positiveS: a tracked target does not associate to any ground truth
     end
         
-    //4. Munkres' Algorithm for gt-tracks assignment: 
-    mapping = [];
-    Nt_gt = size(D2_chkd,1);
-    Nt_tracks = size(D2_chkd,2);
+    //4. gt-tracks assignment. Munkres' Algorithm when more than 1 is involved  
+    mapping_current = [];
+    [Nt_gt Nt_tracks] = size(D2_chkd);
     if ( Nt_gt > 0 ) then //to avoid degenerate case where no potential matchings exist 
         if size(associated_gt) == 1 then //case with a single gt. Find the nearest track and assign to it
-            mapping = [associated_gt(1);  associated_tk(find(~(D2_chkd(1,:)-min(D2_chkd(1,:))),1))];
-            fp_count = fp_count + Nt_tracks-1; 
+            mapping_current = [associated_gt(1)  associated_tk(find(~(D2_chkd(1,:)-min(D2_chkd(1,:))),1))];
+            fp_count = fp_count + Nt_tracks-1; //all other tracks count as false positives
         else
             if size(associated_tk) == 1 then //case with a single tk. Find the nearest gt and assign to it
-                mapping = [associated_gt(find(~(D2_chkd(:,1)-min(D2_chkd(:,1))),1)); associated_tk(1)];
-                fn_count = fn_count + Nt_gt-1;
+                mapping_current = [associated_gt(find(~(D2_chkd(:,1)-min(D2_chkd(:,1))),1)) associated_tk(1)];
+                fn_count = fn_count + Nt_gt-1; //all other gt's count as false negatives
             else //general case. Munkres algorithm
-                mapping = munkres(D2_chkd);    
+                mapping_current = munkres(D2_chkd);    
             end             
         end
     end
-
+    
+    //5. Check if ID switches by comparing current and previous mappings
+    if tt > 1 then
+        // to do        
+    end
+    mapping_previous = mapping_current; 
+   
+    //6. DISPLAY   
     disp("New iteration--------");    
-    mprintf('TS: %10.10f\n', tracks(ii)(1));
+    mprintf('TS: %10.10f\n', tracks(tt)(1));
     disp('D2_chkd:'); disp(D2_chkd);    
     disp('fn_count:'); disp(fn_count);
     disp('fp_count:'); disp(fp_count);
-    disp('mapping:');disp(mapping);
+    disp('mapping:');disp(mapping_current);
+    
+    //7. PLOT
+    if plot_flag then
+        if Nt_gt > 0 then
+            for kk=1:Nt_gt
+                plot(-gt_intp(tt)(kk*3+1),gt_intp(tt)(kk*3),plot_colors(pmodulo(gt_intp(tt)(kk*3-1)-1,5)+1)+'+');
+            end
+        end
+        if Nt_tracks > 0 then
+            for kk=1:Nt_tracks
+                if tracks(tt)(kk*4-1) > 15 then //check status value: Visually confirmed or higher
+                    plot(-tracks(tt)(kk*4+1),tracks(tt)(kk*4),plot_colors(pmodulo(tracks(tt)(kk*4-2)-1,5)+1)+'.');   
+                end
+            end    
+        end
+    end    
 end
 
-//
+
+
 
 
 //COMPUTE DISTANCES -> MOTP
