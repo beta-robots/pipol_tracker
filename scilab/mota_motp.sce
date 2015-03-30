@@ -5,9 +5,17 @@ clear;
 //includes
 exec('/home/andreu/dev/ros_ws/src/pipol_tracker/scilab/munkres.sci');
 
-//opens file
-fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140925_twoPeople.txt','r');
-fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140925_twoPeople_1_tree_all.txt','r');
+//gt file
+//fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140925_FollowMe.txt','r');
+//fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140925_robotMoving.txt','r');
+//fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140925_twoPeople.txt','r');
+fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140926_twoPeople.txt','r');
+
+//tracks file
+//fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140925_FollowMe_tree_all_0.txt','r');
+//fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140925_robotMoving_tree_LegMonocam_1.txt','r');
+//fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140925_twoPeople_tree_all_1.txt','r');
+fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140926_twoPeople_tree_all_20hz_1.txt','r');
 
 //inits
 dd = 0; 
@@ -104,7 +112,7 @@ if plot_flag then
     ah.y_label.font_size = 4;
     ah.grid = [1,1,1];
     ah.grid_position = "background";
-    ah.auto_clear = "on";
+    ah.auto_clear = "off";
     ah.auto_scale = "off";
     ah.data_bounds = [-3 0; 3 5];
     plot_colors = ["r";"g";"b";"k";"y"];

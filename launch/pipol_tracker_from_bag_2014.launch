@@ -6,7 +6,7 @@
         pkg="rosbag"
 		type="play"
 		name="rosbag"
-		args="-l --clock /home/andreu/dataSets/people_tracking/reem/rosbags/20140925_twoPeople.bag"/>	
+		args="--clock /home/andreu/dataSets/people_tracking/reem/rosbags/20140926_twoPeople.bag"/>	
 		<param name="use_sim_time" value="true"/>
 <!--        20140703_robotStopped.bag -->
 <!--        20140703_robotMoving.bag -->
@@ -14,7 +14,7 @@
 <!--        20140925_robotMoving.bag -->
 <!--        20140925_robotStopped.bag -->
 <!--        20140925_twoPeople.bag -->
-<!--        20140926_rh2Sam_and_jordi01.bag -->
+<!--        20140926_twoPeople.bag -->
 
 	<!-- 	Launch people_tracking_rai node -->
 	<group ns="$(env ROBOT)">

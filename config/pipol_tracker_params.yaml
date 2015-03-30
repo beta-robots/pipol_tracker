@@ -37,7 +37,7 @@ matching_body3d_beta: 10
 #****************** tracker parameters *********************************
 
 #node rate [hz]
-tracker_rate: 12.0
+tracker_rate: 20.0
 
 #If targets closer than this distance, merging function is called [m]
 minimum_distance_between_people: 0.3
