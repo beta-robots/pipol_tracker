@@ -322,72 +322,58 @@ void CpeopleTracker::updateAssociationTablesTree()
         jjT->resizeAssociationDecisions(laserDetSet.size(), bodyDetSet.size(), faceDetSet.size(), body3dDetSet.size());
 
     //LEG DETECTOR
-// std::cout << __LINE__ << ": laserDetSet.size(): " << laserDetSet.size() << "; Nt: " << targetList.size() << std::endl;    
-        if( laserDetSet.size() != 0 )
-        {
-            //resets tree
-            tree_.reset();
+    if( laserDetSet.size() != 0 )
+    {
+        //resets tree
+        tree_.reset();
+    
+        //Resizes input tree tables
+        tree_.resize(laserDetSet.size(), targetList.size());//Score table is sized Nd x (Nt+1), to consider void target
         
-            //Resizes input tree tables
-            tree_.resize(laserDetSet.size(), targetList.size());//Score table is sized Nd x (Nt+1), to consider void target
-            
-            //set matching scores to tree_ score table
-            for (iiL=laserDetSet.begin(),ii=0;iiL!=laserDetSet.end();iiL++,ii++) //detections start 
+        //set matching scores to tree_ score table
+        for (iiL=laserDetSet.begin(),ii=0;iiL!=laserDetSet.end();iiL++,ii++) //detections start 
+        {
+            //Set matching values for all targets except void target. It is not required to set scores for void target, they are not used to compute p_{i,N_t+1}
+            for (jjT=targetList.begin(),jj=0;jjT!=targetList.end();jjT++,jj++) 
             {
-                //Set matching values for all targets except void target. It is not required to set scores for void target, they are not used to compute p_{i,N_t+1}
-                for (jjT=targetList.begin(),jj=0;jjT!=targetList.end();jjT++,jj++) 
-                {
-                    matchingValue = jjT->legMatchingFunction(iiL->point);
-                    tree_.setScore(ii,jj,matchingValue);
-                }
+                matchingValue = jjT->legMatchingFunction(iiL->point);
+                tree_.setScore(ii,jj,matchingValue);
             }
-//tree_.printScoreTable();
-// std::cout << __LINE__ << std::endl;                
-            //grow & compute tree
-            tree_.growTree();
-// std::cout << __LINE__ << std::endl;                
-            tree_.computeTree();
-            tree_.normalizeTree();
-// std::cout << __LINE__ << std::endl;              
-//tree_.printTree();
-
-            //Decides best event according to the tree
-            tree_.treeDecision(associations, unassociated);
-// std::cout << "   LEG PAIRS: ";
-// for(ii=0; ii< associations.size(); ii++)
-//     std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
-// std::cout << std::endl; 
-// std::cout << "   LEG UNASSOCIATED DETs: ";
-// for(ii=0; ii< unassociated.size(); ii++)
-//     std::cout << unassociated.at(ii) << ", ";
-// std::cout << std::endl; 
-
-            //sets association vectors
-            for(kk=0; kk<associations.size(); kk++)
-            {
-                setAssociationDecision(LEGS, associations.at(kk).second, associations.at(kk).first);
-            }
-            
-            //mark detections as associated or not ( useful for create new targets at createFilters() )
-            for (iiL=laserDetSet.begin(),ii=0;iiL!=laserDetSet.end();iiL++,ii++)
-            {
-                //check if d_i is associated or not
-                if ( std::find(unassociated.begin(), unassociated.end(), ii) == unassociated.end() ) //associated case
-                {
-                    iiL->setAssociated(true);
-                }
-                else //unassociated case
-                {
-                    iiL->setAssociated(false);
-                }
-            }
-
-// std::cout << __LINE__ << std::endl;                
-            //resets association pairs and unassociated vector
-            associations.clear();
-            unassociated.clear();
         }
         
+        //grow & compute tree
+        tree_.growTree();
+        tree_.computeTree();
+        tree_.normalizeTree();
+
+        //Decides best event according to the tree
+        tree_.solve(associations, unassociated);
+
+        //sets association vectors
+        for(kk=0; kk<associations.size(); kk++)
+        {
+            setAssociationDecision(LEGS, associations.at(kk).second, associations.at(kk).first);
+        }
+        
+        //mark detections as associated or not ( useful for create new targets at createFilters() )
+        for (iiL=laserDetSet.begin(),ii=0;iiL!=laserDetSet.end();iiL++,ii++)
+        {
+            //check if d_i is associated or not
+            if ( std::find(unassociated.begin(), unassociated.end(), ii) == unassociated.end() ) //associated case
+            {
+                iiL->setAssociated(true);
+            }
+            else //unassociated case
+            {
+                iiL->setAssociated(false);
+            }
+        }
+
+        //resets association pairs and unassociated vector
+        associations.clear();
+        unassociated.clear();
+    }
+    
     //BODY2D DETECTOR
 // std::cout << __LINE__ << ": bodyDetSet.size(): " << bodyDetSet.size() << "; Nt: " << targetList.size() << std::endl;    
         if( bodyDetSet.size() != 0 )
@@ -419,7 +405,7 @@ void CpeopleTracker::updateAssociationTablesTree()
 //tree_.printTree();
 
             //Decides best event according to the tree
-            tree_.treeDecision(associations, unassociated);
+            tree_.solve(associations, unassociated);
 // std::cout << "   BODY PAIRS: ";
 // for(ii=0; ii< associations.size(); ii++)
 //     std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
@@ -472,7 +458,7 @@ void CpeopleTracker::updateAssociationTablesTree()
 //tree_.printTree();
 
             //Decides best event according to the tree
-            tree_.treeDecision(associations, unassociated);
+            tree_.solve(associations, unassociated);
 // std::cout << "   FACE PAIRS: ";
 // for(ii=0; ii< associations.size(); ii++)
 //     std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
@@ -525,7 +511,7 @@ void CpeopleTracker::updateAssociationTablesTree()
 //tree_.printTree();
 
             //Decides best event according to the tree
-            tree_.treeDecision(associations, unassociated);
+            tree_.solve(associations, unassociated);
 // std::cout << "   BODY3D PAIRS: ";
 // for(ii=0; ii< associations.size(); ii++)
 //     std::cout << associations.at(ii).first << "," << associations.at(ii).second << " ";
@@ -548,7 +534,7 @@ void CpeopleTracker::updateAssociationTablesTree()
         }        
 }
 
-void CpeopleTracker::updateAssociationTables()
+void CpeopleTracker::updateAssociationTablesOld()
 {
     std::list<Cpoint3dObservation>::iterator jjL, kkL, llL, jjB3d, kkB3d;
     std::list<CbodyObservation>::iterator jjB, kkB;
@@ -567,7 +553,7 @@ void CpeopleTracker::updateAssociationTables()
     {
         iiT->resetMatchScores();
         iiT->resetAssociationProbs();
-        iiT->resetAssociationDecisions();
+        //iiT->resetAssociationDecisions(); already done just some lines below at resize call. 
     }
 	
     //Resizes aDecisions vectors
@@ -890,20 +876,7 @@ void CpeopleTracker::setAssociationDecision(unsigned int _detector_id, unsigned 
 	
 	for (jjT=targetList.begin(),jj=0; jjT!=targetList.end(); jjT++,jj++)
 	{
-		if (jj == _tj) 
-            {   
-//                 std::cout << _detector_id << ": " << _di << "," << _tj << std::endl; 
-//                 std::cout << "aDecisions[_detector_id].size(): " << jjT->aDecisions[_detector_id].size() << std::endl; 
-                jjT->aDecisions[_detector_id].at(_di) = true;
-            }
-            
-            //debugging
-//             if (detId == BODY) 
-//             {
-//                   std::cout << "BODY associated: t" << iiT->getId() << ", d" << dIdx << std::endl;
-//                   std::cout << "   Prob: " << iiT->aProbs[detId].at(dIdx) << std::endl;
-//             }
-//             if (detId == FACE) std::cout << "FACE associated: t" << iiT->getId() << ", d" << dIdx << std::endl;
+		if (jj == _tj) jjT->aDecisions[_detector_id].at(_di) = true;
 	}
 }
 
@@ -911,8 +884,10 @@ void CpeopleTracker::updateTargetStatus()
 {
         std::list<CpersonTarget>::iterator iiT;
         for (iiT=targetList.begin(); iiT!=targetList.end(); iiT++)
-                iiT->updateStatus( params.maxConsecutiveUncorrected, params.minIterationsToBeTarget, 
-                                   params.iterationsToBeVisuallyConfirmed, params.iterationsToBeFriend );
+                iiT->updateStatus( params.maxConsecutiveUncorrected, 
+                                   params.minIterationsToBeTarget, 
+                                   params.iterationsToBeVisuallyConfirmed, 
+                                   params.iterationsToBeFriend );
 }
 	
 void CpeopleTracker::createFilters()
@@ -1068,22 +1043,23 @@ void CpeopleTracker::deleteFilters()
 
 void CpeopleTracker::updateFilterEstimates()
 {
-	std::list<CpersonTarget>::iterator iiF;
-	
-	for (iiF=targetList.begin();iiF!=targetList.end();iiF++)
-	{
-		iiF->updateEstimate();
-            iiF->setMotionMode();
-	}		
+    std::list<CpersonTarget>::iterator iiF;
+    
+    for (iiF=targetList.begin();iiF!=targetList.end();iiF++)
+    {
+        iiF->updateEstimate();
+        iiF->setMotionMode();
+    }
 }
 
 void CpeopleTracker::addEstimatesToTracks()
 {
-	std::list<CpersonTarget>::iterator iiF;
-	for (iiF=targetList.begin();iiF!=targetList.end();iiF++)
-	{
-		iiF->addEstimateToTrack();
-	}		
+    std::list<CpersonTarget>::iterator iiF;
+    
+    for (iiF=targetList.begin();iiF!=targetList.end();iiF++)
+    {
+        iiF->addEstimateToTrack();
+    }		
 }
 
 void CpeopleTracker::propagateFilters(CodometryObservation & odoIncrement)

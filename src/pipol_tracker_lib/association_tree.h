@@ -9,6 +9,8 @@
 //#include <memory>
 
 //pipol tracker
+#include "matrix.h"
+#include "association_solver.h"
 #include "association_node.h"
 
 /** \brief The whole decision tree
@@ -16,15 +18,11 @@
  * The whole decision tree
  * 
 */
-class AssociationTree
+class AssociationTree : public AssociationSolver
 {
     protected:
-        unsigned int nd_; //num detections
-        unsigned int nt_; //num actual targets, without counting the void target
-        std::vector< std::vector<double> > scores_;//scores table. Size is (nd_) x (nt_+1), to account for the void target
         AssociationNode root_;
         std::list<AssociationNode*> terminus_node_list_;
-//         std::list<std::weak_ptr<AssociationNode> > terminus_node_list_; //TODO Use c++11 compiler !! After RoboCup!!
 
     public:
         /** \brief Constructor
@@ -47,35 +45,6 @@ class AssociationTree
         * 
         */        
         void reset();            
-        
-        /** \brief Resizes tree
-        * 
-        * Sets nd_ and nt_ and resizes score table
-        * 
-        */        
-        void resize(const unsigned int _n_det, const unsigned int _n_tar);
-
-        /** \brief Returns num of detections nd_
-         * 
-         * Returns num of detections nd_
-         * 
-         **/
-        unsigned int numDetections();
-        
-        /** \brief Returns num of actual targets nt_
-         * 
-         * Returns num of actual targets nt_
-         * 
-         **/
-        unsigned int numTargets();
-
-        
-        /** \brief Sets values to scores_ table
-         * 
-         * Sets value to score table, at cell ij, corresponding to detection_i and target_j
-         * 
-         **/
-        void setScore(const unsigned int _det_i, const unsigned int _tar_j, const double _m_ij);
         
         /** \brief Build tree from scores
         * 
@@ -106,15 +75,8 @@ class AssociationTree
          * \param _unassoc Returned unassociated detections: vector of (d_i)
          * 
          **/
-        void treeDecision(std::vector<std::pair<unsigned int, unsigned int> > & _pairs, std::vector<unsigned int> & _unassoc);
+        void solve(std::vector<std::pair<unsigned int, unsigned int> > & _pairs, std::vector<unsigned int> & _unassoc);
         
-        /** \brief Prints the score table
-        * 
-        * Prints the score table
-        * 
-        */                
-        void printScoreTable() const;
-
         /** \brief Prints the tree
         * 
         * Prints the tree

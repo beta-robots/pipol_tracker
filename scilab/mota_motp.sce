@@ -6,26 +6,14 @@ clear;
 exec('/home/andreu/dev/ros_ws/src/pipol_tracker/scilab/munkres.sci');
 
 //gt file
+fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140926_twoPeople.txt','r');
 //fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140925_FollowMe.txt','r');
 //fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140925_robotMoving.txt','r');
-//fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140925_twoPeople.txt','r');
-fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140926_twoPeople.txt','r');
 
 //tracks file
-//fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140925_FollowMe_tree_all_0.txt','r');
+fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140926_twoPeople_nnls_all_20hz_0.txt','r');
+//fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140925_FollowMe_nnls_all_20hz_4.txt','r');
 //fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140925_robotMoving_tree_LegMonocam_1.txt','r');
-//fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140925_twoPeople_tree_all_1.txt','r');
-fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140926_twoPeople_tree_all_20hz_1.txt','r');
-
-//inits
-dd = 0; 
-total_matches = 0; 
-motp = [];
-mota = [];
-id_switch = 0; 
-fn_count = 0; 
-fp_count = 0; 
-total_gt_targets = 0; 
 
 //plot y/n
 plot_flag = 0;
@@ -74,8 +62,8 @@ end
 //interpolate ground truth at result time stamp point
 ii = 1;
 gt_intp = list();
-for jj=1:size(tracks)
-    ts = tracks(jj)(1);//get time stamp
+for tt=1:size(tracks)
+    ts = tracks(tt)(1);//get time stamp
     gt_intp_row = ts;
     while ( ts > gt(ii)(1) ) do
         ii = ii + 1;
@@ -118,26 +106,42 @@ if plot_flag then
     plot_colors = ["r";"g";"b";"k";"y"];
 end
 
+//inits before enetring to main loop
+dd = 0; 
+total_matches = 0; 
+motp = [];
+mota = [];
+id_switch = 0; 
+fn_count = 0; 
+fp_count = 0; 
+total_gt_targets = 0; 
+
 //MAIN LOOP TO COMPUTE MOT METRICS
 for tt=1:size(tracks) //tt tracker iteration index (coincide with gorund truth interpolation index)
     
     //1. Filter out tracks with status lower than 15
-    Nt_tracks = (size(tracks(tt),2)-1) / 4; //number of track targets (all)
-    tk_sel = tracks(tt)(1); //track selection with status > 15. Init with timestamp
+    Nt_tracks = (size(tracks(tt),2)-1) / 4; //number of tracks (all)
+    tk_sel = tracks(tt)(1); //This row will keep track selection with status > 15. Row init with timestamp
     for kk= 1:Nt_tracks
         if tracks(tt)(kk*4-1) >= 15 then
             tk_sel = [tk_sel tracks(tt)(kk*4-2:kk*4+1)]
         end
     end
     
-    //2. Build D2 matrix. Sq Euclidean distance between all track-gt pairs 
+    //2. Build D2 matrix. Sq Euclidean distance between all track-gt pairs. Count fp or fn when Nt_gt ~= Nt_tracks
     Nt_gt = (size(gt_intp(tt),2)-1) / 3; //number of gt targets 
     Nt_tracks = (size(tk_sel,2)-1) / 4; //number of track targets (selected according status)
+    if Nt_gt > Nt_tracks then //there are false negatives: true targets not tracked
+        fn_count = fn_count + (Nt_gt-Nt_tracks);
+    end
+    if Nt_tracks > Nt_gt then //there are false positives: false targets being tracked
+        fp_count = fp_count + (Nt_tracks-Nt_gt);
+    end    
     D2 = zeros(Nt_gt, Nt_tracks);
     for ii=1:Nt_gt //ii row/gt index
-        gt_pos = [gt_intp(tt)(ii*3); gt_intp(tt)(ii*3+1)]; //gt ii position
+        gt_pos = [gt_intp(tt)(ii*3); gt_intp(tt)(ii*3+1)]; //get ii gt position
         for jj= 1:Nt_tracks //jj column/track index
-            tk_pos = [tk_sel(jj*4); tk_sel(jj*4+1)]; //track jj position
+            tk_pos = [tk_sel(jj*4); tk_sel(jj*4+1)]; //get jj track position
             D2(ii,jj) = (tk_pos(1)-gt_pos(1))^2 + (tk_pos(2)-gt_pos(2))^2; //sq euclidean distance
         end
     end
@@ -150,42 +154,43 @@ for tt=1:size(tracks) //tt tracker iteration index (coincide with gorund truth i
     for ii=1:Nt_gt
         if ( min( D2(ii,:) ) > d2_th ) then
             unassociated_gt_ids = [unassociated_gt_ids gt_intp(tt)(ii*3-1)]; //save gt id as unassociated
+            fn_count = fn_count + 1; //false negative: a true target is not being tracked
         else
             D2_chkd_rows = [D2_chkd_rows; D2(ii,:)];
             associated_gt_ids = [associated_gt_ids gt_intp(tt)(ii*3-1)]; //save gt id as associated
         end
     end
-    fn_count = fn_count + size(unassociated_gt_ids,2); //false negative counter: cases where a gt target is not tracked
+    
     
     //3. In case D2_chkd_rows is non-empty, Check if any track is further than d2_th to all gt's
     unassociated_tk_ids = [];
     associated_tk_ids = [];
     D2_chkd = [];    
     if ( size(associated_gt_ids) == 0 ) then
-        fp_count = fp_count + Nt_tracks; //in case of no gt association, all tracks are false positives. D2_chkd remains void
+        //fp_count = fp_count + Nt_tracks; //in case of no gt association, all tracks are false positives. D2_chkd remains void
     else
         for jj=1:Nt_tracks 
             if ( min( D2_chkd_rows(:,jj) ) > d2_th ) then
                 unassociated_tk_ids = [unassociated_tk_ids tk_sel(jj*4-2)]; //save track id as unassociated
+                fp_count = fp_count + 1; //false positives: a false target is being tracked
             else
                 D2_chkd = [D2_chkd D2_chkd_rows(:,jj)];
                 associated_tk_ids = [associated_tk_ids tk_sel(jj*4-2)]; //save track id as associated
             end
         end        
-        fp_count = fp_count + size(unassociated_tk_ids,2); //false positives: a tracked target does not associate to any ground truth
     end
         
-    //4. gt-tracks assignment. Munkres' Algorithm when more than 1 is involved  
+    //4. gt-tracks assignment. Call to Munkres' Algorithm when more than 1 is involved  
     mapping_current = [];
     [Nt_gt2 Nt_tracks] = size(D2_chkd);
     if ( Nt_gt2 > 0 ) then //to avoid degenerate case where no potential matchings exist 
         if size(associated_gt_ids) == 1 then //case with a single gt. Find the nearest track and assign to it
             mapping_current = [associated_gt_ids(1) associated_tk_ids(find(~(D2_chkd(1,:)-min(D2_chkd(1,:))),1))];
-            fp_count = fp_count + Nt_tracks-1; //all other tracks count as false positives
+            //fp_count = fp_count + Nt_tracks-1; //all other tracks count as false positives
         else
             if size(associated_tk_ids) == 1 then //case with a single tk. Find the nearest gt and assign to it
                 mapping_current = [associated_gt_ids(find(~(D2_chkd(:,1)-min(D2_chkd(:,1))),1)) associated_tk_ids(1)];
-                fn_count = fn_count + Nt_gt2-1; //all other gt's count as false negatives
+                //fn_count = fn_count + Nt_gt2-1; //all other gt's count as false negatives
             else //general case. Munkres algorithm
                  munkres_result = munkres(D2_chkd);    
                  npairs = size(munkres_result,1);

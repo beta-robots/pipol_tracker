@@ -9,6 +9,9 @@
 #include <list>
 #include <algorithm> //find()
 
+//pipol tracker
+#include "matrix.h"
+
 //constants
 const double PROB_ZERO_ = 1e-3;
 
@@ -112,7 +115,8 @@ class AssociationNode
          * Nodes require computing other ij probs to decide if they continue growing or not at function growTree().
          * 
          **/
-        double computeNodeProb(const unsigned int _nd, const unsigned int _nt, const unsigned int _di, const unsigned int _tj, const std::vector< std::vector<double> > & _stab) const;
+        //double computeNodeProb(const unsigned int _nd, const unsigned int _nt, const unsigned int _di, const unsigned int _tj, const std::vector< std::vector<double> > & _stab) const;
+        double computeNodeProb(const unsigned int _nd, const unsigned int _nt, const unsigned int _di, const unsigned int _tj, const Matrixx<double> & _stab) const;
         
         /** \brief Normalizes node probabilities recursively
          * 
@@ -140,7 +144,8 @@ class AssociationNode
          * \param _ex_vec: vector of target index for which the tree should not continue growing 
          * 
          **/        
-        void growTree(const unsigned int _nd, const unsigned int _nt, const unsigned int _det_i, const std::vector< std::vector<double> > & _stab, std::vector<unsigned int> & _excluded);
+        //void growTree(const unsigned int _nd, const unsigned int _nt, const unsigned int _det_i, const std::vector< std::vector<double> > & _stab, std::vector<unsigned int> & _excluded);
+        void growTree(const unsigned int _nd, const unsigned int _nt, const unsigned int _det_i, const Matrixx<double> & _stab, std::vector<unsigned int> & _excluded);
         
         /** \brief Destroys tree
          * 

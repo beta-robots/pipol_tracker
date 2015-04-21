@@ -267,8 +267,8 @@ class CpeopleTracker
 		 * with respect all current detections
 		 * 
 		 */
-		void updateAssociationTables();
-            void updateAssociationTablesTree();
+        void updateAssociationTablesTree();        
+		void updateAssociationTablesOld();
 		
 		/** \brief Sets association of target tIdx with detection dIdx
 		 * 

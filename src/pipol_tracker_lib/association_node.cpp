@@ -60,7 +60,8 @@ AssociationNode* AssociationNode::upNodePtr() const
     return up_node_ptr_;
 }
 
-double AssociationNode::computeNodeProb(const unsigned int _nd, const unsigned int _nt, const unsigned int _di, const unsigned int _tj, const std::vector< std::vector<double> > & _stab) const
+//double AssociationNode::computeNodeProb(const unsigned int _nd, const unsigned int _nt, const unsigned int _di, const unsigned int _tj, const std::vector< std::vector<double> > & _stab) const
+double AssociationNode::computeNodeProb(const unsigned int _nd, const unsigned int _nt, const unsigned int _di, const unsigned int _tj, const Matrixx<double> & _stab) const
 {
     double p_ij = 1.0; 
     
@@ -69,31 +70,36 @@ double AssociationNode::computeNodeProb(const unsigned int _nd, const unsigned i
         //Prob detection _di does not match to other targets than _tj
         for (unsigned int kk=0; kk<_nt; kk++)
         {
-            p_ij *= ( 1.0 - _stab.at(_di).at(kk) ); 
+            //p_ij *= ( 1.0 - _stab.at(_di).at(kk) );
+            p_ij *= ( 1.0 - _stab(_di,kk) ); 
         }
     }
     else //General case
     {
         //step 1. Positive matching _di with _tj
-        p_ij *= _stab.at(_di).at(_tj); 
+//         p_ij *= _stab.at(_di).at(_tj);
+        p_ij *= _stab(_di,_tj); 
         
         //step2. Prob detection _di does not match to other targets than _tj
         for (unsigned int kk=0; kk<_nt; kk++)
         {
-            if ( kk!=_tj ) p_ij *= 1 - _stab.at(_di).at(kk); 
+//             if ( kk!=_tj ) p_ij *= 1 - _stab.at(_di).at(kk);
+            if ( kk!=_tj ) p_ij *= 1 - _stab(_di,kk); 
         }
         
         //step3. Prob target _tj does not match to other detections than _di
         for (unsigned int kk=0; kk<_nd; kk++)
         {
-            if ( kk!=_di ) p_ij *= 1 - _stab.at(kk).at(_tj); 
+//             if ( kk!=_di ) p_ij *= 1 - _stab.at(kk).at(_tj);
+            if ( kk!=_di ) p_ij *= 1 - _stab(kk,_tj); 
         }
         
         //step4. Prob detection _di does not remain unassociated
         double p_un = 1.0;
         for (unsigned int kk=0; kk<_nt; kk++)
         {
-            p_un *= ( 1.0 - _stab.at(_di).at(kk) );            
+            //p_un *= ( 1.0 - _stab.at(_di).at(kk) );
+            p_un *= ( 1.0 - _stab(_di,kk) );                        
         }
         p_ij *= ( 1 - p_un );
     }
@@ -135,7 +141,8 @@ double AssociationNode::computeTreeProb(const double & _up_prob, std::list<Assoc
     }
 }
 
-void AssociationNode::growTree(const unsigned int _nd, const unsigned int _nt, const unsigned int _det_i, const std::vector< std::vector<double> > & _stab, std::vector<unsigned int> & _excluded)
+//void AssociationNode::growTree(const unsigned int _nd, const unsigned int _nt, const unsigned int _det_i, const std::vector< std::vector<double> > & _stab, std::vector<unsigned int> & _excluded)
+void AssociationNode::growTree(const unsigned int _nd, const unsigned int _nt, const unsigned int _det_i, const Matrixx<double> & _stab, std::vector<unsigned int> & _excluded)
 {
     unsigned int tar_j; //target index (not target id!)
     double p_ij;//probability that detection i comes from target j

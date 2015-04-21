@@ -45,7 +45,7 @@ std::cout << __LINE__ << std::endl;
 std::cout << __LINE__ << std::endl;    
     tree_.normalizeTree();
 std::cout << __LINE__ << std::endl;    
-    tree_.treeDecision(associations_,unassociated_);
+    tree_.solve(associations_,unassociated_);
 std::cout << __LINE__ << std::endl;    
     
     //display tree
