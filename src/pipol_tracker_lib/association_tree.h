@@ -46,6 +46,16 @@ class AssociationTree : public AssociationSolver
         */        
         void reset();            
         
+        /** \brief Resizes the problem
+        * 
+        * Resizes the problem: 
+        * \param _n_det num of detections
+        * \param _n_tar num of targets
+        * Resizes the scores_ matrix which will allocate _n_det rows and _n_tar+1 columns to take into account void target
+        * 
+        */        
+        void resize(const unsigned int _n_det, const unsigned int _n_tar);                
+        
         /** \brief Build tree from scores
         * 
         * Build tree from scores

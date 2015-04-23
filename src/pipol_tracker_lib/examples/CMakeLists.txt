@@ -11,5 +11,5 @@
 ADD_EXECUTABLE(test_matrix test_matrix.cpp)
 
 #test association tree
-ADD_EXECUTABLE(test_tree test_tree.cpp ../association_node.cpp ../association_tree.cpp ../association_solver.cpp)
+ADD_EXECUTABLE(test_tree test_tree.cpp ../association_node.cpp ../association_tree.cpp ../association_nnls.cpp ../association_solver.cpp)
 

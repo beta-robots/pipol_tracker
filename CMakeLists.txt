@@ -44,6 +44,7 @@ SET(SRCS_PT_LIB
       src/pipol_tracker_lib/random/simpleRnd.cpp
       src/pipol_tracker_lib/association_node.cpp
       src/pipol_tracker_lib/association_tree.cpp
+      src/pipol_tracker_lib/association_nnls.cpp
       src/pipol_tracker_lib/association_solver.cpp
 )
 

@@ -2,18 +2,18 @@
 
 CpeopleTracker::CpeopleTracker()
 {
-	nextTargetId = 1;
-      followMeTargetId = -1;//initially there is no folloMe target Id 
-	for (unsigned int ii=0; ii<NUM_DETECTORS; ii++) nextDetectionId[ii] = 1;
-	setDefaultParameters();
+    nextTargetId = 1;
+    followMeTargetId = -1;//initially there is no folloMe target Id 
+    for (unsigned int ii=0; ii<NUM_DETECTORS; ii++) nextDetectionId[ii] = 1;
+    setDefaultParameters();
 }
 
 CpeopleTracker::~CpeopleTracker()
 {
-	laserDetSet.clear();
-	bodyDetSet.clear();
-      body3dDetSet.clear();
-	targetList.clear();
+    laserDetSet.clear();
+    bodyDetSet.clear();
+    body3dDetSet.clear();
+    targetList.clear();
 }		
 
 void CpeopleTracker::setDefaultParameters()

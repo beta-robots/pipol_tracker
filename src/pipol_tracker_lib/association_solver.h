@@ -37,15 +37,6 @@ class AssociationSolver
         */        
         virtual ~AssociationSolver();
         
-        /** \brief Resizes the problem
-        * 
-        * Resizes the problem: 
-        * \param _n_det num of detections
-        * \param _n_tar num of targets
-        * 
-        */        
-        virtual void resize(const unsigned int _n_det, const unsigned int _n_tar);
-
         /** \brief Returns num of detections nd_
          * 
          * Returns num of detections nd_
@@ -79,7 +70,16 @@ class AssociationSolver
         * Deletes and clears the problem
         * 
         */        
-        virtual void reset() = 0;            
+        virtual void reset() = 0;    
+
+        /** \brief Resizes the problem
+        * 
+        * Resizes the problem: 
+        * \param _n_det num of detections
+        * \param _n_tar num of targets
+        * 
+        */        
+        virtual void resize(const unsigned int _n_det, const unsigned int _n_tar) = 0;        
         
         /** \brief Solves and sets decision pairs
          * 

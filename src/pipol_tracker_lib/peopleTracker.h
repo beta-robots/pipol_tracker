@@ -4,6 +4,7 @@
 //#include "personPfilter.h"
 #include "personTarget.h"
 #include "association_tree.h"
+#include "association_nnls.h"
 #include "geometry/point.h"
 #include "geometry/line.h"
 #include <opencv2/core/core.hpp>
@@ -30,16 +31,16 @@ const unsigned int MINIMUM_ITERATIONS_TO_BE_FRIEND = 20;
  */
 struct trackerParameters
 {
-	double minDistanceBetweenPeople;
-	double minAssociationProb;
-	double maxDetectionDistance;
-	double minDetectionDistance;
-      double maxDetectionAzimut;
-	unsigned int maxConsecutiveUncorrected;
-	unsigned int minIterationsToBeTarget;	
-      unsigned int minAppearanceRegionSize;
-      unsigned int iterationsToBeVisuallyConfirmed;
-      unsigned int iterationsToBeFriend;        
+    double minDistanceBetweenPeople;
+    double minAssociationProb;
+    double maxDetectionDistance;
+    double minDetectionDistance;
+    double maxDetectionAzimut;
+    unsigned int maxConsecutiveUncorrected;
+    unsigned int minIterationsToBeTarget;	
+    unsigned int minAppearanceRegionSize;
+    unsigned int iterationsToBeVisuallyConfirmed;
+    unsigned int iterationsToBeFriend;        
 };
 
 /** \brief Struct grouping data to take associative decisions
@@ -49,85 +50,85 @@ struct trackerParameters
  **/
 struct decisionElement
 {
-	double aProb;
-	unsigned int targetIdx;
-	unsigned int detectionIdx;
-	bool assigned;
-	bool operator<(decisionElement de)
-	{
-		if (this->aProb < de.aProb) return 0;
-		else return 1;
-	}
+    double aProb;
+    unsigned int targetIdx;
+    unsigned int detectionIdx;
+    bool assigned;
+    bool operator<(decisionElement de)
+    {
+        if (this->aProb < de.aProb) return 0;
+        else return 1;
+    }
 };
 
 class CpeopleTracker
 {
-	protected:
+        protected:
             
-		/** \brief Next target id 
-		 * 
-		 * Next target id to be assigned
-		 * 
-		 */
-		unsigned int nextTargetId; 
-		
-		/** \brief Next detection id 
-		 * 
-		 * Next detection id to be assigned
-		 * 
-		 */
-		unsigned int nextDetectionId[NUM_DETECTORS]; 
-		
-            /** \brief Target id of the follow me person
-             * 
-             * Target id of the follow me person, after an enrollment step
-             * if 0, there is no follow me target present at the scene
-             * 
-             */
-            int followMeTargetId; 
-            
-            /** \brief Initial TLD box
-             * 
-             * Bounidng box to initialize the TLD tracker
-             * 
-             **/
-            cv::Rect_<int> tldBox;
-		
-		/** \brief List of leg detections
-		 * 
-		 * List of current leg detections received from the leg detector
-		 * 
-		 */		
-		std::list<Cpoint3dObservation> laserDetSet;
+        /** \brief Next target id 
+        * 
+        * Next target id to be assigned
+        * 
+        */
+        unsigned int nextTargetId; 
 
-		/** \brief List of body detections
-		 * 
-		 * List of current body detections received from the body detector
-		 * 
-		 */				
-		std::list<CbodyObservation> bodyDetSet;
+        /** \brief Next detection id 
+        * 
+        * Next detection id to be assigned
+        * 
+        */
+        unsigned int nextDetectionId[NUM_DETECTORS]; 
 
-            /** \brief List of face detections
-             * 
-             * List of current face detections received from the face detector
-             * 
-             */                     
-            std::list<CfaceObservation> faceDetSet;
-            
-            /** \brief List of body 3d detections
-             * 
-             * List of current body 3d detections received from the body 3d detector
-             * 
-             */         
-            std::list<Cpoint3dObservation> body3dDetSet;            
-            
-            /** \brief Current TLD detection
-             * 
-             * Current TLD detection. TLD only outputs one detection, so it is not a list
-             * 
-             */                                 
-            CbodyObservation tldDetection;
-		
+        /** \brief Target id of the follow me person
+        * 
+        * Target id of the follow me person, after an enrollment step
+        * if 0, there is no follow me target present at the scene
+        * 
+        */
+        int followMeTargetId; 
+
+        /** \brief Initial TLD box
+        * 
+        * Bounidng box to initialize the TLD tracker
+        * 
+        **/
+        cv::Rect_<int> tldBox;
+
+        /** \brief List of leg detections
+        * 
+        * List of current leg detections received from the leg detector
+        * 
+        */		
+        std::list<Cpoint3dObservation> laserDetSet;
+
+        /** \brief List of body detections
+        * 
+        * List of current body detections received from the body detector
+        * 
+        */				
+        std::list<CbodyObservation> bodyDetSet;
+
+        /** \brief List of face detections
+        * 
+        * List of current face detections received from the face detector
+        * 
+        */                     
+        std::list<CfaceObservation> faceDetSet;
+        
+        /** \brief List of body 3d detections
+        * 
+        * List of current body 3d detections received from the body 3d detector
+        * 
+        */         
+        std::list<Cpoint3dObservation> body3dDetSet;            
+        
+        /** \brief Current TLD detection
+        * 
+        * Current TLD detection. TLD only outputs one detection, so it is not a list
+        * 
+        */                                 
+        CbodyObservation tldDetection;
+    
 		/** \brief List of particle filters
 		 * 
 		 * For each target, there is a particle filter that estimates its state (position and velocity)
@@ -142,27 +143,36 @@ class CpeopleTracker
 		 */
 		trackerParameters params;
 		
-		/** \brief Filter parameters
-		 * 
-		 * Filter parameters to be passed to new created filters
-		 * 
-		 */
-		pFilterParameters filterParams;
-		
-		/** \brief Current image required for target appearance computation
-		 * 
-		 * Current image required for target appearance computation
-		 * 
-		 **/
-		cv::Mat img;
-            
-            /** \brief Association tree
-             * 
-             * Asociation tree. Used to stablish the most likely association event between detections and targets. 
-             * 
-             **/
-            AssociationTree tree_;
-            
+        /** \brief Filter parameters
+        * 
+        * Filter parameters to be passed to new created filters
+        * 
+        */
+        pFilterParameters filterParams;
+
+        /** \brief Current image required for target appearance computation
+        * 
+        * Current image required for target appearance computation
+        * 
+        **/
+        cv::Mat img;
+
+        /** \brief Association tree
+        * 
+        * Asociation Mulit_Hypothesis tree. 
+        * Used to stablish the most likely association event between detections and targets. 
+        * 
+        **/
+        AssociationTree tree_;
+        
+        /** \brief Association Nearest Neighbor
+        * 
+        * Asociation Nearest Neighbor. 
+        * Used to stablish the most likely association event between detections and targets. 
+        * 
+        **/
+        AssociationNNLS nnls_;
+                    
 	public:
 		CpeopleTracker();
 		virtual ~CpeopleTracker();

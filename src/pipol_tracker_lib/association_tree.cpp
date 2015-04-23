@@ -15,15 +15,20 @@ AssociationTree::~AssociationTree()
 
 void AssociationTree::reset()
 {
-//     for ( unsigned int ii = 0; ii < nd_; ii++)
-//     {
-//         scores_.at(ii).clear();
-//     }
-//     scores_.clear();
+    nd_ = 0; 
+    nt_ = 0;
     scores_.clear(); 
     terminus_node_list_.clear();
     root_.destroyTree();
 }
+
+void AssociationTree::resize(const unsigned int _n_det, const unsigned int _n_tar)
+{
+    nd_ = _n_det;
+    nt_ = _n_tar;
+    scores_.resize(nd_,nt_+1); //"+1" to account for void target, which manages unassociated detections
+}
+
              
 void AssociationTree::growTree()
 {
