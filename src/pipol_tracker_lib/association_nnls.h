@@ -12,9 +12,9 @@
 //consts 
 const double MAX_DIST_DEFAULT = 0.5; //units (meters in pt case)
 
-/** \brief The whole decision tree
+/** \brief Nearest neighbour linear search
  * 
- * The whole decision tree
+ * Nearest neighbour linear search to solve data association problems, given a table of distances 
  * 
 */
 class AssociationNNLS : public AssociationSolver
@@ -66,11 +66,13 @@ class AssociationNNLS : public AssociationSolver
          * Return values are: 
          * \param _pairs Returned pairs: vector of pairs (d_i, t_j)
          * \param _unassoc Returned unassociated detections: vector of (d_i)
+         * \param _associated_mask Resized to nd_. Marks true at i if detection d_i has been associated, otherwise marks false
          * 
-         * Assumes both vector masks and scores matrix are correctly sized, by a previous call to resize()
+         * Assumes i/j_mask_ vector class members and scores_ matrix are correctly sized, by a previous call to resize()
          * 
          **/
-        void solve(std::vector<std::pair<unsigned int, unsigned int> > & _pairs, std::vector<unsigned int> & _unassoc);
+        //void solve(std::vector<std::pair<unsigned int, unsigned int> > & _pairs, std::vector<unsigned int> & _unassoc);
+        void solve(std::vector<std::pair<unsigned int, unsigned int> > & _pairs, std::vector<bool> & _associated_mask);
         
 };
 #endif            

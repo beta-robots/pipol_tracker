@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     unsigned int nd_ = 2; //# detections
     unsigned int nt_ = 2; //# targets
     std::vector<std::pair<unsigned int, unsigned int> > associationsT_, associationsN_;
-    std::vector<unsigned int> unassociatedT_, unassociatedN_;
+    std::vector<bool> associated_mask_T_, associated_mask_N_;
     double sc_;
     
     //inits
@@ -58,14 +58,11 @@ int main(int argc, char *argv[])
     nnls_.printScoreTable();
 
     std::cout << "STEP 3. Solve tree" << std::endl;
-    tree_.growTree();
-    tree_.computeTree();
-    tree_.normalizeTree();
-    tree_.solve(associationsT_,unassociatedT_);
+    tree_.solve(associationsT_, associated_mask_T_);
     tree_.printTree();//display tree
     
     std::cout << "STEP 4. Solve NNLS" << std::endl;
-    nnls_.solve(associationsN_,unassociatedN_);
+    nnls_.solve(associationsN_, associated_mask_N_);
 
     //display associations
     std::cout << std::endl; 
@@ -83,12 +80,12 @@ int main(int argc, char *argv[])
     std::cout << std::endl; 
     std::cout << "UNASSOCIATED DETs: " << std::endl;
     std::cout << "   TREE: ";
-    for(unsigned int ii=0; ii< unassociatedT_.size(); ii++)
-        std::cout << unassociatedT_.at(ii) << " ";
+    for(unsigned int ii=0; ii< associated_mask_T_.size(); ii++)
+        if ( associated_mask_T_.at(ii) == false ) std::cout << ii << " ";
     std::cout << std::endl; 
     std::cout << "   NNLS: ";
-    for(unsigned int ii=0; ii< unassociatedN_.size(); ii++)
-        std::cout << unassociatedN_.at(ii) << " ";
+    for(unsigned int ii=0; ii< associated_mask_N_.size(); ii++)
+        if ( associated_mask_N_.at(ii) == false ) std::cout << ii << " ";
     std::cout << std::endl;     
     
     //reset
