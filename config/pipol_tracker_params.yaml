@@ -15,6 +15,7 @@ sigma_resampling_xy: 0.01
 
 #ratio of target velocity to compute resampling standard deviation applied at resampling step along VxVy dimensions [·]
 sigma_ratio_resampling_vxy: 0.1
+#sigma_ratio_resampling_vxy: 0.2 
 
 #minimum value for standard deviation applied at resampling step along VxVy dimensions [m/s]
 sigma_min_resampling_vxy: 0.1
@@ -79,7 +80,7 @@ log_to_file: 1
 view_body_detections: 1
 
 #Publish visualization markers of a subset of particles. 0->Off, 1->On
-view_particles: 1
+view_particles: 0
 
 
 

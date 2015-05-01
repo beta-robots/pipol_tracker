@@ -508,6 +508,16 @@ double CpersonParticleFilter::body3dMatchingFunction(Cpoint3d & p1, Cpoint3d & p
     return  score;
 }
 
+double CpersonParticleFilter::d2point2(const Cpoint3d & _pt)
+{
+    return this->estimate.position.d2point2(_pt); 
+}
+
+double CpersonParticleFilter::getAzimuth() const
+{
+    return atan2(estimate.position.getY(), estimate.position.getX()); 
+}
+
 void CpersonParticleFilter::print(unsigned int tId)
 {
     std::cout << "----------- Filter " << tId << " --------- " << std::endl;

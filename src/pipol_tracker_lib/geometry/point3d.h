@@ -169,6 +169,13 @@ class Cpoint3d
 		 *
 		*/																				
 		double d2point2(const Cpoint3d & qq) const;
+        
+        /** \brief Returns azimuth of the point
+         * 
+         * Returns azimuth of the point
+         * 
+         **/
+        double getAzimuth() const; 
 
 		/**
 		 * \brief Assignement operator

@@ -22,7 +22,6 @@ const unsigned int MINIMUM_ITERATIONS_TO_BE_TARGET = 7;
 const unsigned int MINIMUM_APPEARANCE_REGION_SIZE = 100;
 const unsigned int MINIMUM_ITERATIONS_TO_BE_VISUALLY_CONFIRMED = 5;
 const unsigned int MINIMUM_ITERATIONS_TO_BE_FRIEND = 20;
-enum dataAssociationTypes {MHTREE = 0, NNLS};
 
 /** \brief Tracker parameters
  * 
@@ -272,14 +271,20 @@ class CpeopleTracker
             */
         void computeOcclusions();
 
-        /** \brief Updates matching scores, association probabilities and association decisions
+        /** \brief Associate current detections with current tracks, based on a MHT
         * 
-        * Updates matching scores, association probabilities and association decisions of all filters
-        * with respect all current detections
+        * Associate current detections with current tracks, based on a multi-hypothesisi tree
         * 
         */
-        void dataAssociation(unsigned int _type = MHTREE);        
+        void dataAssociationTree();
         //void updateAssociationTablesOld();
+        
+        /** \brief Associate current detections with current tracks, based on NN
+        * 
+        * Associate current detections with current tracks, based on a nearest neighbor search
+        * 
+        */
+        void dataAssociationNN();        
 
         /** \brief Sets association of target tIdx with detection dIdx
         * 

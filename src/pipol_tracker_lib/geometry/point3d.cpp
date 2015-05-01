@@ -83,6 +83,11 @@ double Cpoint3d::d2point2(const Cpoint3d & qq) const
 	return dx*dx+dy*dy+dz*dz;
 }
 
+double Cpoint3d::getAzimuth() const
+{
+    return atan2(yy, xx);
+}
+
 void Cpoint3d::operator=(const Cpoint3d & qq)
 {
 	xx = qq.getX();

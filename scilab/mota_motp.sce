@@ -6,14 +6,15 @@ clear;
 exec('/home/andreu/dev/ros_ws/src/pipol_tracker/scilab/munkres.sci');
 
 //gt file
-fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140926_twoPeople.txt','r');
-//fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140925_FollowMe.txt','r');
+fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140925_FollowMe.txt','r');
 //fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140925_robotMoving.txt','r');
+//fd_gt=mopen('/home/andreu/dataSets/people_tracking/reem/ground_truth/20140926_twoPeople.txt','r');
 
 //tracks file
-fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140926_twoPeople_nnls_all_20hz_0.txt','r');
-//fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140925_FollowMe_nnls_all_20hz_4.txt','r');
-//fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140925_robotMoving_tree_LegMonocam_1.txt','r');
+fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140925_FollowMe_tree_all_30hz_1.txt','r');
+//fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140925_robotMoving_tree_all_20hz_11.txt','r');
+//fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/20140926_twoPeople_nn_all_20hz_9.txt','r');
+//fd_tracks=mopen('/home/andreu/dataSets/people_tracking/reem/tracker_results/pt_out.txt','r');
 
 //plot y/n
 plot_flag = 0;
@@ -160,7 +161,6 @@ for tt=1:size(tracks) //tt tracker iteration index (coincide with gorund truth i
             associated_gt_ids = [associated_gt_ids gt_intp(tt)(ii*3-1)]; //save gt id as associated
         end
     end
-    
     
     //3. In case D2_chkd_rows is non-empty, Check if any track is further than d2_th to all gt's
     unassociated_tk_ids = [];

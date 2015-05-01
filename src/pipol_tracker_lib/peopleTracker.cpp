@@ -305,7 +305,7 @@ void CpeopleTracker::computeOcclusions()
     }
 }
 
-void CpeopleTracker::dataAssociation(unsigned int _type)
+void CpeopleTracker::dataAssociationTree()
 {
     std::list<Cpoint3dObservation>::iterator iiL;//leg detections
     std::list<CbodyObservation>::iterator iiB; //body2D detections
@@ -320,7 +320,7 @@ void CpeopleTracker::dataAssociation(unsigned int _type)
     //Resize decision vectors
     for (jjT=targetList.begin();jjT!=targetList.end();jjT++)
         jjT->resizeAssociationDecisions(laserDetSet.size(), bodyDetSet.size(), faceDetSet.size(), body3dDetSet.size());
-
+    
     //LEG DETECTOR
     if( laserDetSet.size() != 0 )
     {
@@ -362,7 +362,7 @@ void CpeopleTracker::dataAssociation(unsigned int _type)
         associations.clear();
         //unassociated.clear();
     }
-    
+
     //BODY2D DETECTOR
     if( bodyDetSet.size() != 0 )
     {
@@ -466,25 +466,179 @@ void CpeopleTracker::dataAssociation(unsigned int _type)
     }        
 }
 
+void CpeopleTracker::dataAssociationNN()
+{
+    std::list<Cpoint3dObservation>::iterator iiL;//leg detections
+    std::list<CbodyObservation>::iterator iiB; //body2D detections
+    std::list<CfaceObservation>::iterator iiF; //face detections
+    std::list<Cpoint3dObservation>::iterator iiB3; //body3d detections
+    std::list<CpersonTarget>::iterator jjT; //targets
+    double sqd;//euclidean distance squared
+    unsigned int ii, jj, kk; //ii: detections, jj: targets, kk: auxiliar
+    std::vector<std::pair<unsigned int, unsigned int> > associations;
+    std::vector<bool> associated_mask;
+
+    //Resize decision vectors
+    for (jjT=targetList.begin();jjT!=targetList.end();jjT++)
+        jjT->resizeAssociationDecisions(laserDetSet.size(), bodyDetSet.size(), faceDetSet.size(), body3dDetSet.size());
+
+    //LEG DETECTOR
+    if( laserDetSet.size() != 0 )
+    {
+        //resets nnls
+        nnls_.reset();
+    
+        //Resizes input nnls tables
+        nnls_.resize(laserDetSet.size(), targetList.size());//Score table is sized Nd x Nt
+        
+        //set matching scores to tree_ score table
+        for (iiL=laserDetSet.begin(),ii=0;iiL!=laserDetSet.end();iiL++,ii++) //detections start 
+        {
+            //Set sq distances between detections and targets
+            for (jjT=targetList.begin(),jj=0;jjT!=targetList.end();jjT++,jj++) 
+            {
+                sqd = jjT->d2point2(iiL->point);
+                nnls_.setScore(ii,jj,sqd);
+            }
+        }
+        
+        //Decides best association event according to the nnls
+        nnls_.solve(associations, associated_mask);
+
+        //sets association vectors
+        for(kk=0; kk<associations.size(); kk++)
+        {
+            setAssociationDecision(LEGS, associations.at(kk).second, associations.at(kk).first);
+        }
+        
+        //mark detections as associated or not ( required to create new targets at createFilters() )
+        for (iiL=laserDetSet.begin(),ii=0;iiL!=laserDetSet.end();iiL++,ii++)
+        {
+            //check if d_i is associated or not
+            if ( associated_mask.at(ii) == true ) iiL->setAssociated(true);
+            else iiL->setAssociated(false);
+        }
+
+        //resets association pairs and unassociated vector
+        associations.clear();
+    }
+
+    //BODY2D DETECTOR
+    if( bodyDetSet.size() != 0 )
+    {
+        //resets nnls
+        nnls_.reset();
+    
+        //Resizes input nnls tables
+        nnls_.resize(bodyDetSet.size(), targetList.size());//Score table is sized Nd x Nt
+        
+        //set matching scores to tree_ score table
+        for (iiB=bodyDetSet.begin(),ii=0;iiB!=bodyDetSet.end();iiB++,ii++) //detections start 
+        {
+            //Set matching values for all targets except void target. It is not required to set scores for void target, they are not used to compute p_{i,N_t+1}
+            for (jjT=targetList.begin(),jj=0;jjT!=targetList.end();jjT++,jj++) 
+            {
+                sqd = fabs(jjT->getAzimuth() - iiB->direction.getAzimuth()); 
+                nnls_.setScore(ii,jj,sqd);
+            }
+        }
+
+        //Decides best association event according to the tree
+        nnls_.solve(associations, associated_mask);
+
+        //sets association vectors
+        for(kk=0; kk<associations.size(); kk++)
+        {
+            setAssociationDecision(BODY, associations.at(kk).second, associations.at(kk).first);
+        }
+        
+        //resets association pairs and unassociated vector
+        associations.clear();
+    }
+
+    //FACE DETECTOR
+    if( faceDetSet.size() != 0 )
+    {
+        //resets nnls
+        nnls_.reset();
+    
+        //Resizes input nnls tables
+        nnls_.resize(faceDetSet.size(), targetList.size());//Score table is sized Nd x Nt
+        
+        //set matching scores to tree_ score table
+        for (iiF=faceDetSet.begin(),ii=0;iiF!=faceDetSet.end();iiF++,ii++) //detections start 
+        {
+            //Set matching values for all targets except void target. It is not required to set scores for void target, they are not used to compute p_{i,N_t+1}
+            for (jjT=targetList.begin(),jj=0;jjT!=targetList.end();jjT++,jj++) 
+            {
+                sqd = jjT->d2point2( Cpoint3d(iiF->faceLoc.getX(), iiF->faceLoc.getY(), 0) );
+                nnls_.setScore(ii,jj,sqd);
+            }
+        }
+
+        //Decides best event according to the tree
+        nnls_.solve(associations, associated_mask);
+
+        //sets association vectors
+        for(kk=0; kk<associations.size(); kk++)
+        {
+            setAssociationDecision(FACE, associations.at(kk).second, associations.at(kk).first);
+        }
+        
+        //resets association pairs and unassociated vector
+        associations.clear();
+    }
+        
+    //BODY3D DETECTOR
+    if( body3dDetSet.size() != 0 )
+    {
+        //resets nnls
+        nnls_.reset();
+    
+        //Resizes input nnls tables
+        nnls_.resize(body3dDetSet.size(), targetList.size());//Score table is sized Nd x Nt
+        
+        //set matching scores to tree_ score table
+        for (iiB3=body3dDetSet.begin(),ii=0;iiB3!=body3dDetSet.end();iiB3++,ii++) //detections start 
+        {
+            //Set matching values for all targets except void target. It is not required to set scores for void target, they are not used to compute p_{i,N_t+1}
+            for (jjT=targetList.begin(),jj=0;jjT!=targetList.end();jjT++,jj++) 
+            {
+                sqd = jjT->d2point2(iiB3->point);
+                nnls_.setScore(ii,jj,sqd);
+            }
+        }
+
+        //Decides best event according to the tree
+        nnls_.solve(associations, associated_mask);
+
+        //sets association vectors
+        for(kk=0; kk<associations.size(); kk++)
+        {
+            setAssociationDecision(BODY3D, associations.at(kk).second, associations.at(kk).first);
+        }
+        
+        //resets association pairs and unassociated vector
+        associations.clear();
+    }
+}
+
 void CpeopleTracker::setAssociationDecision(unsigned int _detector_id, unsigned int _tj, unsigned int _di)
 {
-	std::list<CpersonTarget>::iterator jjT;
-	unsigned int jj;
-	
-	for (jjT=targetList.begin(),jj=0; jjT!=targetList.end(); jjT++,jj++)
-	{
-		if (jj == _tj) jjT->aDecisions[_detector_id].at(_di) = true;
-	}
+    unsigned int jj = 0;
+    for (std::list<CpersonTarget>::iterator jjT=targetList.begin(); jjT!=targetList.end(); jjT++,jj++)
+    {
+        if (jj == _tj) jjT->aDecisions[_detector_id].at(_di) = true;
+    }
 }
 
 void CpeopleTracker::updateTargetStatus()
 {
-        std::list<CpersonTarget>::iterator iiT;
-        for (iiT=targetList.begin(); iiT!=targetList.end(); iiT++)
-                iiT->updateStatus( params.maxConsecutiveUncorrected, 
-                                   params.minIterationsToBeTarget, 
-                                   params.iterationsToBeVisuallyConfirmed, 
-                                   params.iterationsToBeFriend );
+    for (std::list<CpersonTarget>::iterator iiT=targetList.begin(); iiT!=targetList.end(); iiT++)
+    {
+        iiT->updateStatus( params.maxConsecutiveUncorrected, params.minIterationsToBeTarget, 
+                        params.iterationsToBeVisuallyConfirmed, params.iterationsToBeFriend );
+    }
 }
 	
 void CpeopleTracker::createFilters()

@@ -297,6 +297,8 @@ class CpersonParticleFilter
             double faceMatchingFunction(Cpoint3d & pD, Cpoint3d & pT);
             double body3dMatchingFunction(Cpoint3d & pD);
             double body3dMatchingFunction(Cpoint3d & pD, Cpoint3d & pT);            
+            double d2point2(const Cpoint3d & _pt);
+            double getAzimuth() const; 
             virtual void print(unsigned int tId=0);
             void printParticleSet();
 };

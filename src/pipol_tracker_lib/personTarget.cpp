@@ -2,75 +2,74 @@
 
 CpersonTarget::CpersonTarget(unsigned int tid):CpersonParticleFilter()
 {
-        id = tid;
-        pOcclusion = 0;
-        status = ( 0 | CANDIDATE );
-        tsInit.setToNow();
+    id = tid;
+    pOcclusion = 0;
+    status = ( 0 | CANDIDATE );
+    tsInit.setToNow();
 }
  
 CpersonTarget::~CpersonTarget()
 {
-	track.clear();
+    track.clear();
 }
 
 void CpersonTarget::setId(unsigned int tid)
 {
-	id = tid;
+    id = tid;
 }
 
 unsigned int CpersonTarget::getId()
 {
-	return id;
+    return id;
 }
 
 double CpersonTarget::getTsInit()
 {
-      return tsInit.get();
+    return tsInit.get();
 }
 
 unsigned int CpersonTarget::getStatus()
 {
-        return status;
+    return status;
 }
 
 unsigned int CpersonTarget::getMaxStatus()
 {
-      unsigned int ii, msk;
+    unsigned int ii, msk;
       
-      msk = FACE_LEARNT;
-      for (ii=0; ii<sizeof(status); ii++)
-      {
-            if (status & msk) break;
-            else msk = msk>>1;
-      }
-      return msk;
+    msk = FACE_LEARNT;
+    for (ii=0; ii<sizeof(status); ii++)
+    {
+        if (status & msk) break;
+        else msk = msk>>1;
+    }
+    return msk;
 }
 
 void CpersonTarget::setStatus(statusMask sm, bool value)
 {
-      if ( value ) 
-            this->status |= sm;
-      else 
-            this->status &= ~sm;
+    if ( value ) 
+        this->status |= sm;
+    else 
+        this->status &= ~sm;
 }
 
 bool CpersonTarget::isStatus(statusMask sm)
 {
-      return bool(this->status & sm);
+    return bool(this->status & sm);
 }
 
 void CpersonTarget::updateStatus(unsigned int th1, unsigned int th2, unsigned int th3, unsigned int th4)
-{
-      
+{  
 //       if ( ( countToBeRemoved > MAX_REMOVING_ITERATIONS ) || ( countConsecutiveUncorrected > th1*this->status ) )
-      if ( ( countToBeRemoved > MAX_REMOVING_ITERATIONS ) || ( countConsecutiveUncorrected > th1 ) ) 
-      {
-            //this->status = TO_BE_REMOVED;
-            setStatus(TO_BE_REMOVED,true);
-      }
-      
-      else //no removing case
-      {
+    if ( ( countToBeRemoved > MAX_REMOVING_ITERATIONS ) || ( countConsecutiveUncorrected > th1 ) ) 
+    {
+        //this->status = TO_BE_REMOVED;
+        setStatus(TO_BE_REMOVED,true);
+    }
+
+    else //no removing case
+    {
 //             switch(this->status)
 //             {
 //                   case CANDIDATE: 
@@ -100,27 +99,33 @@ void CpersonTarget::updateStatus(unsigned int th1, unsigned int th2, unsigned in
 //                   default:
 //                         break;
 //             }
-            if ( isStatus(VISUALLY_CONFIRMED) ) {
-                  if ( countVisuallyCorrected > th4 ) setStatus(FRIEND_IN_SIGHT, true);                  
-                  return;}
-            if ( isStatus(LEGGED_TARGET) ) {
-                  if ( countVisuallyCorrected > th3 ) setStatus(VISUALLY_CONFIRMED, true);
-                  if ( this->estimate.position.getCovTrace() > 1 ) setStatus(TO_BE_REMOVED,true);
-                  return;}
-            if ( isStatus(CANDIDATE) ) {
-                  if ( countIterations > th2 ) 
-                  {
-                        setStatus(LEGGED_TARGET,true);
-                        setStatus(CANDIDATE,false);
-                  }
-                  if ( this->estimate.position.getCovTrace() > 1 ) setStatus(TO_BE_REMOVED,true);
-                  return;}
-      }
+        if ( isStatus(VISUALLY_CONFIRMED) ) 
+        {
+            if ( countVisuallyCorrected > th4 ) setStatus(FRIEND_IN_SIGHT, true);                  
+            return;
+        }
+        if ( isStatus(LEGGED_TARGET) ) 
+        {
+            if ( countVisuallyCorrected > th3 ) setStatus(VISUALLY_CONFIRMED, true);
+            if ( this->estimate.position.getCovTrace() > 1 ) setStatus(TO_BE_REMOVED,true);
+            return;
+        }
+        if ( isStatus(CANDIDATE) )
+        {
+            if ( countIterations > th2 ) 
+            {
+                setStatus(LEGGED_TARGET,true);
+                setStatus(CANDIDATE,false);
+            }
+            if ( this->estimate.position.getCovTrace() > 1 ) setStatus(TO_BE_REMOVED,true);
+                return;
+        }
+    }
 }
 
 void CpersonTarget::getPositionEstimate(Cpoint3dCov & est)
 {
-	est = track.back().position;
+    est = track.back().position;
 }
 
 // void CpersonTarget::addToTrack(const filterEstimate &est)
@@ -145,17 +150,18 @@ void CpersonTarget::getPositionEstimate(Cpoint3dCov & est)
 
 void CpersonTarget::resetMatchScores()
 {
-        for (unsigned int ii=0; ii<NUM_DETECTORS; ii++) matchScores[ii].clear();        
+    for (unsigned int ii=0; ii<NUM_DETECTORS; ii++) matchScores[ii].clear();        
 }
 
 void CpersonTarget::resetAssociationProbs()
 {
-        for (unsigned int ii=0; ii<NUM_DETECTORS; ii++) aProbs[ii].clear();
+    for (unsigned int ii=0; ii<NUM_DETECTORS; ii++) aProbs[ii].clear();
 }
 
 void CpersonTarget::resetAssociationDecisions()
 {
-        for (unsigned int ii=0; ii<NUM_DETECTORS; ii++) aDecisions[ii].clear();
+    //TODO: if only called by resizeAssociationDecisions(), delete this function and add line to resizeAssociationDecisions()
+    for (unsigned int ii=0; ii<NUM_DETECTORS; ii++) aDecisions[ii].clear();
 }
 
 void CpersonTarget::resizeAssociationDecisions(const unsigned int nLegsDet, const unsigned int nBodyDet, const unsigned int nFaceDet, const unsigned int nBody3dDet)
@@ -166,6 +172,7 @@ void CpersonTarget::resizeAssociationDecisions(const unsigned int nLegsDet, cons
     this->resetAssociationDecisions();
     
     //resize each vector and set them to false
+    //TODO: since vectors have been reseted above, it could be resize(n,false);
     aDecisions[LEGS].resize(nLegsDet);
     for (kk=0; kk<nLegsDet; kk++) aDecisions[LEGS].at(kk) = false;
     
@@ -193,18 +200,18 @@ double CpersonTarget::associationProb(Cpoint3d & pDet)
 
 void CpersonTarget::addEstimateToTrack()
 {
-        track.push_back(this->estimate);
-        if ( track.size() > TRACK_SIZE )
-        {
-                track.pop_front();
-        }
+    track.push_back(this->estimate);
+    if ( track.size() > TRACK_SIZE )
+    {
+        track.pop_front();
+    }
 }
 
 void CpersonTarget::print()
 {
-	std::list<filterEstimate>::iterator iiE;
-      
-      CpersonParticleFilter::print();
+    std::list<filterEstimate>::iterator iiE;
+    
+    CpersonParticleFilter::print();
 	
 // 	std::cout << "Target ID: " << id << std::endl;
 //       std::cout << "countVisuallyCorrected: " << countVisuallyCorrected << std::endl;
@@ -220,22 +227,22 @@ void CpersonTarget::print()
 
 void CpersonTarget::printTables()
 {
-      std::cout << "TARGET " << this->getId() << std::endl;
-      for (unsigned int ii=0; ii<NUM_DETECTORS; ii++) 
-      {
-            std::cout << "   DETECTOR " << ii << std::endl;
-            std::cout << "     aP: ";
-            for (unsigned int jj=0; jj<aProbs[ii].size(); jj++) 
-            {
-                  std::cout << aProbs[ii].at(jj) << " ";
-            }
-            std::cout << std::endl;
-            
-            std::cout << "     aD: ";
-            for (unsigned int jj=0; jj<aProbs[ii].size(); jj++) 
-            {
-                  std::cout << aDecisions[ii].at(jj) << " ";
-            }
-            std::cout << std::endl;
-      }
+    std::cout << "TARGET " << this->getId() << std::endl;
+    for (unsigned int ii=0; ii<NUM_DETECTORS; ii++) 
+    {
+        std::cout << "   DETECTOR " << ii << std::endl;
+        std::cout << "     aP: ";
+        for (unsigned int jj=0; jj<aProbs[ii].size(); jj++) 
+        {
+                std::cout << aProbs[ii].at(jj) << " ";
+        }
+        std::cout << std::endl;
+        
+        std::cout << "     aD: ";
+        for (unsigned int jj=0; jj<aProbs[ii].size(); jj++) 
+        {
+                std::cout << aDecisions[ii].at(jj) << " ";
+        }
+        std::cout << std::endl;
+    }
 }
