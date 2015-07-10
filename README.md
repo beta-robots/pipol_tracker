@@ -11,4 +11,4 @@ Although the inputs are configurable, currently it uses:
 * Depth camera 3D body detections
 * Odometry
 
-For further instructions (installation, etc) check the [pipol_tracker wiki] (https://github.com/beta-robots/pipol_tracker/wiki).
+For further instructions (installation, tags, etc) check the [pipol_tracker wiki] (https://github.com/beta-robots/pipol_tracker/wiki).
