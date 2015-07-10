@@ -7,7 +7,7 @@
 #include <vector>
 
 //matrix class
-#include "matrix.h"
+#include "matrixx.h"
 
 /** \brief A pure virtual solver for the association problem
  * 

@@ -10,7 +10,7 @@
 #include <algorithm> //find()
 
 //pipol tracker
-#include "matrix.h"
+#include "matrixx.h"
 
 //constants
 const double PROB_ZERO_ = 1e-3;

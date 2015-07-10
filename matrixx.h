@@ -1,6 +1,6 @@
 
-#ifndef matrix_H
-#define matrix_H
+#ifndef matrixx_H
+#define matrixx_H
 
 //std
 #include <iostream>
