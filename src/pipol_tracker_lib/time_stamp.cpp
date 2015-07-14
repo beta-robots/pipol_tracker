@@ -1,57 +1,57 @@
 #include "timeStamp.h"
 
-CtimeStamp::CtimeStamp()
+TimeStamp::TimeStamp()
 {
 	timeStamp = 0;
 }
 
-CtimeStamp::~CtimeStamp()
+TimeStamp::~TimeStamp()
 {
 	//nothing to do
 }
 
-void CtimeStamp::setToNow()
+void TimeStamp::setToNow()
 {
 	timeval ts;
 	gettimeofday(&ts, NULL); 
 	timeStamp = (double)(ts.tv_sec + ts.tv_usec/1e6);	
 }
 
-void CtimeStamp::set(timeval ts)
+void TimeStamp::set(timeval ts)
 {
 	timeStamp = (double)(ts.tv_sec + ts.tv_usec/1e6);	
 }
 
-void CtimeStamp::set(unsigned long int sec, unsigned long int nanosec)
+void TimeStamp::set(unsigned long int sec, unsigned long int nanosec)
 {
 	timeStamp = (double)(sec + nanosec/1e9);	
 }
 
-void CtimeStamp::set(double ts)
+void TimeStamp::set(double ts)
 {
 	timeStamp = ts;
 }
 
-double CtimeStamp::get() const
+double TimeStamp::get() const
 {
 	return timeStamp;
 }
 
-unsigned long int CtimeStamp::getSeconds()
+unsigned long int TimeStamp::getSeconds()
 {
 	unsigned long int ts;
 	ts = (unsigned long int)floor(timeStamp);
 	return ts;
 }
 
-unsigned long int CtimeStamp::getNanoSeconds()
+unsigned long int TimeStamp::getNanoSeconds()
 {
 	double ts;
 	ts = floor(timeStamp);
 	return (unsigned long int)((timeStamp-ts)*1e9);
 }
 
-void CtimeStamp::print(std::ostream *ost) const
+void TimeStamp::print(std::ostream *ost) const
 {
 	std::streamsize nn;
 	//std::streamsize ww;

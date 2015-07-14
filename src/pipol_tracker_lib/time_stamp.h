@@ -10,12 +10,12 @@ const unsigned int TIME_STAMP_DIGITS = 10;
 
 /**
  *
- * \brief CtimeStamp implements basic funcitionalities for time stamps
+ * \brief TimeStamp implements basic funcitionalities for time stamps
  * 
- * CtimeStamp implements basic funcitionalities for time stamps
+ * TimeStamp implements basic funcitionalities for time stamps
  *
 */
-class CtimeStamp
+class TimeStamp
 {
 	protected:
 		/**
@@ -33,7 +33,7 @@ class CtimeStamp
 		* Constructor
 		*
 		*/				
-		CtimeStamp();
+		TimeStamp();
 
 		/**
 		* \brief Destructor
@@ -41,7 +41,7 @@ class CtimeStamp
 		* Destructor
 		*
 		*/						
-		~CtimeStamp();
+		~TimeStamp();
 		
 		/**
 		* \brief Time stamp to now
