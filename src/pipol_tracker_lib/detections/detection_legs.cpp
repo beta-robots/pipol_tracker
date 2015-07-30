@@ -14,14 +14,14 @@ DetectionLegs::~DetectionLegs()
 		
 double DetectionLegs::likelihood(const Eigen::VectorXs & _state) const
 {
-	double dist_sq, score;
+    double dist_sq, score;
 
     dist_sq = (_state(0)-_point(0))*(_state(0)-_point(0)) + (_state(1)-_point(1))*(_state(1)-_point(1));
-    if ( dist_sq <= params_->person_radius_sq_ )
+    if ( dist_sq <= params_->person_radius_sq_ ) //closer than radius
     {
         score = params_->K1_ * params_->person_radius_sq_ + 1;
     }
-    else
+    else //farther than radius
     {
         score = params_->matching_alpha_ * exp( (params_->person_radius_-sqrt(dist_sq))*params_->matching_beta_ );
     }
