@@ -15,9 +15,10 @@
  * \brief DetectionBase implements common features of detections
  * 
  * DetectionBase implements common features of detections
- * Two data members are considered: 
- *  - status: integer that specifies if observation data is correct and if it has been already used by a process.
- *  - timeStamp: time when observation was taken. Ideally, it should be set from acquisition data.
+ * Several data members are considered: 
+ *  - is_x_: Set of bool flags indicating the status of detection data.
+ *  - id_ : unique id of the detection
+ *  - time_stamp_: time when observation was taken. Ideally, it should be set from acquisition data.
  * 
  * Detection specific data should be implemented by classes that inherits from this basic class
  *
@@ -48,7 +49,7 @@ class DetectionBase
         
         /** \brief Observation id
         *
-        * Detection id. In some applications it could be necessary to identify detections with an ID
+        * Detection id. In some applications it is necessary to identify detections with an ID
         *
         */      
         unsigned int id_;    
@@ -66,6 +67,7 @@ class DetectionBase
          * Sensor frame from which this detection has been taken
          * 
          **/
+		//Do not put such member: Detections should be stored in robot centered frame
 
     public:
         /** \brief Constructor
@@ -170,7 +172,7 @@ class DetectionBase
          * Used by particle filetering approach.
          * 
          **/
-        virtual double likelihood(const Eigen::VectorXs & _state) = 0;
+        virtual double likelihood(const Eigen::VectorXs & _state) const = 0;
         
         /** \brief Detection cost. 
          * 
@@ -180,7 +182,7 @@ class DetectionBase
          * Used by Optimization approach.
          * 
          **/
-        virtual double likelihood(const Eigen::VectorXs & _state) = 0;
+        virtual double cost(const Eigen::VectorXs & _state) const = 0;
                                 
 };  
 #endif

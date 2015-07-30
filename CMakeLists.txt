@@ -46,6 +46,8 @@ SET(SRCS_PT_LIB
       src/pipol_tracker_lib/association_tree.cpp
       src/pipol_tracker_lib/association_nnls.cpp
       src/pipol_tracker_lib/association_solver.cpp
+      src/pipol_tracker_lib/detections/detection_base.cpp
+      src/pipol_tracker_lib/detections/detection_legs.cpp
 )
 
 
