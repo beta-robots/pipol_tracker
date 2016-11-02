@@ -4,20 +4,21 @@
 #include <list>
 #include "geometry/point3d.h"
 #include "geometry/point3dCov.h"
-#include "observations/odometryObservation.h"
-#include "observations/point3dObservation.h"
-#include "observations/bodyObservation.h"
-#include "observations/faceObservation.h"
+// #include "observations/odometryObservation.h"
+// #include "observations/point3dObservation.h"
+// #include "observations/bodyObservation.h"
+// #include "observations/faceObservation.h"
 #include "random/simpleRnd.h"
 #include "personParticle.h"
+#include "detections/detection_base.h"
 
 //numerical constants
 const double SQRT_2 = 1.4142;
 const double ZERO_LIKELIHOOD = 1e-30;
 
 //detector index
-const unsigned int NUM_DETECTORS = 4; //TLD does not count as the other detectors 
-enum detectorIds {LEGS=0, BODY, FACE, BODY3D, TLD};
+const unsigned int NUM_DETECTORS = 4; 
+enum detectorIds {LEGS=0, BODY, FACE, BODY3D};
 
 //motion model modes
 enum motionModes {MODE_STOP=0, MODE_GO};
@@ -32,14 +33,14 @@ const double SIGMA_MIN_RESAMPLING_VXY = 0.05; ////resampling constants noise (si
 const double MAX_SPEED_STOPPED = 0.1;
 const double PROB_STOP2STOP = 0.9; //prob for a given STOPPED target to remain STOPPED in the next iteration, [0,1]
 const double PROB_GO2GO = 0.9; //prob for a given GO target to remain GO in the next iteration, [0,1]
-const double PERSON_RADIUS_LEGS = 0.35; //Considered person radius [m]
-const double PERSON_RADIUS_BODY = 0.25; //Considered person radius [m]
-const double MATCHING_LEGS_ALPHA = 0.1;//For legs likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
-const double MATCHING_LEGS_BETA = 10;//For legs likelihood, Off-band expoenential decayment, set in [2,50]
-const double MATCHING_BODY_ALPHA = 0.1;//For bearing likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
-const double MATCHING_BODY_BETA = 10;//For bearing likelihood, Off-band expoenential decayment, set in [2,50]
-const double MATCHING_BODY3D_ALPHA = 0.2;
-const double MATCHING_BODY3D_BETA = 10;
+// const double PERSON_RADIUS_LEGS = 0.35; //Considered person radius [m]
+// const double PERSON_RADIUS_BODY = 0.25; //Considered person radius [m]
+// const double MATCHING_LEGS_ALPHA = 0.1;//For legs likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
+// const double MATCHING_LEGS_BETA = 10;//For legs likelihood, Off-band expoenential decayment, set in [2,50]
+// const double MATCHING_BODY_ALPHA = 0.1;//For bearing likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
+// const double MATCHING_BODY_BETA = 10;//For bearing likelihood, Off-band expoenential decayment, set in [2,50]
+// const double MATCHING_BODY3D_ALPHA = 0.2;
+// const double MATCHING_BODY3D_BETA = 10;
 const unsigned int MAX_REMOVING_ITERATIONS = 7;
 
 /**
@@ -56,14 +57,14 @@ struct pFilterParameters
         double sigmaResamplingXY; //resampling std dev for x,y components, [m]
         double sigmaRatioResamplingVxy; //resampling std dev for vx,vy components, [m/s]
         double sigmaMinResamplingVxy; //resampling std dev for vx,vy components, [m/s]
-        double personRadiusLegs; //considered radius of the tracked person, for legs [m]
-        double personRadiusBody; //considered radius of the tracked person, for body [m]
-        double matchingLegsAlpha; //For legs likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
-        double matchingLegsBeta; //For legs likelihood, Off-band expoenential decayment, set in [2,50]
-        double matchingBearingAlpha; //For bearing likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
-        double matchingBearingBeta; //For bearing likelihood, Off-band expoenential decayment, set in [2,50]    
-        double matchingBody3dAlpha;
-        double matchingBody3dBeta;
+        //double personRadiusLegs; //considered radius of the tracked person, for legs [m]
+//         double personRadiusBody; //considered radius of the tracked person, for body [m]
+        //double matchingLegsAlpha; //For legs likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
+        //double matchingLegsBeta; //For legs likelihood, Off-band expoenential decayment, set in [2,50]
+//         double matchingBearingAlpha; //For bearing likelihood, Difference between lik(0) and lik(border of "pass band") , in [0,0.5]
+//         double matchingBearingBeta; //For bearing likelihood, Off-band expoenential decayment, set in [2,50]    
+//         double matchingBody3dAlpha;
+//         double matchingBody3dBeta;
 };
 
 /**
@@ -72,18 +73,18 @@ struct pFilterParameters
  * Struct grouping filter constants derived from parameters
  * 
  */
-struct derivedConstants
-{
-        double legsK1;
-        double body3dK1;
-};
+// struct derivedConstants
+// {
+//         //double legsK1;
+//         double body3dK1;
+// };
 
 /**
  *\brief Struct encapsulating the state of a target as
  * 
  * Struct encapsulating the filter estimate for a target with a time stamp
- * Particle set estimates 2D-position and 2D-velocity, so state space is 4D
- * z-components of position and velocity are not used.
+ * State space is 2D-position and 2D-velocity.
+ * Z-components of position and velocity are not used.
  */
 struct filterEstimate
 {
@@ -95,12 +96,19 @@ struct filterEstimate
 class CpersonParticleFilter
 {
       protected:
+			/** \brief set of detections to be fused by this filter
+			 * 
+			 * set of detections to be fused by this filter
+			 * 
+			 **/
+			std::list<DetectionBase*> detection_list_; 
+		  
             /** \brief Particle set
             * 
             * Particle set. Sample set on 2D-position + 2D-velocity space.
             * 
             */
-            std::list<CpersonParticle> pSet;
+            std::list<CpersonParticle> p_set_;
             
             /** \brief current estimate
             * 
@@ -129,7 +137,7 @@ class CpersonParticleFilter
             * Iteration counter
             * 
             */
-            unsigned int countIterations;
+            unsigned int iteration_counter_;
             
             /** \brief Counter of consecutive uncorrected iterations
             * 
@@ -147,9 +155,9 @@ class CpersonParticleFilter
             */
             unsigned int countVisuallyCorrected;
             
-            /** \brief Counts target reomving iterations
+            /** \brief Counts target removing iterations
             * 
-            * Counts target reomving iterations
+            * Counts target removing iterations
             * 
             **/
             unsigned int countToBeRemoved;
@@ -166,7 +174,7 @@ class CpersonParticleFilter
             * Derived parameters from tunning parameters.
             * 
             */
-            derivedConstants dConstants;
+            //derivedConstants dConstants;
                 
       public:
             /** \brief Default constructor
@@ -209,7 +217,7 @@ class CpersonParticleFilter
             * Gets person radius used by this filter 
             * 
             */                                                                
-            double getPersonRadius();                
+//             double getPersonRadius();                
 
             /** \brief Gets iteration counter
             * 
@@ -248,8 +256,7 @@ class CpersonParticleFilter
             
             /** \brief Updates iteration counters
             * 
-            * Increments iteration counter and updates consecutiveUncorrected ans visuallyCorrected
-            * Inputs are 
+            * Increments iteration counter and updates consecutiveUncorrected ans visuallyCorrected 
             * 
             */                                                                                                                                                
             void updateCounters(bool corrected, bool visual, bool occluded);
@@ -278,28 +285,58 @@ class CpersonParticleFilter
             * 
             **/                
             void predictPset();
+			
+			/** \brief corrects particle set
+			 * 
+			 * Corrects particle set
+			 * 
+			 **/
+			void correctPset(); 
             
-            void computeWeights(Cpoint3dObservation & pDet, vector<double> & ww);
-            void computeWeights(CbodyObservation & pDet, vector<double> & ww);
-            void computeWeights(CfaceObservation & pDet, vector<double> & ww);
-            void computeWeightsBody3d(Cpoint3dObservation & pDet, vector<double> & ww);
-            void setWeights(const vector<double> & ww);
+//             void computeWeights(Cpoint3dObservation & pDet, vector<double> & ww);
+//             void computeWeights(CbodyObservation & pDet, vector<double> & ww);
+//             void computeWeights(CfaceObservation & pDet, vector<double> & ww);
+//             void computeWeightsBody3d(Cpoint3dObservation & pDet, vector<double> & ww);
+//             void setWeights(const vector<double> & ww);
             void normalizePset();
             void resamplePset();
             void updateEstimate();
             void setMotionMode();
             unsigned int getMotionMode();
-            double legMatchingFunction(Cpoint3d & p1);
-            double legMatchingFunction(Cpoint3d & p1, Cpoint3d & p2);
-            double bodyMatchingFunction(Cpoint3d & pD);
-            double bodyMatchingFunction(Cpoint3d & pD, Cpoint3d & pT);
-            double faceMatchingFunction(Cpoint3d & pD);
-            double faceMatchingFunction(Cpoint3d & pD, Cpoint3d & pT);
-            double body3dMatchingFunction(Cpoint3d & pD);
-            double body3dMatchingFunction(Cpoint3d & pD, Cpoint3d & pT);            
-            double d2point2(const Cpoint3d & _pt);
+//             double legMatchingFunction(Cpoint3d & p1);
+//             double legMatchingFunction(Cpoint3d & p1, Cpoint3d & p2);
+//             double bodyMatchingFunction(Cpoint3d & pD);
+//             double bodyMatchingFunction(Cpoint3d & pD, Cpoint3d & pT);
+//             double faceMatchingFunction(Cpoint3d & pD);
+//             double faceMatchingFunction(Cpoint3d & pD, Cpoint3d & pT);
+//             double body3dMatchingFunction(Cpoint3d & pD);
+//             double body3dMatchingFunction(Cpoint3d & pD, Cpoint3d & pT);            
+//             double d2point2(const Cpoint3d & _pt);
             double getAzimuth() const; 
-            virtual void print(unsigned int tId=0);
-            void printParticleSet();
+            virtual void print(unsigned int tId=0) const;
+            void printParticleSet() const;
+			
+			/** \brief Add detection to the list
+			 * 
+			 * Add detection to the list
+			 * 
+			 **/
+			void addDetection(DetectionBase * _det_ptr);
+			
+			/** \brief Clears all detections associated to this filter
+			 * 
+			 * Clears all detections associated to this filter
+			 * Frees memory by deleting pointers
+			 * 
+			 **/
+			void clearDetections(); 
+			
+			/** \brief Clears all detections associated to this filter older than a given time stamp
+			 * 
+			 * Clears all detections associated to this filter older than a given time stamp
+			 * Frees memory by deleting pointers
+			 * 
+			 **/			
+			void removeDetections(const TimeStamp & _ts)
 };
 #endif

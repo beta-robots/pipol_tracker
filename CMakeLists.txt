@@ -38,9 +38,9 @@ SET(SRCS_PT_LIB
       src/pipol_tracker_lib/observations/timeStamp.cpp
       src/pipol_tracker_lib/observations/basicObservation.cpp
       src/pipol_tracker_lib/observations/odometryObservation.cpp
-      src/pipol_tracker_lib/observations/point3dObservation.cpp
-      src/pipol_tracker_lib/observations/bodyObservation.cpp
-      src/pipol_tracker_lib/observations/faceObservation.cpp
+#       src/pipol_tracker_lib/observations/point3dObservation.cpp
+#       src/pipol_tracker_lib/observations/bodyObservation.cpp
+#       src/pipol_tracker_lib/observations/faceObservation.cpp
       src/pipol_tracker_lib/random/simpleRnd.cpp
       src/pipol_tracker_lib/association_node.cpp
       src/pipol_tracker_lib/association_tree.cpp
@@ -48,8 +48,8 @@ SET(SRCS_PT_LIB
       src/pipol_tracker_lib/association_solver.cpp
       src/pipol_tracker_lib/detections/detection_base.cpp
       src/pipol_tracker_lib/detections/detection_legs.cpp
+      src/pipol_tracker_lib/detections/detection_body3D.cpp      
 )
-
 
 #SRCS files. ROS node
 SET(SRCS_ROS_NODE 

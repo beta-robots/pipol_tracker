@@ -28,7 +28,7 @@ class CpersonParticle
 
 		void setW(double wt);		
 		double getW();
-            void predictStopped(double deltaT);
+		void predictStopped(double deltaT);
 		void predictVlinear(double deltaT);
 		void printParticle(bool endLine = true);
 		bool operator<(CpersonParticle px); 
